@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandas 완전정복 — 빅데이터분석기사 & ADP</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+:root{
+  --bg:#f8f9fb;
+  --white:#ffffff;
+  --border:#e2e6ef;
+  --border2:#cbd2e0;
+  --dark:#0f172a;
+  --dark2:#1e293b;
+  --dark3:#334155;
+  --gray:#64748b;
+  --gray2:#94a3b8;
+
+  --pd:#1a56db;        /* pandas blue */
+  --pd-light:#eff6ff;
+  --pd-mid:#dbeafe;
+  --pd-dark:#1e40af;
+
+  --green:#16a34a;
+  --green-light:#f0fdf4;
+  --orange:#c2600a;
+  --orange-light:#fff7ed;
+  --red:#dc2626;
+  --red-light:#fef2f2;
+  --purple:#7c3aed;
+  --purple-light:#faf5ff;
+  --teal:#0f766e;
+  --teal-light:#f0fdfa;
+
+  /* exam badges */
+  --t1:#dc2626; --t1-bg:#fef2f2; --t1-bd:#fecaca;
+  --t2:#16a34a; --t2-bg:#f0fdf4; --t2-bd:#bbf7d0;
+  --t3:#1a56db; --t3-bg:#eff6ff; --t3-bd:#bfdbfe;
+  --adp:#7c3aed; --adp-bg:#faf5ff; --adp-bd:#ddd6fe;
+
+  /* syntax */
+  --ck:#d73a49;
+  --cs:#1657a0;
+  --cn:#005cc5;
+  --cc:#6a737d;
+  --cf:#6f42c1;
+  --ctype:#c37600;
+  --cop:#e36209;
+  --cann:#2c7e52;
+}
+
+body{
+  background:var(--bg);
+  color:var(--dark);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:14px;
+  line-height:1.7;
+}
+
+/* ─── STICKY HEADER ─── */
+.site-header{
+  position:sticky;top:0;z-index:200;
+  background:var(--white);
+  border-bottom:2px solid var(--border);
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.header-inner{
+  max-width:1380px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:56px;gap:16px;
+}
+.logo{
+  display:flex;align-items:center;gap:8px;
+  font-weight:900;font-size:17px;white-space:nowrap;
+}
+.logo-pd{color:var(--pd)}
+.logo-sep{color:var(--gray2);font-weight:300;margin:0 2px}
+.toc-nav{
+  display:flex;gap:4px;flex-wrap:wrap;
+  overflow:hidden;max-height:36px;
+}
+.toc-btn{
+  padding:4px 11px;border-radius:20px;
+  font-size:11px;font-weight:600;
+  border:1px solid var(--border2);
+  background:var(--white);color:var(--gray);
+  cursor:pointer;text-decoration:none;
+  transition:all .15s;white-space:nowrap;
+}
+.toc-btn:hover{background:var(--pd);color:#fff;border-color:var(--pd)}
+
+/* ─── HERO ─── */
+.hero{
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  padding:52px 28px 44px;
+  text-align:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--pd-light);border:1px solid var(--pd-mid);
+  border-radius:20px;padding:5px 16px;
+  font-size:11px;font-weight:700;color:var(--pd-dark);
+  letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px;
+}
+.hero h1{
+  font-size:clamp(30px,5vw,60px);
+  font-weight:900;letter-spacing:-1.5px;
+  line-height:1.1;margin-bottom:12px;color:var(--dark);
+}
+.hero h1 em{color:var(--pd);font-style:normal}
+.hero-sub{
+  font-size:15px;color:var(--gray);
+  max-width:560px;margin:0 auto 28px;
+}
+.hero-chips{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+}
+.chip{
+  padding:6px 18px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  border:1.5px solid;
+}
+.chip-1{background:var(--t1-bg);color:var(--t1);border-color:var(--t1-bd)}
+.chip-2{background:var(--t2-bg);color:var(--t2);border-color:var(--t2-bd)}
+.chip-3{background:var(--t3-bg);color:var(--t3);border-color:var(--t3-bd)}
+.chip-adp{background:var(--adp-bg);color:var(--adp);border-color:var(--adp-bd)}
+
+/* ─── MAIN LAYOUT ─── */
+.main{
+  max-width:1380px;margin:0 auto;
+  display:grid;
+  grid-template-columns:220px 1fr;
+  gap:32px;
+  padding:32px 28px 80px;
+  align-items:start;
+}
+@media(max-width:900px){
+  .main{grid-template-columns:1fr;padding:20px 16px}
+  .sidebar{display:none}
+}
+
+/* ─── SIDEBAR TOC ─── */
+.sidebar{
+  position:sticky;top:72px;
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:12px;padding:18px 0;
+  max-height:calc(100vh - 90px);
+  overflow-y:auto;
+}
+.sidebar-title{
+  font-size:10px;font-weight:800;
+  color:var(--gray2);letter-spacing:1.2px;
+  text-transform:uppercase;
+  padding:0 18px 10px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+}
+.sb-link{
+  display:block;padding:6px 18px;
+  font-size:12px;color:var(--dark3);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+.sb-link:hover{
+  color:var(--pd);
+  border-left-color:var(--pd);
+  background:var(--pd-light);
+}
+.sb-link.active{
+  color:var(--pd);
+  border-left-color:var(--pd);
+  font-weight:700;
+  background:var(--pd-light);
+}
+
+/* ─── CONTENT ─── */
+.content{}
+
+/* ─── SECTION ─── */
+.section{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:24px;
+  overflow:hidden;
+}
+.section-head{
+  display:flex;align-items:center;gap:14px;
+  padding:18px 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.sec-num{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--pd);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;flex-shrink:0;
+}
+.sec-title{font-size:18px;font-weight:900;letter-spacing:-.3px}
+.sec-desc{font-size:12px;color:var(--gray);margin-top:2px}
+.exam-tags{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+
+.section-body{padding:24px}
+
+/* ─── SUBSECTION ─── */
+.sub-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:800;
+  color:var(--dark2);
+  margin:24px 0 12px;
+  padding-bottom:6px;
+  border-bottom:1.5px solid var(--border);
+}
+.sub-title:first-child{margin-top:0}
+.sub-title::before{
+  content:'';
+  width:3px;height:14px;
+  background:var(--pd);
+  border-radius:2px;
+}
+
+/* ─── TABLE ─── */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead tr{background:var(--bg)}
+th{
+  padding:9px 14px;text-align:left;
+  font-weight:700;font-size:11px;
+  color:var(--gray);letter-spacing:.3px;
+  border-bottom:1.5px solid var(--border2);
+  white-space:nowrap;
+}
+td{
+  padding:8px 14px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;line-height:1.6;
+  color:var(--dark2);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(26,86,219,.02)}
+td code,th code{
+  font-family:'Fira Code',monospace;
+  font-size:11.5px;
+  background:var(--pd-light);
+  color:var(--pd-dark);
+  padding:1px 5px;border-radius:4px;
+  border:1px solid var(--pd-mid);
+}
+
+/* ─── CODE BLOCK ─── */
+.code-block{
+  background:#f6f8fa;
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:16px;
+  overflow:hidden;
+}
+.code-header{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px;
+  background:#eef1f6;
+  border-bottom:1px solid var(--border);
+}
+.code-dots{display:flex;gap:5px}
+.code-dot{width:10px;height:10px;border-radius:50%}
+.code-lang{
+  font-size:11px;font-weight:700;
+  color:var(--gray);margin-left:4px;letter-spacing:.3px;
+}
+pre{
+  padding:16px 20px;
+  font-family:'Fira Code',monospace;
+  font-size:12.5px;
+  line-height:1.85;
+  overflow-x:auto;
+  white-space:pre;
+  tab-size:4;
+  color:var(--dark);
+}
+/* syntax */
+.kw {color:var(--ck);font-weight:600}
+.st {color:var(--cs)}
+.nu {color:var(--cn)}
+.cm {color:var(--cc);font-style:italic}
+.fn {color:var(--cf)}
+.ty {color:var(--ctype);font-weight:600}
+.op {color:var(--cop)}
+.an {color:var(--cann)}
+.dec{color:#7c3aed;font-weight:600}
+
+/* ─── EXAM BADGE ─── */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:2px 8px;border-radius:5px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.3px;border:1px solid;
+}
+.b1{background:var(--t1-bg);color:var(--t1);border-color:var(--t1-bd)}
+.b2{background:var(--t2-bg);color:var(--t2);border-color:var(--t2-bd)}
+.b3{background:var(--t3-bg);color:var(--t3);border-color:var(--t3-bd)}
+.badp{background:var(--adp-bg);color:var(--adp);border-color:var(--adp-bd)}
+
+/* ─── CALLOUT ─── */
+.callout{
+  display:flex;gap:12px;align-items:flex-start;
+  border-radius:10px;padding:13px 16px;
+  margin:12px 0;font-size:13px;line-height:1.6;
+}
+.callout-icon{font-size:17px;flex-shrink:0;line-height:1.5}
+.callout.tip {background:var(--green-light);border-left:3px solid var(--green)}
+.callout.warn{background:var(--orange-light);border-left:3px solid var(--orange)}
+.callout.info{background:var(--pd-light);border-left:3px solid var(--pd)}
+.callout.star{background:#fffbeb;border-left:3px solid #d97706}
+strong{font-weight:700}
+
+/* ─── GRID CARDS ─── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.card{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;padding:14px;
+}
+.card-head{
+  display:flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:700;
+  color:var(--dark2);margin-bottom:10px;
+}
+.card-icon{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+
+/* ─── CHECKLIST ─── */
+.checklist{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:10px;margin:12px 0;
+}
+.chk-item{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+  font-size:12.5px;
+}
+.chk-dot{
+  width:18px;height:18px;border-radius:50%;
+  flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:#fff;font-weight:900;
+}
+
+/* ─── FOOTER ─── */
+.site-footer{
+  background:var(--dark);color:#94a3b8;
+  text-align:center;padding:36px 20px;
+  font-size:12px;
+}
+.site-footer strong{color:#fff}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.section{animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+
+<!-- STICKY HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span>🐼</span>
+      <span class="logo-pd">Pandas</span>
+      <span class="logo-sep">|</span>
+      <span style="color:var(--dark3);font-size:14px">빅분기 · ADP 완전정복</span>
+    </div>
+    <nav class="toc-nav">
+      <a class="toc-btn" href="#s1">불러오기</a>
+      <a class="toc-btn" href="#s2">EDA</a>
+      <a class="toc-btn" href="#s3">인덱싱</a>
+      <a class="toc-btn" href="#s4">결측치</a>
+      <a class="toc-btn" href="#s5">타입변환</a>
+      <a class="toc-btn" href="#s6">문자열</a>
+      <a class="toc-btn" href="#s7">정렬·순위</a>
+      <a class="toc-btn" href="#s8">groupby</a>
+      <a class="toc-btn" href="#s9">피벗</a>
+      <a class="toc-btn" href="#s10">merge</a>
+      <a class="toc-btn" href="#s11">apply</a>
+      <a class="toc-btn" href="#s12">날짜</a>
+      <a class="toc-btn" href="#s13">필터링</a>
+      <a class="toc-btn" href="#s14">cut/qcut</a>
+      <a class="toc-btn" href="#s15">이상치</a>
+      <a class="toc-btn" href="#s16">통계</a>
+      <a class="toc-btn" href="#s17">유형별</a>
+      <a class="toc-btn" href="#s18">ADP심화</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">📊 시험 완전 대비 레퍼런스</div>
+  <h1>🐼 Pandas <em>완전정복</em></h1>
+  <p class="hero-sub">빅데이터분석기사(빅분기) 실기 & ADP 실기에 자주 출제되는<br>핵심 pandas 문법을 18개 주제로 총정리</p>
+  <div class="hero-chips">
+    <span class="chip chip-1">🏆 빅분기 1유형</span>
+    <span class="chip chip-2">🏆 빅분기 2유형</span>
+    <span class="chip chip-3">🏆 빅분기 3유형</span>
+    <span class="chip chip-adp">💎 ADP 실기</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-title">목차</div>
+  <a class="sb-link" href="#s1">01 · 데이터 불러오기 &amp; 저장</a>
+  <a class="sb-link" href="#s2">02 · 데이터 탐색 (EDA)</a>
+  <a class="sb-link" href="#s3">03 · 데이터 선택 &amp; 인덱싱</a>
+  <a class="sb-link" href="#s4">04 · 결측치 처리</a>
+  <a class="sb-link" href="#s5">05 · 데이터 타입 변환</a>
+  <a class="sb-link" href="#s6">06 · 문자열 처리</a>
+  <a class="sb-link" href="#s7">07 · 정렬 &amp; 순위</a>
+  <a class="sb-link" href="#s8">08 · 그룹화 &amp; 집계</a>
+  <a class="sb-link" href="#s9">09 · 피벗 &amp; 리셰이핑</a>
+  <a class="sb-link" href="#s10">10 · 병합 &amp; 연결</a>
+  <a class="sb-link" href="#s11">11 · apply / map</a>
+  <a class="sb-link" href="#s12">12 · 날짜/시간 처리</a>
+  <a class="sb-link" href="#s13">13 · 조건 필터링 &amp; 쿼리</a>
+  <a class="sb-link" href="#s14">14 · 파생변수 &amp; 구간화</a>
+  <a class="sb-link" href="#s15">15 · 이상치 탐지 &amp; 처리</a>
+  <a class="sb-link" href="#s16">16 · 통계 함수</a>
+  <a class="sb-link" href="#s17">17 · 빅분기 유형별 패턴</a>
+  <a class="sb-link" href="#s18">18 · ADP 전용 심화</a>
+  <a class="sb-link" href="#s19">★ 시험 직전 체크리스트</a>
+</aside>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ══════ 01 ══════ -->
+<section class="section" id="s1">
+  <div class="section-head">
+    <div class="sec-num">01</div>
+    <div>
+      <div class="sec-title">데이터 불러오기 &amp; 저장</div>
+      <div class="sec-desc">read_csv / read_excel / to_csv — 파일 입출력</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge b2">2유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 핵심 함수 정리</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th><th>주요 파라미터</th></tr></thead>
+        <tbody>
+          <tr><td><code>pd.read_csv()</code></td><td>CSV 파일 읽기</td><td><code>sep</code>, <code>encoding</code>, <code>header</code>, <code>index_col</code>, <code>usecols</code>, <code>nrows</code>, <code>na_values</code>, <code>dtype</code></td></tr>
+          <tr><td><code>pd.read_excel()</code></td><td>Excel 읽기</td><td><code>sheet_name</code>, <code>header</code>, <code>index_col</code>, <code>usecols</code></td></tr>
+          <tr><td><code>pd.read_json()</code></td><td>JSON 읽기</td><td><code>orient</code>, <code>lines</code></td></tr>
+          <tr><td><code>pd.read_sql()</code></td><td>SQL 쿼리 결과 읽기</td><td><code>sql</code>, <code>con</code></td></tr>
+          <tr><td><code>df.to_csv()</code></td><td>CSV 저장</td><td><code>index=False</code>, <code>encoding='utf-8-sig'</code></td></tr>
+          <tr><td><code>df.to_excel()</code></td><td>Excel 저장</td><td><code>sheet_name</code>, <code>index=False</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">💻 사용 예시</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># 기본 읽기</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>)
+
+<span class="cm"># 인코딩 지정 (한글 데이터)</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>, encoding=<span class="st">'utf-8'</span>)
+df = pd.read_csv(<span class="st">'data.csv'</span>, encoding=<span class="st">'cp949'</span>)   <span class="cm"># Windows 한글</span>
+
+<span class="cm"># 특정 컬럼만 읽기</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>, usecols=[<span class="st">'age'</span>, <span class="st">'salary'</span>, <span class="st">'dept'</span>])
+
+<span class="cm"># 특정 컬럼을 인덱스로 설정</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>, index_col=<span class="st">'id'</span>)
+
+<span class="cm"># 결측치 문자열 지정</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>, na_values=[<span class="st">'-'</span>, <span class="st">'N/A'</span>, <span class="st">'없음'</span>])
+
+<span class="cm"># 컬럼 타입 미리 지정</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>, dtype={<span class="st">'age'</span>: <span class="ty">int</span>, <span class="st">'salary'</span>: <span class="ty">float</span>})
+
+<span class="cm"># 저장</span>
+df.to_csv(<span class="st">'result.csv'</span>, index=<span class="kw">False</span>, encoding=<span class="st">'utf-8-sig'</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 02 ══════ -->
+<section class="section" id="s2">
+  <div class="section-head">
+    <div class="sec-num">02</div>
+    <div>
+      <div class="sec-title">데이터 탐색 (EDA)</div>
+      <div class="sec-desc">info / describe / value_counts — 데이터 현황 파악</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 핵심 함수 정리</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th><th>반환</th></tr></thead>
+        <tbody>
+          <tr><td><code>df.head(n)</code></td><td>상위 n행 확인 (기본 5)</td><td>DataFrame</td></tr>
+          <tr><td><code>df.tail(n)</code></td><td>하위 n행 확인</td><td>DataFrame</td></tr>
+          <tr><td><code>df.shape</code></td><td>(행, 열) 튜플</td><td>tuple</td></tr>
+          <tr><td><code>df.info()</code></td><td>컬럼별 타입·결측치 현황</td><td>None (출력)</td></tr>
+          <tr><td><code>df.describe()</code></td><td>수치형 기술통계</td><td>DataFrame</td></tr>
+          <tr><td><code>df.describe(include='object')</code></td><td>범주형 기술통계</td><td>DataFrame</td></tr>
+          <tr><td><code>df.dtypes</code></td><td>컬럼별 데이터 타입</td><td>Series</td></tr>
+          <tr><td><code>df.columns</code></td><td>컬럼명 목록</td><td>Index</td></tr>
+          <tr><td><code>df.nunique()</code></td><td>컬럼별 고유값 수</td><td>Series</td></tr>
+          <tr><td><code>df['col'].value_counts()</code></td><td>빈도 집계</td><td>Series</td></tr>
+          <tr><td><code>df.isnull().sum()</code></td><td>결측치 개수</td><td>Series</td></tr>
+          <tr><td><code>df.corr()</code></td><td>수치형 상관계수 행렬</td><td>DataFrame</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">💻 사용 예시</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 기본 탐색</span>
+<span class="fn">print</span>(df.shape)            <span class="cm"># (1000, 12)</span>
+<span class="fn">print</span>(df.columns.tolist()) <span class="cm"># ['age', 'salary', ...]</span>
+df.info()
+
+<span class="cm"># 기술통계 — 특정 분위수 추가</span>
+df.describe(percentiles=[<span class="nu">0.1</span>, <span class="nu">0.25</span>, <span class="nu">0.5</span>, <span class="nu">0.75</span>, <span class="nu">0.9</span>])
+
+<span class="cm"># 고유값 확인</span>
+df[<span class="st">'dept'</span>].unique()                          <span class="cm"># array(['IT', 'HR', 'Sales'])</span>
+df[<span class="st">'dept'</span>].nunique()                         <span class="cm"># 3</span>
+
+<span class="cm"># 빈도 집계 (정규화 = 비율)</span>
+df[<span class="st">'dept'</span>].value_counts()
+df[<span class="st">'dept'</span>].value_counts(normalize=<span class="kw">True</span>)      <span class="cm"># 비율</span>
+df[<span class="st">'dept'</span>].value_counts(dropna=<span class="kw">False</span>)        <span class="cm"># 결측치 포함</span>
+
+<span class="cm"># 상관계수 행렬</span>
+df.corr()
+df.corr(method=<span class="st">'spearman'</span>)                   <span class="cm"># 스피어만</span>
+df.corr(method=<span class="st">'kendall'</span>)                    <span class="cm"># 켄달</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 03 ══════ -->
+<section class="section" id="s3">
+  <div class="section-head">
+    <div class="sec-num">03</div>
+    <div>
+      <div class="sec-title">데이터 선택 &amp; 인덱싱</div>
+      <div class="sec-desc">loc / iloc / 불리언 인덱싱 — 핵심 차이 완전 정리</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge b2">2유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 loc vs iloc 핵심 비교</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>구분</th><th><code>loc</code></th><th><code>iloc</code></th></tr></thead>
+        <tbody>
+          <tr><td>기반</td><td>라벨(label) 기반</td><td>정수(integer) 위치 기반</td></tr>
+          <tr><td>행 선택</td><td><code>df.loc[0]</code>, <code>df.loc['A']</code></td><td><code>df.iloc[0]</code></td></tr>
+          <tr><td>범위 선택</td><td><strong>끝 포함</strong> <code>df.loc[0:5]</code></td><td><strong>끝 미포함</strong> <code>df.iloc[0:5]</code></td></tr>
+          <tr><td>조건 사용</td><td><code>df.loc[df['age']&gt;30]</code></td><td>❌ 직접 조건 불가</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">📌 인덱싱 방법 정리</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>방법</th><th>문법</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>단일 컬럼</td><td><code>df['age']</code> 또는 <code>df.age</code></td><td>Series 반환</td></tr>
+          <tr><td>복수 컬럼</td><td><code>df[['age', 'salary']]</code></td><td>DataFrame 반환</td></tr>
+          <tr><td>행 슬라이싱</td><td><code>df[0:5]</code></td><td>0~4번째 행</td></tr>
+          <tr><td>조건 필터</td><td><code>df[df['age'] &gt; 30]</code></td><td>불리언 인덱싱</td></tr>
+          <tr><td>loc 행+열</td><td><code>df.loc[0:5, 'age':'salary']</code></td><td>라벨 슬라이싱</td></tr>
+          <tr><td>iloc 행+열</td><td><code>df.iloc[0:5, 2:5]</code></td><td>위치 슬라이싱</td></tr>
+          <tr><td>at</td><td><code>df.at[0, 'age']</code></td><td>단일 값 (빠름)</td></tr>
+          <tr><td>iat</td><td><code>df.iat[0, 2]</code></td><td>단일 값 위치 기반 (빠름)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">💻 사용 예시</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># loc — 라벨 기반</span>
+df.loc[<span class="nu">0</span>]                             <span class="cm"># 0번 인덱스 행</span>
+df.loc[<span class="nu">0</span>:<span class="nu">5</span>, [<span class="st">'age'</span>, <span class="st">'salary'</span>]]        <span class="cm"># 0~5행, 두 컬럼 (끝 포함!)</span>
+df.loc[df[<span class="st">'age'</span>] > <span class="nu">30</span>, <span class="st">'salary'</span>]    <span class="cm"># 조건 + 컬럼 선택</span>
+
+<span class="cm"># iloc — 정수 위치 기반</span>
+df.iloc[<span class="nu">0</span>]                            <span class="cm"># 0번째 행</span>
+df.iloc[<span class="nu">0</span>:<span class="nu">5</span>, <span class="nu">0</span>:<span class="nu">3</span>]                    <span class="cm"># 0~4행, 0~2열 (끝 미포함!)</span>
+df.iloc[<span class="op">-</span><span class="nu">1</span>]                           <span class="cm"># 마지막 행</span>
+df.iloc[:, <span class="op">-</span><span class="nu">1</span>]                       <span class="cm"># 마지막 열</span>
+
+<span class="cm"># 복수 조건 필터링</span>
+df[(df[<span class="st">'age'</span>] > <span class="nu">30</span>) & (df[<span class="st">'salary'</span>] > <span class="nu">5000</span>)]
+df[(df[<span class="st">'dept'</span>] == <span class="st">'IT'</span>) | (df[<span class="st">'dept'</span>] == <span class="st">'HR'</span>)]
+df[~(df[<span class="st">'dept'</span>] == <span class="st">'IT'</span>)]           <span class="cm"># NOT 조건</span>
+
+<span class="cm"># isin / between</span>
+df[df[<span class="st">'dept'</span>].isin([<span class="st">'IT'</span>, <span class="st">'HR'</span>])]
+df[df[<span class="st">'age'</span>].between(<span class="nu">30</span>, <span class="nu">40</span>)]        <span class="cm"># 30 이상 40 이하 (양 끝 포함)</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 04 ══════ -->
+<section class="section" id="s4">
+  <div class="section-head">
+    <div class="sec-num">04</div>
+    <div>
+      <div class="sec-title">결측치 처리</div>
+      <div class="sec-desc">isnull / fillna / dropna — 결측치 탐지와 대체</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형 핵심</span><span class="badge b3">3유형</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 결측치 탐지 &amp; 처리 함수</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th><th>주요 파라미터</th></tr></thead>
+        <tbody>
+          <tr><td><code>df.isnull()</code></td><td>결측치 여부 (True/False)</td><td>—</td></tr>
+          <tr><td><code>df.notnull()</code></td><td>비결측치 여부</td><td>—</td></tr>
+          <tr><td><code>df.isnull().sum()</code></td><td>컬럼별 결측치 수</td><td>—</td></tr>
+          <tr><td><code>df.isnull().mean()</code></td><td>결측치 비율</td><td>—</td></tr>
+          <tr><td><code>df.dropna()</code></td><td>결측치 포함 행/열 제거</td><td><code>axis</code>, <code>how</code>, <code>thresh</code>, <code>subset</code></td></tr>
+          <tr><td><code>df.fillna()</code></td><td>결측치 채우기</td><td><code>value</code>, <code>method</code>, <code>limit</code></td></tr>
+          <tr><td><code>df.interpolate()</code></td><td>보간법으로 채우기</td><td><code>method</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout star"><span class="callout-icon">⭐</span><div><strong>시험 핵심:</strong> 수치형 → 평균/중앙값 대체, 범주형 → 최빈값 대체, 시계열 → ffill/bfill 대체 패턴을 암기!</div></div>
+    <div class="sub-title">💻 사용 예시</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 결측치 현황</span>
+df.isnull().sum()
+df.isnull().sum() / <span class="fn">len</span>(df) * <span class="nu">100</span>         <span class="cm"># 비율 (%)</span>
+
+<span class="cm"># dropna</span>
+df.dropna()                               <span class="cm"># 하나라도 결측치 있는 행 제거</span>
+df.dropna(how=<span class="st">'all'</span>)                     <span class="cm"># 모든 값이 결측치인 행만 제거</span>
+df.dropna(axis=<span class="nu">1</span>)                        <span class="cm"># 결측치 있는 열 제거</span>
+df.dropna(subset=[<span class="st">'age'</span>, <span class="st">'salary'</span>])      <span class="cm"># 특정 컬럼 기준 제거</span>
+df.dropna(thresh=<span class="nu">5</span>)                      <span class="cm"># 최소 5개 비결측치 있어야 유지</span>
+
+<span class="cm"># fillna — 통계값으로 채우기 (⭐ 자주 출제)</span>
+df[<span class="st">'age'</span>].fillna(df[<span class="st">'age'</span>].mean())       <span class="cm"># 평균</span>
+df[<span class="st">'age'</span>].fillna(df[<span class="st">'age'</span>].median())     <span class="cm"># 중앙값</span>
+df[<span class="st">'age'</span>].fillna(df[<span class="st">'age'</span>].mode()[<span class="nu">0</span>])   <span class="cm"># 최빈값</span>
+
+<span class="cm"># fillna — 방향 채우기</span>
+df[<span class="st">'value'</span>].fillna(method=<span class="st">'ffill'</span>)       <span class="cm"># 앞 값 (forward fill)</span>
+df[<span class="st">'value'</span>].fillna(method=<span class="st">'bfill'</span>)       <span class="cm"># 뒤 값 (backward fill)</span>
+
+<span class="cm"># 컬럼별 다른 값으로 채우기</span>
+df.fillna({<span class="st">'age'</span>: df[<span class="st">'age'</span>].mean(), <span class="st">'dept'</span>: <span class="st">'Unknown'</span>})
+
+<span class="cm"># 보간법</span>
+df[<span class="st">'value'</span>].interpolate(method=<span class="st">'linear'</span>)         <span class="cm"># 선형 보간</span>
+df[<span class="st">'value'</span>].interpolate(method=<span class="st">'polynomial'</span>, order=<span class="nu">2</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 05 ══════ -->
+<section class="section" id="s5">
+  <div class="section-head">
+    <div class="sec-num">05</div>
+    <div>
+      <div class="sec-title">데이터 타입 변환</div>
+      <div class="sec-desc">astype / to_numeric / to_datetime / select_dtypes</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge b2">2유형</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 타입 변환 함수</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td><code>df['col'].astype()</code></td><td>타입 변환</td><td><code>astype(int)</code>, <code>astype(str)</code>, <code>astype(float)</code></td></tr>
+          <tr><td><code>pd.to_numeric()</code></td><td>숫자형 변환</td><td><code>errors='coerce'</code></td></tr>
+          <tr><td><code>pd.to_datetime()</code></td><td>날짜형 변환</td><td><code>format='%Y-%m-%d'</code></td></tr>
+          <tr><td><code>pd.Categorical()</code></td><td>범주형 변환</td><td><code>categories</code>, <code>ordered</code></td></tr>
+          <tr><td><code>df.select_dtypes()</code></td><td>특정 타입 컬럼 선택</td><td><code>include</code>, <code>exclude</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 기본 변환</span>
+df[<span class="st">'age'</span>]    = df[<span class="st">'age'</span>].astype(<span class="ty">int</span>)
+df[<span class="st">'salary'</span>] = df[<span class="st">'salary'</span>].astype(<span class="ty">float</span>)
+df[<span class="st">'dept'</span>]   = df[<span class="st">'dept'</span>].astype(<span class="ty">str</span>)
+
+<span class="cm"># 숫자 변환 (오류 시 NaN으로)</span>
+df[<span class="st">'age'</span>] = pd.to_numeric(df[<span class="st">'age'</span>], errors=<span class="st">'coerce'</span>)
+
+<span class="cm"># 범주형으로 변환 (ordered)</span>
+df[<span class="st">'grade'</span>] = pd.Categorical(
+    df[<span class="st">'grade'</span>], categories=[<span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'C'</span>], ordered=<span class="kw">True</span>
+)
+
+<span class="cm"># 타입별 컬럼 선택 (⭐ 2유형 전처리에 필수)</span>
+num_cols = df.select_dtypes(include=[<span class="st">'int64'</span>, <span class="st">'float64'</span>]).columns.tolist()
+cat_cols = df.select_dtypes(include=[<span class="st">'object'</span>, <span class="st">'category'</span>]).columns.tolist()
+num_df   = df.select_dtypes(include=<span class="st">'number'</span>)
+
+<span class="cm"># 날짜 변환</span>
+df[<span class="st">'date'</span>] = pd.to_datetime(df[<span class="st">'date'</span>])
+df[<span class="st">'date'</span>] = pd.to_datetime(df[<span class="st">'date'</span>], format=<span class="st">'%Y/%m/%d'</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 06 ══════ -->
+<section class="section" id="s6">
+  <div class="section-head">
+    <div class="sec-num">06</div>
+    <div>
+      <div class="sec-title">문자열 처리 (str accessor)</div>
+      <div class="sec-desc">str.contains / str.replace / str.extract — 텍스트 전처리</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 str 메서드 정리</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>메서드</th><th>설명</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td><code>str.upper()</code> / <code>str.lower()</code></td><td>대/소문자 변환</td><td><code>df['name'].str.upper()</code></td></tr>
+          <tr><td><code>str.strip()</code></td><td>앞뒤 공백 제거</td><td><code>df['name'].str.strip()</code></td></tr>
+          <tr><td><code>str.replace(old, new)</code></td><td>문자열 치환</td><td><code>str.replace(',', '')</code></td></tr>
+          <tr><td><code>str.contains(pat)</code></td><td>포함 여부</td><td><code>str.contains('Kim')</code></td></tr>
+          <tr><td><code>str.startswith(pat)</code></td><td>시작 여부</td><td><code>str.startswith('A')</code></td></tr>
+          <tr><td><code>str.endswith(pat)</code></td><td>끝 여부</td><td><code>str.endswith('님')</code></td></tr>
+          <tr><td><code>str.len()</code></td><td>문자열 길이</td><td><code>str.len()</code></td></tr>
+          <tr><td><code>str.split(pat)</code></td><td>분리</td><td><code>str.split('-')</code></td></tr>
+          <tr><td><code>str.get(i)</code></td><td>특정 위치 요소</td><td><code>str.split('-').str.get(0)</code></td></tr>
+          <tr><td><code>str.extract(pat)</code></td><td>정규식 추출</td><td><code>str.extract(r'(\d+)')</code></td></tr>
+          <tr><td><code>str.findall(pat)</code></td><td>정규식 모두 찾기</td><td><code>str.findall(r'\d+')</code></td></tr>
+          <tr><td><code>str.slice(start, end)</code></td><td>슬라이싱</td><td><code>str.slice(0, 4)</code></td></tr>
+          <tr><td><code>str.zfill(n)</code></td><td>0으로 패딩</td><td><code>str.zfill(5)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 공백 제거 + 대소문자</span>
+df[<span class="st">'name'</span>] = df[<span class="st">'name'</span>].str.strip().str.title()
+
+<span class="cm"># 포함 여부 필터</span>
+df[df[<span class="st">'addr'</span>].str.contains(<span class="st">'서울'</span>)]
+df[df[<span class="st">'addr'</span>].str.contains(<span class="st">'서울|부산'</span>, regex=<span class="kw">True</span>)]
+
+<span class="cm"># 특정 패턴 추출</span>
+df[<span class="st">'year'</span>] = df[<span class="st">'date'</span>].str.extract(r<span class="st">'(\d{4})'</span>)
+
+<span class="cm"># 분리 후 첫 번째 요소</span>
+df[<span class="st">'city'</span>] = df[<span class="st">'addr'</span>].str.split(<span class="st">' '</span>).str.get(<span class="nu">0</span>)
+df[<span class="st">'city'</span>] = df[<span class="st">'addr'</span>].str.split(<span class="st">' '</span>, expand=<span class="kw">True</span>)[<span class="nu">0</span>]
+
+<span class="cm"># 치환 후 숫자 변환</span>
+df[<span class="st">'salary'</span>] = df[<span class="st">'salary'</span>].str.replace(<span class="st">','</span>, <span class="st">''</span>).astype(<span class="ty">float</span>)
+
+<span class="cm"># 문자열 길이</span>
+df[<span class="st">'name_len'</span>] = df[<span class="st">'name'</span>].str.len()</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 07 ══════ -->
+<section class="section" id="s7">
+  <div class="section-head">
+    <div class="sec-num">07</div>
+    <div>
+      <div class="sec-title">정렬 &amp; 순위</div>
+      <div class="sec-desc">sort_values / rank / nlargest — 정렬과 순위 부여</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 정렬 &amp; 순위 함수</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th><th>주요 파라미터</th></tr></thead>
+        <tbody>
+          <tr><td><code>df.sort_values()</code></td><td>값 기준 정렬</td><td><code>by</code>, <code>ascending</code>, <code>na_position</code></td></tr>
+          <tr><td><code>df.sort_index()</code></td><td>인덱스 기준 정렬</td><td><code>ascending</code></td></tr>
+          <tr><td><code>df['col'].rank()</code></td><td>순위 부여</td><td><code>method</code>, <code>ascending</code>, <code>pct</code></td></tr>
+          <tr><td><code>df.nlargest(n, col)</code></td><td>상위 n개</td><td><code>keep</code></td></tr>
+          <tr><td><code>df.nsmallest(n, col)</code></td><td>하위 n개</td><td><code>keep</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">📌 rank() method 파라미터</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>method</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>'average'</code></td><td>동점 시 평균 순위 (기본값)</td></tr>
+          <tr><td><code>'min'</code></td><td>동점 시 최솟값 순위</td></tr>
+          <tr><td><code>'max'</code></td><td>동점 시 최댓값 순위</td></tr>
+          <tr><td><code>'first'</code></td><td>먼저 나온 것이 앞 순위</td></tr>
+          <tr><td><code>'dense'</code></td><td>동점 시 다음 순위를 건너뛰지 않음</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 단일 컬럼 정렬</span>
+df.sort_values(<span class="st">'salary'</span>, ascending=<span class="kw">False</span>)
+
+<span class="cm"># 복수 컬럼 정렬</span>
+df.sort_values([<span class="st">'dept'</span>, <span class="st">'salary'</span>], ascending=[<span class="kw">True</span>, <span class="kw">False</span>])
+
+<span class="cm"># 결측치 위치 지정</span>
+df.sort_values(<span class="st">'age'</span>, na_position=<span class="st">'first'</span>)    <span class="cm"># 결측치 앞으로</span>
+
+<span class="cm"># 순위 부여</span>
+df[<span class="st">'rank'</span>]     = df[<span class="st">'salary'</span>].rank(ascending=<span class="kw">False</span>, method=<span class="st">'dense'</span>)
+df[<span class="st">'pct_rank'</span>] = df[<span class="st">'salary'</span>].rank(pct=<span class="kw">True</span>)
+
+<span class="cm"># 상위 / 하위</span>
+top5 = df.nlargest(<span class="nu">5</span>, <span class="st">'salary'</span>)
+bot5 = df.nsmallest(<span class="nu">5</span>, <span class="st">'salary'</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 08 ══════ -->
+<section class="section" id="s8">
+  <div class="section-head">
+    <div class="sec-num">08</div>
+    <div>
+      <div class="sec-title">그룹화 &amp; 집계 (groupby)</div>
+      <div class="sec-desc">groupby / agg / transform / filter — 그룹 연산 완전 정리</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형 핵심</span><span class="badge b2">2유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 groupby 집계 함수</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>집계 함수</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>sum()</code></td><td>합계</td></tr>
+          <tr><td><code>mean()</code></td><td>평균</td></tr>
+          <tr><td><code>median()</code></td><td>중앙값</td></tr>
+          <tr><td><code>std()</code> / <code>var()</code></td><td>표준편차 / 분산</td></tr>
+          <tr><td><code>min()</code> / <code>max()</code></td><td>최솟값 / 최댓값</td></tr>
+          <tr><td><code>count()</code></td><td>비결측치 수</td></tr>
+          <tr><td><code>size()</code></td><td>전체 행 수 (결측치 포함)</td></tr>
+          <tr><td><code>nunique()</code></td><td>고유값 수</td></tr>
+          <tr><td><code>first()</code> / <code>last()</code></td><td>첫 / 마지막 값</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">📌 agg / transform / apply / filter 비교</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>반환 형태</th><th>용도</th></tr></thead>
+        <tbody>
+          <tr><td><code>agg()</code></td><td>집계된 결과 (행 수 감소)</td><td>집계 통계 계산</td></tr>
+          <tr><td><code>transform()</code></td><td>원본과 같은 크기</td><td>그룹별 값을 원본 df에 붙이기</td></tr>
+          <tr><td><code>apply()</code></td><td>자유도 높음</td><td>복잡한 그룹 연산</td></tr>
+          <tr><td><code>filter()</code></td><td>조건 충족 그룹만</td><td>그룹 단위 필터링</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 기본 groupby</span>
+df.groupby(<span class="st">'dept'</span>)[<span class="st">'salary'</span>].mean()
+
+<span class="cm"># 복수 컬럼 그룹</span>
+df.groupby([<span class="st">'dept'</span>, <span class="st">'gender'</span>])[<span class="st">'salary'</span>].mean()
+
+<span class="cm"># 여러 집계 동시에</span>
+df.groupby(<span class="st">'dept'</span>)[<span class="st">'salary'</span>].agg([<span class="st">'mean'</span>, <span class="st">'median'</span>, <span class="st">'std'</span>, <span class="st">'count'</span>])
+
+<span class="cm"># Named aggregation ⭐ (pandas 0.25+)</span>
+df.groupby(<span class="st">'dept'</span>).agg(
+    avg_salary=(<span class="st">'salary'</span>, <span class="st">'mean'</span>),
+    max_age   =(<span class="st">'age'</span>,    <span class="st">'max'</span>),
+    cnt       =(<span class="st">'name'</span>,   <span class="st">'count'</span>)
+)
+
+<span class="cm"># transform — 그룹 평균을 원본 행에 붙이기 (⭐ 자주 출제)</span>
+df[<span class="st">'dept_avg'</span>]    = df.groupby(<span class="st">'dept'</span>)[<span class="st">'salary'</span>].transform(<span class="st">'mean'</span>)
+df[<span class="st">'salary_diff'</span>] = df[<span class="st">'salary'</span>] - df.groupby(<span class="st">'dept'</span>)[<span class="st">'salary'</span>].transform(<span class="st">'mean'</span>)
+
+<span class="cm"># filter — 직원 수 10명 이상인 부서만</span>
+df.groupby(<span class="st">'dept'</span>).filter(<span class="kw">lambda</span> x: <span class="fn">len</span>(x) >= <span class="nu">10</span>)
+
+<span class="cm"># as_index=False → 결과를 일반 DataFrame으로</span>
+df.groupby(<span class="st">'dept'</span>, as_index=<span class="kw">False</span>)[<span class="st">'salary'</span>].mean()
+
+<span class="cm"># reset_index</span>
+df.groupby(<span class="st">'dept'</span>)[<span class="st">'salary'</span>].mean().reset_index()</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 09 ══════ -->
+<section class="section" id="s9">
+  <div class="section-head">
+    <div class="sec-num">09</div>
+    <div>
+      <div class="sec-title">피벗 &amp; 리셰이핑</div>
+      <div class="sec-desc">pivot_table / melt / crosstab — 데이터 형태 변환</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge badp">ADP 핵심</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 피벗 &amp; 리셰이핑 함수 비교</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th><th>결측치 처리</th></tr></thead>
+        <tbody>
+          <tr><td><code>pivot()</code></td><td>인덱스/컬럼/값 지정 피벗</td><td>중복 시 에러</td></tr>
+          <tr><td><code>pivot_table()</code></td><td>집계 포함 피벗 (Excel 피벗과 유사)</td><td><code>fill_value</code></td></tr>
+          <tr><td><code>melt()</code></td><td>wide → long 형식 변환</td><td>—</td></tr>
+          <tr><td><code>stack()</code></td><td>컬럼 → 인덱스로</td><td>—</td></tr>
+          <tr><td><code>unstack()</code></td><td>인덱스 → 컬럼으로</td><td>—</td></tr>
+          <tr><td><code>crosstab()</code></td><td>교차표 생성</td><td><code>normalize</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># pivot_table ⭐ (시험 단골)</span>
+pd.pivot_table(
+    df,
+    values   = <span class="st">'salary'</span>,
+    index    = <span class="st">'dept'</span>,
+    columns  = <span class="st">'gender'</span>,
+    aggfunc  = <span class="st">'mean'</span>,
+    fill_value = <span class="nu">0</span>,
+    margins  = <span class="kw">True</span>         <span class="cm"># 합계 행/열 추가</span>
+)
+
+<span class="cm"># melt — wide → long</span>
+df_long = df.melt(
+    id_vars    = [<span class="st">'id'</span>, <span class="st">'name'</span>],
+    value_vars = [<span class="st">'score1'</span>, <span class="st">'score2'</span>],
+    var_name   = <span class="st">'test'</span>,
+    value_name = <span class="st">'score'</span>
+)
+
+<span class="cm"># crosstab — 빈도 교차표</span>
+pd.crosstab(df[<span class="st">'dept'</span>], df[<span class="st">'gender'</span>])
+pd.crosstab(df[<span class="st">'dept'</span>], df[<span class="st">'gender'</span>], normalize=<span class="st">'index'</span>)  <span class="cm"># 행 기준 비율</span>
+
+<span class="cm"># stack / unstack</span>
+df.set_index([<span class="st">'dept'</span>, <span class="st">'gender'</span>])[<span class="st">'salary'</span>].unstack()</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 10 ══════ -->
+<section class="section" id="s10">
+  <div class="section-head">
+    <div class="sec-num">10</div>
+    <div>
+      <div class="sec-title">병합 &amp; 연결 (merge / concat)</div>
+      <div class="sec-desc">merge how / concat axis — 데이터 결합 완전 정리</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge b2">2유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 merge how 파라미터</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>how</th><th>설명</th><th>SQL 동일</th></tr></thead>
+        <tbody>
+          <tr><td><code>'inner'</code></td><td>양쪽에 모두 있는 것만 (기본값)</td><td>INNER JOIN</td></tr>
+          <tr><td><code>'left'</code></td><td>왼쪽 기준, 오른쪽 없으면 NaN</td><td>LEFT JOIN</td></tr>
+          <tr><td><code>'right'</code></td><td>오른쪽 기준</td><td>RIGHT JOIN</td></tr>
+          <tr><td><code>'outer'</code></td><td>양쪽 모두 포함</td><td>FULL OUTER JOIN</td></tr>
+          <tr><td><code>'cross'</code></td><td>모든 조합</td><td>CROSS JOIN</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># merge 기본</span>
+pd.merge(df1, df2, on=<span class="st">'id'</span>)
+pd.merge(df1, df2, on=<span class="st">'id'</span>, how=<span class="st">'left'</span>)
+
+<span class="cm"># 컬럼명이 다를 때</span>
+pd.merge(df1, df2, left_on=<span class="st">'emp_id'</span>, right_on=<span class="st">'id'</span>)
+
+<span class="cm"># 인덱스 기준 merge</span>
+pd.merge(df1, df2, left_index=<span class="kw">True</span>, right_on=<span class="st">'id'</span>)
+
+<span class="cm"># concat — 행 방향 (수직)</span>
+pd.concat([df1, df2], ignore_index=<span class="kw">True</span>)
+
+<span class="cm"># concat — 열 방향 (수평)</span>
+pd.concat([df1, df2], axis=<span class="nu">1</span>)
+
+<span class="cm"># concat — 공통 컬럼만 유지</span>
+pd.concat([df1, df2], join=<span class="st">'inner'</span>, ignore_index=<span class="kw">True</span>)
+
+<span class="cm"># join (인덱스 기준 merge 단축형)</span>
+df1.join(df2, how=<span class="st">'left'</span>, lsuffix=<span class="st">'_left'</span>, rsuffix=<span class="st">'_right'</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 11 ══════ -->
+<section class="section" id="s11">
+  <div class="section-head">
+    <div class="sec-num">11</div>
+    <div>
+      <div class="sec-title">apply / map / applymap</div>
+      <div class="sec-desc">np.where / np.select — 원소별 함수 적용</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형 핵심</span><span class="badge b2">2유형</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 apply 계열 비교</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>적용 범위</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>Series.map()</code></td><td>Series 요소별</td><td>딕셔너리/함수/Series로 변환</td></tr>
+          <tr><td><code>Series.apply()</code></td><td>Series 요소별</td><td>함수 적용</td></tr>
+          <tr><td><code>DataFrame.apply()</code></td><td>행/열 단위</td><td>axis=0(열), axis=1(행)</td></tr>
+          <tr><td><code>DataFrame.applymap()</code></td><td>DataFrame 요소별</td><td>모든 원소에 함수 적용 (deprecated → <code>map</code>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># map — 딕셔너리 치환 (⭐ 인코딩에 자주 사용)</span>
+df[<span class="st">'gender_code'</span>] = df[<span class="st">'gender'</span>].map({<span class="st">'M'</span>: <span class="nu">1</span>, <span class="st">'F'</span>: <span class="nu">0</span>})
+
+<span class="cm"># map — 함수 적용</span>
+df[<span class="st">'age_group'</span>] = df[<span class="st">'age'</span>].map(<span class="kw">lambda</span> x: <span class="st">'청년'</span> <span class="kw">if</span> x < <span class="nu">35</span> <span class="kw">else</span> <span class="st">'중년'</span>)
+
+<span class="cm"># apply — DataFrame 행 단위</span>
+df[<span class="st">'total'</span>] = df.apply(<span class="kw">lambda</span> row: row[<span class="st">'math'</span>] + row[<span class="st">'english'</span>], axis=<span class="nu">1</span>)
+
+<span class="cm"># apply — 여러 컬럼 반환</span>
+<span class="kw">def</span> <span class="fn">grade_info</span>(score):
+    <span class="kw">if</span> score >= <span class="nu">90</span>: <span class="kw">return</span> pd.Series({<span class="st">'grade'</span>: <span class="st">'A'</span>, <span class="st">'pass'</span>: <span class="kw">True</span>})
+    <span class="kw">else</span>:           <span class="kw">return</span> pd.Series({<span class="st">'grade'</span>: <span class="st">'B'</span>, <span class="st">'pass'</span>: <span class="kw">False</span>})
+
+df[[<span class="st">'grade'</span>, <span class="st">'pass'</span>]] = df[<span class="st">'score'</span>].apply(grade_info)
+
+<span class="cm"># np.where — 이진 조건 (⭐ 매우 자주 출제)</span>
+df[<span class="st">'pass'</span>] = np.where(df[<span class="st">'score'</span>] >= <span class="nu">60</span>, <span class="st">'Pass'</span>, <span class="st">'Fail'</span>)
+
+<span class="cm"># np.select — 다중 조건 ⭐⭐</span>
+conditions = [
+    df[<span class="st">'score'</span>] >= <span class="nu">90</span>,
+    df[<span class="st">'score'</span>] >= <span class="nu">70</span>,
+    df[<span class="st">'score'</span>] >= <span class="nu">60</span>
+]
+choices = [<span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'C'</span>]
+df[<span class="st">'grade'</span>] = np.select(conditions, choices, default=<span class="st">'F'</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 12 ══════ -->
+<section class="section" id="s12">
+  <div class="section-head">
+    <div class="sec-num">12</div>
+    <div>
+      <div class="sec-title">날짜/시간 처리</div>
+      <div class="sec-desc">dt accessor / to_datetime / date_range — 시계열 전처리</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 날짜 관련 속성 &amp; 함수</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>속성/함수</th><th>설명</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td><code>.dt.year</code></td><td>연도 추출</td><td><code>df['date'].dt.year</code></td></tr>
+          <tr><td><code>.dt.month</code></td><td>월 추출</td><td><code>df['date'].dt.month</code></td></tr>
+          <tr><td><code>.dt.day</code></td><td>일 추출</td><td><code>df['date'].dt.day</code></td></tr>
+          <tr><td><code>.dt.hour</code> / <code>.dt.minute</code></td><td>시/분 추출</td><td>—</td></tr>
+          <tr><td><code>.dt.dayofweek</code></td><td>요일 (0=월 ~ 6=일)</td><td>—</td></tr>
+          <tr><td><code>.dt.day_name()</code></td><td>요일명</td><td><code>'Monday'</code></td></tr>
+          <tr><td><code>.dt.quarter</code></td><td>분기</td><td>1~4</td></tr>
+          <tr><td><code>.dt.days_in_month</code></td><td>해당 월 일수</td><td>—</td></tr>
+          <tr><td><code>.dt.strftime()</code></td><td>날짜 → 문자열</td><td><code>'%Y년 %m월'</code></td></tr>
+          <tr><td><code>pd.DateOffset</code></td><td>날짜 계산</td><td><code>+ pd.DateOffset(months=1)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 날짜 변환</span>
+df[<span class="st">'date'</span>] = pd.to_datetime(df[<span class="st">'date'</span>])
+
+<span class="cm"># 날짜 성분 추출</span>
+df[<span class="st">'year'</span>]    = df[<span class="st">'date'</span>].dt.year
+df[<span class="st">'month'</span>]   = df[<span class="st">'date'</span>].dt.month
+df[<span class="st">'weekday'</span>] = df[<span class="st">'date'</span>].dt.dayofweek   <span class="cm"># 0=월요일</span>
+
+<span class="cm"># 날짜 차이 계산 (⭐ 자주 출제)</span>
+today = pd.Timestamp(<span class="st">'2024-01-01'</span>)
+df[<span class="st">'days_since'</span>] = (today - df[<span class="st">'date'</span>]).dt.days
+
+<span class="cm"># 날짜 범위 생성</span>
+pd.date_range(start=<span class="st">'2024-01-01'</span>, end=<span class="st">'2024-12-31'</span>, freq=<span class="st">'M'</span>)   <span class="cm"># 월말</span>
+pd.date_range(start=<span class="st">'2024-01-01'</span>, periods=<span class="nu">12</span>,             freq=<span class="st">'MS'</span>)  <span class="cm"># 월초</span>
+
+<span class="cm"># 날짜 필터</span>
+df[df[<span class="st">'date'</span>].dt.year == <span class="nu">2023</span>]
+df[df[<span class="st">'date'</span>].dt.month.isin([<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>])]    <span class="cm"># 1분기</span>
+
+<span class="cm"># 날짜 포맷 변환</span>
+df[<span class="st">'date_str'</span>] = df[<span class="st">'date'</span>].dt.strftime(<span class="st">'%Y-%m-%d'</span>)
+df[<span class="st">'ym'</span>]       = df[<span class="st">'date'</span>].dt.to_period(<span class="st">'M'</span>)    <span class="cm"># 2024-01 형태</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 13 ══════ -->
+<section class="section" id="s13">
+  <div class="section-head">
+    <div class="sec-num">13</div>
+    <div>
+      <div class="sec-title">조건 필터링 &amp; 쿼리</div>
+      <div class="sec-desc">query / where / mask — 조건 기반 데이터 선택</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 query() 문법</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>방법</th><th>문법</th></tr></thead>
+        <tbody>
+          <tr><td>비교</td><td><code>df.query('age &gt; 30')</code></td></tr>
+          <tr><td>복수 조건</td><td><code>df.query('age &gt; 30 and salary &gt; 5000')</code></td></tr>
+          <tr><td>변수 참조</td><td><code>df.query('age &gt; @min_age')</code></td></tr>
+          <tr><td>in 연산</td><td><code>df.query('dept in ["IT", "HR"]')</code></td></tr>
+          <tr><td>컬럼명 공백</td><td><code>df.query('`column name` &gt; 5')</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre>min_age    = <span class="nu">30</span>
+max_salary = <span class="nu">8000</span>
+
+<span class="cm"># query — 가독성 높은 필터링</span>
+df.query(<span class="st">'age > @min_age and salary &lt; @max_salary'</span>)
+df.query(<span class="st">'dept in ["IT", "HR"] and age >= 25'</span>)
+
+<span class="cm"># 불리언 인덱싱</span>
+mask = (df[<span class="st">'age'</span>] > <span class="nu">30</span>) & (df[<span class="st">'salary'</span>] > <span class="nu">5000</span>) & (df[<span class="st">'dept'</span>] == <span class="st">'IT'</span>)
+df[mask]
+
+<span class="cm"># where — 조건 미충족 시 NaN</span>
+df[<span class="st">'salary'</span>].where(df[<span class="st">'salary'</span>] > <span class="nu">3000</span>)
+df[<span class="st">'salary'</span>].where(df[<span class="st">'salary'</span>] > <span class="nu">3000</span>, other=<span class="nu">3000</span>)   <span class="cm"># 미충족 시 3000</span>
+
+<span class="cm"># mask — where의 반대 (조건 충족 시 NaN)</span>
+df[<span class="st">'salary'</span>].mask(df[<span class="st">'salary'</span>] > <span class="nu">10000</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 14 ══════ -->
+<section class="section" id="s14">
+  <div class="section-head">
+    <div class="sec-num">14</div>
+    <div>
+      <div class="sec-title">파생변수 &amp; 구간화 (cut / qcut)</div>
+      <div class="sec-desc">pd.cut / pd.qcut — 수치형을 범주형으로 변환</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형 핵심</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 cut vs qcut 비교</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>구분</th><th><code>pd.cut()</code></th><th><code>pd.qcut()</code></th></tr></thead>
+        <tbody>
+          <tr><td>기준</td><td>값 범위 균등 분할</td><td>빈도(분위수) 균등 분할</td></tr>
+          <tr><td>bins</td><td>경계값 직접 지정</td><td>분위수 수 지정</td></tr>
+          <tr><td>주 용도</td><td>나이대, 점수 구간 등</td><td>4분위, 10분위 분류</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># pd.cut — 범위 기반 (경계값 직접 지정)</span>
+df[<span class="st">'age_group'</span>] = pd.cut(
+    df[<span class="st">'age'</span>],
+    bins   = [<span class="nu">0</span>, <span class="nu">20</span>, <span class="nu">30</span>, <span class="nu">40</span>, <span class="nu">50</span>, <span class="nu">100</span>],
+    labels = [<span class="st">'10대'</span>, <span class="st">'20대'</span>, <span class="st">'30대'</span>, <span class="st">'40대'</span>, <span class="st">'50대+'</span>],
+    right  = <span class="kw">True</span>          <span class="cm"># 오른쪽 끝 포함 (기본)</span>
+)
+
+<span class="cm"># pd.cut — 자동 n등분</span>
+df[<span class="st">'score_group'</span>] = pd.cut(df[<span class="st">'score'</span>], bins=<span class="nu">5</span>)
+
+<span class="cm"># pd.qcut — 분위수 기반 (⭐ 시험 단골)</span>
+df[<span class="st">'quartile'</span>] = pd.qcut(
+    df[<span class="st">'salary'</span>], q=<span class="nu">4</span>,
+    labels = [<span class="st">'Q1'</span>, <span class="st">'Q2'</span>, <span class="st">'Q3'</span>, <span class="st">'Q4'</span>]
+)
+
+<span class="cm"># 십분위수 (0~9 정수)</span>
+df[<span class="st">'decile'</span>] = pd.qcut(df[<span class="st">'salary'</span>], q=<span class="nu">10</span>, labels=<span class="kw">False</span>)
+
+<span class="cm"># 구간별 집계</span>
+df[<span class="st">'age_group'</span>].value_counts()
+df.groupby(<span class="st">'age_group'</span>)[<span class="st">'salary'</span>].mean()</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 15 ══════ -->
+<section class="section" id="s15">
+  <div class="section-head">
+    <div class="sec-num">15</div>
+    <div>
+      <div class="sec-title">이상치 탐지 &amp; 처리</div>
+      <div class="sec-desc">IQR / Z-score / clip — 이상치 제거 및 대체</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형 핵심</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 이상치 처리 방법</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>방법</th><th>설명</th><th>특징</th></tr></thead>
+        <tbody>
+          <tr><td>IQR 방법</td><td>Q1 − 1.5×IQR ~ Q3 + 1.5×IQR</td><td>가장 일반적</td></tr>
+          <tr><td>Z-score</td><td>|z| &gt; 3</td><td>정규분포 가정</td></tr>
+          <tr><td>상하한 클리핑</td><td><code>clip()</code> 함수</td><td>값 범위 강제 제한</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># IQR 기반 이상치 탐지 (⭐ 빅분기 1유형 핵심)</span>
+Q1  = df[<span class="st">'salary'</span>].quantile(<span class="nu">0.25</span>)
+Q3  = df[<span class="st">'salary'</span>].quantile(<span class="nu">0.75</span>)
+IQR = Q3 - Q1
+lower = Q1 - <span class="nu">1.5</span> * IQR
+upper = Q3 + <span class="nu">1.5</span> * IQR
+
+<span class="cm"># 방법 1: 이상치 제거</span>
+df_clean = df[(df[<span class="st">'salary'</span>] >= lower) & (df[<span class="st">'salary'</span>] <= upper)]
+
+<span class="cm"># 방법 2: 이상치 대체 (clip)</span>
+df[<span class="st">'salary_capped'</span>] = df[<span class="st">'salary'</span>].clip(lower=lower, upper=upper)
+
+<span class="cm"># Z-score 방법</span>
+<span class="kw">from</span> scipy <span class="kw">import</span> stats
+z_scores = np.abs(stats.zscore(df[<span class="st">'salary'</span>].dropna()))
+df_clean  = df[z_scores < <span class="nu">3</span>]
+
+<span class="cm"># 백분위 기반 클리핑</span>
+p05 = df[<span class="st">'salary'</span>].quantile(<span class="nu">0.05</span>)
+p95 = df[<span class="st">'salary'</span>].quantile(<span class="nu">0.95</span>)
+df[<span class="st">'salary'</span>] = df[<span class="st">'salary'</span>].clip(p05, p95)
+
+<span class="cm"># quantile 함수</span>
+df[<span class="st">'salary'</span>].quantile([<span class="nu">0.25</span>, <span class="nu">0.5</span>, <span class="nu">0.75</span>])
+df.quantile([<span class="nu">0.25</span>, <span class="nu">0.75</span>])    <span class="cm"># 전체 컬럼</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 16 ══════ -->
+<section class="section" id="s16">
+  <div class="section-head">
+    <div class="sec-num">16</div>
+    <div>
+      <div class="sec-title">통계 함수 (빅분기 3유형 핵심)</div>
+      <div class="sec-desc">기술통계 / scipy.stats — 가설 검정 완전 정리</div>
+    </div>
+    <div class="exam-tags"><span class="badge b3">3유형 핵심</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 기술통계 함수</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>함수</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>df.mean()</code></td><td>평균</td></tr>
+          <tr><td><code>df.median()</code></td><td>중앙값</td></tr>
+          <tr><td><code>df.mode()</code></td><td>최빈값</td></tr>
+          <tr><td><code>df.std()</code></td><td>표준편차 (ddof=1 기본)</td></tr>
+          <tr><td><code>df.var()</code></td><td>분산</td></tr>
+          <tr><td><code>df.sem()</code></td><td>표준오차</td></tr>
+          <tr><td><code>df.skew()</code></td><td>왜도</td></tr>
+          <tr><td><code>df.kurt()</code></td><td>첨도</td></tr>
+          <tr><td><code>df.quantile(q)</code></td><td>분위수</td></tr>
+          <tr><td><code>df.cumsum()</code></td><td>누적합</td></tr>
+          <tr><td><code>df.diff()</code></td><td>차분</td></tr>
+          <tr><td><code>df.pct_change()</code></td><td>변화율</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">📌 빅분기 3유형 주요 검정 (scipy.stats)</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>검정</th><th>함수</th><th>귀무가설</th></tr></thead>
+        <tbody>
+          <tr><td>단일표본 t검정</td><td><code>stats.ttest_1samp(data, popmean)</code></td><td>모평균 = popmean</td></tr>
+          <tr><td>독립표본 t검정</td><td><code>stats.ttest_ind(a, b)</code></td><td>두 집단 평균 동일</td></tr>
+          <tr><td>대응표본 t검정</td><td><code>stats.ttest_rel(a, b)</code></td><td>대응 차이 = 0</td></tr>
+          <tr><td>일원분산분석</td><td><code>stats.f_oneway(*groups)</code></td><td>모든 집단 평균 동일</td></tr>
+          <tr><td>카이제곱 검정</td><td><code>stats.chi2_contingency(table)</code></td><td>두 변수 독립</td></tr>
+          <tr><td>정규성 검정</td><td><code>stats.shapiro(data)</code></td><td>정규분포를 따름</td></tr>
+          <tr><td>피어슨 상관</td><td><code>stats.pearsonr(x, y)</code></td><td>상관계수 = 0</td></tr>
+          <tr><td>스피어만 상관</td><td><code>stats.spearmanr(x, y)</code></td><td>순위 상관 = 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout info"><span class="callout-icon">📌</span><div><strong>p-value 해석:</strong> p &lt; 0.05 → 귀무가설 <strong>기각</strong> (통계적으로 유의미) / p ≥ 0.05 → 귀무가설 <strong>채택</strong></div></div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="kw">from</span> scipy <span class="kw">import</span> stats
+
+<span class="cm"># 단일표본 t검정</span>
+stat, p = stats.ttest_1samp(df[<span class="st">'score'</span>].dropna(), popmean=<span class="nu">70</span>)
+<span class="fn">print</span>(<span class="st">f"t통계량: {stat:.4f}, p-value: {p:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">"귀무가설 기각"</span> <span class="kw">if</span> p < <span class="nu">0.05</span> <span class="kw">else</span> <span class="st">"귀무가설 채택"</span>)
+
+<span class="cm"># 독립표본 t검정 (등분산 가정)</span>
+group_a = df[df[<span class="st">'dept'</span>] == <span class="st">'IT'</span>][<span class="st">'salary'</span>].dropna()
+group_b = df[df[<span class="st">'dept'</span>] == <span class="st">'HR'</span>][<span class="st">'salary'</span>].dropna()
+stat, p = stats.ttest_ind(group_a, group_b, equal_var=<span class="kw">True</span>)
+
+<span class="cm"># 일원분산분석</span>
+groups = [df[df[<span class="st">'dept'</span>] == d][<span class="st">'salary'</span>].dropna() <span class="kw">for</span> d <span class="kw">in</span> df[<span class="st">'dept'</span>].unique()]
+stat, p = stats.f_oneway(*groups)
+
+<span class="cm"># 카이제곱 독립성 검정</span>
+ctab = pd.crosstab(df[<span class="st">'dept'</span>], df[<span class="st">'gender'</span>])
+chi2, p, dof, expected = stats.chi2_contingency(ctab)
+
+<span class="cm"># 상관분석</span>
+r, p = stats.pearsonr(df[<span class="st">'age'</span>].dropna(), df[<span class="st">'salary'</span>].dropna())
+<span class="fn">print</span>(<span class="st">f"r = {r:.4f}, p = {p:.4f}"</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 17 ══════ -->
+<section class="section" id="s17">
+  <div class="section-head">
+    <div class="sec-num">17</div>
+    <div>
+      <div class="sec-title">빅분기 유형별 핵심 패턴</div>
+      <div class="sec-desc">1유형 전처리 / 2유형 모델링 / 3유형 검정 — 실전 템플릿</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge b2">2유형</span><span class="badge b3">3유형</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">🏆 1유형 — 데이터 전처리 템플릿</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON — 1유형 전처리 템플릿</span></div>
+<pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># 1. 데이터 로드</span>
+df = pd.read_csv(<span class="st">'data.csv'</span>)
+<span class="fn">print</span>(df.shape, df.dtypes)
+
+<span class="cm"># 2. 결측치 처리</span>
+df[<span class="st">'age'</span>].fillna(df[<span class="st">'age'</span>].median(), inplace=<span class="kw">True</span>)
+df.dropna(subset=[<span class="st">'target'</span>], inplace=<span class="kw">True</span>)
+
+<span class="cm"># 3. 이상치 처리 (IQR)</span>
+<span class="kw">for</span> col <span class="kw">in</span> [<span class="st">'salary'</span>, <span class="st">'age'</span>]:
+    Q1, Q3 = df[col].quantile([<span class="nu">0.25</span>, <span class="nu">0.75</span>])
+    IQR    = Q3 - Q1
+    df[col] = df[col].clip(Q1 - <span class="nu">1.5</span> * IQR, Q3 + <span class="nu">1.5</span> * IQR)
+
+<span class="cm"># 4. 파생변수 생성</span>
+df[<span class="st">'bmi'</span>]      = df[<span class="st">'weight'</span>] / (df[<span class="st">'height'</span>] / <span class="nu">100</span>) ** <span class="nu">2</span>
+df[<span class="st">'age_group'</span>] = pd.cut(
+    df[<span class="st">'age'</span>], bins=[<span class="nu">0</span>, <span class="nu">30</span>, <span class="nu">50</span>, <span class="nu">100</span>],
+    labels=[<span class="st">'청년'</span>, <span class="st">'중년'</span>, <span class="st">'노년'</span>]
+)
+
+<span class="cm"># 5. 인코딩</span>
+df[<span class="st">'gender_code'</span>] = df[<span class="st">'gender'</span>].map({<span class="st">'M'</span>: <span class="nu">1</span>, <span class="st">'F'</span>: <span class="nu">0</span>})
+
+<span class="cm"># 6. 정답 출력 (소수 둘째 자리)</span>
+<span class="fn">print</span>(<span class="fn">round</span>(df[<span class="st">'salary'</span>].mean(), <span class="nu">2</span>))</pre>
+    </div>
+
+    <div class="sub-title">🏆 2유형 — 머신러닝 모델링 템플릿</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON — 2유형 모델링 템플릿</span></div>
+<pre><span class="kw">from</span> sklearn.model_selection  <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.preprocessing   <span class="kw">import</span> LabelEncoder, StandardScaler
+<span class="kw">from</span> sklearn.ensemble        <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.metrics         <span class="kw">import</span> accuracy_score, roc_auc_score
+
+<span class="cm"># 특성 / 타겟 분리</span>
+X = df.drop(<span class="st">'target'</span>, axis=<span class="nu">1</span>)
+y = df[<span class="st">'target'</span>]
+
+<span class="cm"># 범주형 인코딩</span>
+<span class="kw">for</span> col <span class="kw">in</span> X.select_dtypes(<span class="st">'object'</span>).columns:
+    X[col] = LabelEncoder().fit_transform(X[col].astype(<span class="ty">str</span>))
+
+<span class="cm"># 학습/테스트 분리</span>
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=<span class="nu">0.2</span>, random_state=<span class="nu">42</span>
+)
+
+<span class="cm"># 모델 학습</span>
+model = RandomForestClassifier(n_estimators=<span class="nu">100</span>, random_state=<span class="nu">42</span>)
+model.fit(X_train, y_train)
+
+<span class="cm"># 예측 & 평가</span>
+pred       = model.predict(X_test)
+pred_proba = model.predict_proba(X_test)[:, <span class="nu">1</span>]
+<span class="fn">print</span>(<span class="fn">round</span>(roc_auc_score(y_test, pred_proba), <span class="nu">4</span>))</pre>
+    </div>
+
+    <div class="sub-title">🏆 3유형 — 통계 검정 템플릿</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON — 3유형 통계 검정 템플릿</span></div>
+<pre><span class="kw">from</span> scipy <span class="kw">import</span> stats
+
+<span class="cm"># 1. 정규성 검정 (n &lt; 50: Shapiro-Wilk)</span>
+stat, p = stats.shapiro(data)
+<span class="fn">print</span>(<span class="st">f"정규성 p={p:.4f}"</span>, <span class="st">"정규분포 O"</span> <span class="kw">if</span> p >= <span class="nu">0.05</span> <span class="kw">else</span> <span class="st">"정규분포 X"</span>)
+
+<span class="cm"># 2. 등분산 검정</span>
+stat, p  = stats.levene(group1, group2)
+equal_var = p >= <span class="nu">0.05</span>
+
+<span class="cm"># 3. 가설 검정</span>
+stat, p = stats.ttest_ind(group1, group2, equal_var=equal_var)
+<span class="fn">print</span>(<span class="st">f"검정통계량: {round(stat, 4)}"</span>)
+<span class="fn">print</span>(<span class="st">f"p-value:   {round(p, 4)}"</span>)
+<span class="fn">print</span>(<span class="st">"채택"</span> <span class="kw">if</span> p >= <span class="nu">0.05</span> <span class="kw">else</span> <span class="st">"기각"</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 18 ══════ -->
+<section class="section" id="s18">
+  <div class="section-head">
+    <div class="sec-num">18</div>
+    <div>
+      <div class="sec-title">ADP 전용 심화 문법</div>
+      <div class="sec-desc">MultiIndex / rolling / pipe — ADP 실기 고급 패턴</div>
+    </div>
+    <div class="exam-tags"><span class="badge badp">ADP 전용</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 MultiIndex &amp; 고급 인덱싱</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># MultiIndex 생성</span>
+arrays = [[<span class="st">'A'</span>, <span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'B'</span>], [<span class="st">'x'</span>, <span class="st">'y'</span>, <span class="st">'x'</span>, <span class="st">'y'</span>]]
+idx = pd.MultiIndex.from_arrays(arrays, names=[<span class="st">'level1'</span>, <span class="st">'level2'</span>])
+
+<span class="cm"># MultiIndex 접근</span>
+df.loc[(<span class="st">'A'</span>, <span class="st">'x'</span>)]
+df.loc[<span class="st">'A'</span>]                          <span class="cm"># 상위 레벨로 슬라이싱</span>
+df.xs(<span class="st">'x'</span>, level=<span class="st">'level2'</span>)           <span class="cm"># cross-section</span>
+
+<span class="cm"># MultiIndex 해제</span>
+df.reset_index()
+df.droplevel(<span class="nu">0</span>)                       <span class="cm"># 특정 레벨 제거</span></pre>
+    </div>
+
+    <div class="sub-title">📌 rolling / ewm (시계열)</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON</span></div>
+<pre><span class="cm"># 이동평균</span>
+df[<span class="st">'ma7'</span>]          = df[<span class="st">'value'</span>].rolling(window=<span class="nu">7</span>).mean()
+df[<span class="st">'ma7_centered'</span>] = df[<span class="st">'value'</span>].rolling(<span class="nu">7</span>, center=<span class="kw">True</span>).mean()
+
+<span class="cm"># 이동합계, 이동표준편차</span>
+df[<span class="st">'roll_sum'</span>] = df[<span class="st">'value'</span>].rolling(<span class="nu">7</span>).sum()
+df[<span class="st">'roll_std'</span>] = df[<span class="st">'value'</span>].rolling(<span class="nu">7</span>).std()
+
+<span class="cm"># 지수가중 이동평균 (EWMA)</span>
+df[<span class="st">'ewma'</span>] = df[<span class="st">'value'</span>].ewm(span=<span class="nu">10</span>).mean()
+df[<span class="st">'ewma'</span>] = df[<span class="st">'value'</span>].ewm(halflife=<span class="nu">5</span>).mean()
+
+<span class="cm"># 차분 / 변화율</span>
+df[<span class="st">'pct_change'</span>] = df[<span class="st">'value'</span>].pct_change()
+df[<span class="st">'diff'</span>]       = df[<span class="st">'value'</span>].diff()
+df[<span class="st">'diff2'</span>]      = df[<span class="st">'value'</span>].diff(<span class="nu">2</span>)   <span class="cm"># 2기간 차분</span></pre>
+    </div>
+
+    <div class="sub-title">📌 pipe &amp; 메서드 체이닝</div>
+    <div class="code-block">
+      <div class="code-header"><div class="code-dots"><div class="code-dot" style="background:#fc5c57"></div><div class="code-dot" style="background:#fdbc2c"></div><div class="code-dot" style="background:#25c840"></div></div><span class="code-lang">PYTHON — pipe 파이프라인 패턴</span></div>
+<pre><span class="kw">def</span> <span class="fn">remove_outliers</span>(df, col):
+    Q1, Q3 = df[col].quantile([<span class="nu">0.25</span>, <span class="nu">0.75</span>])
+    IQR    = Q3 - Q1
+    <span class="kw">return</span> df[(df[col] >= Q1 - <span class="nu">1.5</span> * IQR) & (df[col] <= Q3 + <span class="nu">1.5</span> * IQR)]
+
+<span class="kw">def</span> <span class="fn">add_features</span>(df):
+    df[<span class="st">'salary_rank'</span>] = df[<span class="st">'salary'</span>].rank(pct=<span class="kw">True</span>)
+    <span class="kw">return</span> df
+
+result = (
+    df
+    .dropna(subset=[<span class="st">'salary'</span>])
+    .pipe(remove_outliers, <span class="st">'salary'</span>)
+    .pipe(add_features)
+    .groupby(<span class="st">'dept'</span>)
+    .agg(avg_salary=(<span class="st">'salary'</span>, <span class="st">'mean'</span>))
+    .reset_index()
+    .sort_values(<span class="st">'avg_salary'</span>, ascending=<span class="kw">False</span>)
+)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 19 체크리스트 ══════ -->
+<section class="section" id="s19">
+  <div class="section-head">
+    <div class="sec-num">★</div>
+    <div>
+      <div class="sec-title">시험 직전 체크리스트</div>
+      <div class="sec-desc">반드시 암기해야 할 핵심 코드 모음</div>
+    </div>
+    <div class="exam-tags"><span class="badge b1">1유형</span><span class="badge b2">2유형</span><span class="badge b3">3유형</span><span class="badge badp">ADP</span></div>
+  </div>
+  <div class="section-body">
+    <div class="sub-title">📌 빅분기 실기 필수 암기</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>항목</th><th>코드</th></tr></thead>
+        <tbody>
+          <tr><td>소수점 반올림</td><td><code>round(value, 2)</code></td></tr>
+          <tr><td>결측치 수</td><td><code>df.isnull().sum()</code></td></tr>
+          <tr><td>중앙값 대체</td><td><code>fillna(df[col].median())</code></td></tr>
+          <tr><td>IQR 이상치 제거</td><td><code>clip(Q1 - 1.5*IQR, Q3 + 1.5*IQR)</code></td></tr>
+          <tr><td>그룹별 집계</td><td><code>groupby('col').agg(...)</code></td></tr>
+          <tr><td>변수 인코딩</td><td><code>map({...})</code> or <code>LabelEncoder()</code></td></tr>
+          <tr><td>모델 평가</td><td><code>roc_auc_score</code>, <code>accuracy_score</code></td></tr>
+          <tr><td>p-value 해석</td><td><code>p &lt; 0.05</code> → 귀무가설 기각</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sub-title">📌 ADP 실기 추가 암기</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>항목</th><th>코드</th></tr></thead>
+        <tbody>
+          <tr><td>피벗테이블</td><td><code>pd.pivot_table(df, values, index, columns, aggfunc)</code></td></tr>
+          <tr><td>시계열 이동평균</td><td><code>rolling(window=7).mean()</code></td></tr>
+          <tr><td>다중 집계</td><td><code>.agg({'col': ['mean', 'std']})</code></td></tr>
+          <tr><td>named agg</td><td><code>agg(name=('col', 'func'))</code></td></tr>
+          <tr><td>파이프라인</td><td><code>.pipe(func)</code></td></tr>
+          <tr><td>교차표</td><td><code>pd.crosstab(a, b, normalize='index')</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <div>
+        <strong>3유형 가설 검정 순서:</strong><br>
+        ① 정규성 검정 → ② 등분산 검정 → ③ t/F/χ² 검정 → ④ p-value 해석<br>
+        <code>stats.shapiro</code> → <code>stats.levene</code> → <code>stats.ttest_ind</code> / <code>f_oneway</code> / <code>chi2_contingency</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<footer class="site-footer">
+  <strong>🐼 Pandas 완전정복</strong> — 빅데이터분석기사 &amp; ADP 실기 대비<br>
+  <span style="font-family:'Fira Code',monospace;font-size:11px;opacity:.6">
+    pandas ≥ 1.5 · numpy · scipy.stats · scikit-learn | 2024년 출제 범위 기준
+  </span>
+</footer>
+
+<script>
+// Sidebar active state on scroll
+const sections = document.querySelectorAll('section[id]');
+const links    = document.querySelectorAll('.sb-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.sb-link[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
