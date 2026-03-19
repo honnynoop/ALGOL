@@ -1,0 +1,352 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem 0}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ex-title{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.ex-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.5}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;margin-bottom:8px}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.badge-amber{background:#FAEEDA;color:#633806}
+.badge-teal{background:#E1F5EE;color:#085041}
+.plot-wrap{position:relative;width:100%;padding-bottom:100%}
+.plot-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+.legend-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--color-text-secondary);margin-top:8px;flex-wrap:wrap}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.insight-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.insight-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px}
+.insight-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.insight-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.insight-desc{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.bar-wrap{margin-top:8px}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:11px;color:var(--color-text-secondary)}
+.bar-label{width:30px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;background:var(--color-background-secondary);border-radius:2px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.analogy-box{border-left:3px solid;padding:8px 10px;border-radius:0 4px 4px 0;font-size:12px;line-height:1.6;color:var(--color-text-secondary);margin-top:10px}
+.analogy-box strong{font-weight:500;color:var(--color-text-primary)}
+.section-divider{height:0.5px;background:var(--color-border-tertiary);margin:20px 0}
+</style>
+
+<div class="wrap">
+
+<p class="section-title">PCA 세 예제 비교 — 산점도 + 주성분 축</p>
+
+<div class="grid3">
+
+  <!-- 예제1 -->
+  <div class="card">
+    <span class="badge badge-blue">예제 1</span>
+    <div class="ex-title">모두 양의 상관</div>
+    <div class="ex-sub">수학·과학·영어가 함께 오르내림<br>Cov 모두 양수</div>
+    <div class="plot-wrap"><canvas id="c1"></canvas></div>
+    <div class="legend-row">
+      <span class="legend-dot" style="background:#378ADD"></span>수학 vs 과학
+      <span style="margin-left:4px;display:flex;align-items:center;gap:4px">
+        <span style="width:18px;height:2px;background:#E24B4A;display:inline-block"></span>PC1 축
+      </span>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-row"><span class="bar-label">PC1</span><div class="bar-track"><div class="bar-fill" style="width:98%;background:#378ADD"></div></div><span>98%</span></div>
+      <div class="bar-row"><span class="bar-label">PC2</span><div class="bar-track"><div class="bar-fill" style="width:1.5%;background:#B5D4F4"></div></div><span>1.5%</span></div>
+    </div>
+    <div class="analogy-box" style="border-color:#378ADD;background:#E6F1FB">
+      <strong>도시 인구 ↔ 범죄 건수</strong><br>인구가 많을수록 범죄도 많다. 모든 지표가 하나의 "규모"로 수렴.
+    </div>
+  </div>
+
+  <!-- 예제2 -->
+  <div class="card">
+    <span class="badge badge-amber">예제 2</span>
+    <div class="ex-title">공분산 모두 0</div>
+    <div class="ex-sub">세 과목이 완전히 독립<br>Cov 모두 = 0</div>
+    <div class="plot-wrap"><canvas id="c2"></canvas></div>
+    <div class="legend-row">
+      <span class="legend-dot" style="background:#EF9F27"></span>수학 vs 과학
+      <span style="margin-left:4px;display:flex;align-items:center;gap:4px">
+        <span style="width:18px;height:2px;background:#E24B4A;display:inline-block"></span>PC1 축
+      </span>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-row"><span class="bar-label">PC1</span><div class="bar-track"><div class="bar-fill" style="width:45.5%;background:#EF9F27"></div></div><span>45%</span></div>
+      <div class="bar-row"><span class="bar-label">PC2</span><div class="bar-track"><div class="bar-fill" style="width:45.5%;background:#FAC775"></div></div><span>45%</span></div>
+    </div>
+    <div class="analogy-box" style="border-color:#EF9F27;background:#FAEEDA">
+      <strong>키 ↔ 시험 점수</strong><br>키가 크다고 공부를 잘하지 않는다. 두 변수가 완전히 별개.
+    </div>
+  </div>
+
+  <!-- 예제3 -->
+  <div class="card">
+    <span class="badge badge-teal">예제 3</span>
+    <div class="ex-title">영어만 무상관</div>
+    <div class="ex-sub">수학·과학 상관 있음, 영어는 독립<br>Cov(수학,영어) = Cov(과학,영어) = 0</div>
+    <div class="plot-wrap"><canvas id="c3"></canvas></div>
+    <div class="legend-row">
+      <span class="legend-dot" style="background:#1D9E75"></span>수학 vs 과학
+      <span style="margin-left:4px;display:flex;align-items:center;gap:4px">
+        <span style="width:18px;height:2px;background:#E24B4A;display:inline-block"></span>PC1 축
+      </span>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-row"><span class="bar-label">PC1</span><div class="bar-track"><div class="bar-fill" style="width:64%;background:#1D9E75"></div></div><span>64%</span></div>
+      <div class="bar-row"><span class="bar-label">PC2</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#9FE1CB"></div></div><span>20%</span></div>
+    </div>
+    <div class="analogy-box" style="border-color:#1D9E75;background:#E1F5EE">
+      <strong>이공계 능력 ↔ 어학 능력</strong><br>수학·과학은 묶여 있지만, 영어는 그와 무관하게 자기 길을 간다.
+    </div>
+  </div>
+
+</div>
+
+<div class="section-divider"></div>
+
+<!-- 2D 산점도: 수학 vs 영어 (X1 vs X3) 비교 -->
+<p class="section-title" style="margin-bottom:12px">수학 vs 영어 산점도 — 상관의 차이</p>
+<div class="grid3">
+  <div class="card">
+    <div class="ex-title" style="font-size:13px">예제 1: 수학↑ → 영어↑</div>
+    <div class="plot-wrap"><canvas id="c4"></canvas></div>
+    <div class="ex-sub" style="margin-top:6px;margin-bottom:0">양의 상관 — 타원이 우상향으로 기울어짐</div>
+  </div>
+  <div class="card">
+    <div class="ex-title" style="font-size:13px">예제 2: 수학과 영어 무관</div>
+    <div class="plot-wrap"><canvas id="c5"></canvas></div>
+    <div class="ex-sub" style="margin-top:6px;margin-bottom:0">공분산 = 0 — 점들이 원형으로 분포</div>
+  </div>
+  <div class="card">
+    <div class="ex-title" style="font-size:13px">예제 3: 수학과 영어 무관</div>
+    <div class="plot-wrap"><canvas id="c6"></canvas></div>
+    <div class="ex-sub" style="margin-top:6px;margin-bottom:0">공분산 = 0 — 영어는 독립된 축으로 분리</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- 직관적 범죄율 유추 -->
+<p class="section-title" style="margin-bottom:12px">도시·범죄율 유추로 보는 세 상황</p>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+
+  <div class="card">
+    <span class="badge badge-blue">예제 1 유추</span>
+    <div style="font-size:13px;font-weight:500;margin-bottom:6px">인구 · 범죄 · 교통량</div>
+    <div class="plot-wrap" style="padding-bottom:85%"><canvas id="c7"></canvas></div>
+    <div class="ex-sub" style="margin-top:8px;margin-bottom:0;font-size:11px">
+      도시 규모가 커질수록 인구, 범죄 건수, 교통량이 <strong>모두 함께</strong> 증가.<br>
+      → PC1 = "도시 규모" 하나로 98% 설명
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-amber">예제 2 유추</span>
+    <div style="font-size:13px;font-weight:500;margin-bottom:6px">인구 · 강수량 · 평균 기온</div>
+    <div class="plot-wrap" style="padding-bottom:85%"><canvas id="c8"></canvas></div>
+    <div class="ex-sub" style="margin-top:8px;margin-bottom:0;font-size:11px">
+      도시 인구가 많아도 비가 많이 오거나 덥지 않다.<br>
+      각 변수가 <strong>완전히 별개</strong>의 정보를 담고 있음.
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-teal">예제 3 유추</span>
+    <div style="font-size:13px;font-weight:500;margin-bottom:6px">인구 · 범죄 ↔ 강수량(독립)</div>
+    <div class="plot-wrap" style="padding-bottom:85%"><canvas id="c9"></canvas></div>
+    <div class="ex-sub" style="margin-top:8px;margin-bottom:0;font-size:11px">
+      인구↑ → 범죄↑ (상관 있음).<br>
+      하지만 강수량은 인구·범죄와 <strong>아무 관계 없음</strong>.<br>
+      → PC1=도시규모, PC2=강수량으로 분리
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const textCol = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)';
+const gridCol = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+const ptSize = 7;
+
+function scatterOpts(xLabel, yLabel, xMin, xMax, yMin, yMax) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      callbacks: { label: ctx => `(${ctx.parsed.x.toFixed(1)}, ${ctx.parsed.y.toFixed(1)})` }
+    }},
+    scales: {
+      x: { min: xMin, max: xMax, title: { display: true, text: xLabel, font: { size: 11 }, color: textCol },
+           ticks: { font: { size: 10 }, color: textCol }, grid: { color: gridCol } },
+      y: { min: yMin, max: yMax, title: { display: true, text: yLabel, font: { size: 11 }, color: textCol },
+           ticks: { font: { size: 10 }, color: textCol }, grid: { color: gridCol } }
+    }
+  };
+}
+
+function addAxisLine(chart, angle, cx, cy, len, color) {
+  const plugin = {
+    id: 'axisLine',
+    afterDraw(ch) {
+      const ctx2 = ch.ctx;
+      const xScale = ch.scales.x, yScale = ch.scales.y;
+      const px = xScale.getPixelForValue(cx);
+      const py = yScale.getPixelForValue(cy);
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      const scale = Math.min(ch.width, ch.height) * len;
+      ctx2.save();
+      ctx2.strokeStyle = color;
+      ctx2.lineWidth = 2;
+      ctx2.setLineDash([]);
+      ctx2.beginPath();
+      ctx2.moveTo(px - cos * scale, py + sin * scale);
+      ctx2.lineTo(px + cos * scale, py - sin * scale);
+      ctx2.stroke();
+      ctx2.restore();
+    }
+  };
+  return plugin;
+}
+
+/* ── 예제 1: 수학 vs 과학 (강한 양의 상관) ── */
+const d1 = [
+  {x:80,y:85},{x:90,y:92},{x:70,y:68},{x:60,y:62},{x:85,y:80},
+  {x:75,y:78},{x:95,y:96},{x:65,y:64},{x:72,y:74},{x:88,y:90}
+];
+new Chart(document.getElementById('c1'), {
+  type: 'scatter',
+  data: { datasets: [{ data: d1, pointBackgroundColor: '#378ADD', pointRadius: ptSize, pointBorderWidth: 0 }] },
+  options: scatterOpts('수학','과학',52,100,55,102),
+  plugins: [addAxisLine(null, Math.PI/4, 76, 78, 0.38, '#E24B4A')]
+});
+
+/* ── 예제 2: 수학 vs 과학 (공분산 0, 원형 분포) ── */
+const d2 = [
+  {x:75,y:80},{x:65,y:70},{x:75,y:70},{x:65,y:80},{x:70,y:75},
+  {x:70,y:75},{x:78,y:65},{x:62,y:85},{x:80,y:72},{x:60,y:68}
+];
+new Chart(document.getElementById('c2'), {
+  type: 'scatter',
+  data: { datasets: [{ data: d2, pointBackgroundColor: '#EF9F27', pointRadius: ptSize, pointBorderWidth: 0 }] },
+  options: scatterOpts('수학','과학',55,86,58,92),
+  plugins: [addAxisLine(null, 0, 70, 75, 0.4, '#E24B4A')]
+});
+
+/* ── 예제 3: 수학 vs 과학 (중간 양의 상관) ── */
+const d3e = [
+  {x:54,y:64},{x:46,y:56},{x:52,y:58},{x:48,y:62},{x:50,y:60}
+];
+new Chart(document.getElementById('c3'), {
+  type: 'scatter',
+  data: { datasets: [{ data: d3e, pointBackgroundColor: '#1D9E75', pointRadius: ptSize, pointBorderWidth: 0 }] },
+  options: scatterOpts('수학','과학',40,66,48,72),
+  plugins: [addAxisLine(null, Math.PI/4, 50, 60, 0.35, '#E24B4A')]
+});
+
+/* ── 수학 vs 영어 ── */
+/* 예제1: 양의 상관 */
+const d4 = [
+  {x:80,y:78},{x:90,y:88},{x:70,y:72},{x:60,y:65},{x:85,y:84}
+];
+new Chart(document.getElementById('c4'), {
+  type: 'scatter',
+  data: { datasets: [{ data: d4, pointBackgroundColor: '#378ADD', pointRadius: ptSize, pointBorderWidth: 0 }] },
+  options: scatterOpts('수학','영어',52,96,57,96)
+});
+
+/* 예제2: 공분산 0 */
+const d5 = [
+  {x:75,y:81},{x:65,y:81},{x:75,y:81},{x:65,y:81},{x:70,y:76},
+  {x:62,y:75},{x:78,y:84},{x:68,y:79},{x:82,y:77},{x:60,y:83}
+];
+new Chart(document.getElementById('c5'), {
+  type: 'scatter',
+  data: { datasets: [{ data: d5, pointBackgroundColor: '#EF9F27', pointRadius: ptSize, pointBorderWidth: 0 }] },
+  options: scatterOpts('수학','영어',54,88,68,90)
+});
+
+/* 예제3: 수학-영어 공분산 0 */
+const d6 = [
+  {x:54,y:71},{x:46,y:71},{x:52,y:71},{x:48,y:71},{x:50,y:66}
+];
+new Chart(document.getElementById('c6'), {
+  type: 'scatter',
+  data: { datasets: [{ data: d6, pointBackgroundColor: '#1D9E75', pointRadius: ptSize, pointBorderWidth: 0 }] },
+  options: scatterOpts('수학','영어',40,62,60,78)
+});
+
+/* ── 범죄율 유추 차트 ── */
+/* 예제1 유추: 도시 규모 → 인구, 범죄, 교통량 모두 증가 */
+const cities1 = ['A시','B시','C시','D시','E시','F시'];
+const pop1    = [20,  40,  55,  70,  85, 100];
+const crime1  = [18,  38,  52,  72,  83,  98];
+new Chart(document.getElementById('c7'), {
+  type: 'scatter',
+  data: { datasets: [{
+    label: '인구 vs 범죄',
+    data: pop1.map((p,i) => ({x:p, y:crime1[i]})),
+    pointBackgroundColor: '#378ADD', pointRadius: ptSize, pointBorderWidth: 0
+  }]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      annotation: {},
+      tooltip: { callbacks: { label: ctx => `${cities1[ctx.dataIndex]}: 인구지수${ctx.parsed.x}, 범죄지수${ctx.parsed.y}` }}
+    },
+    scales: {
+      x: { min:10, max:110, title:{display:true,text:'인구 지수',font:{size:10},color:textCol}, ticks:{font:{size:9},color:textCol}, grid:{color:gridCol}},
+      y: { min:10, max:110, title:{display:true,text:'범죄 지수',font:{size:10},color:textCol}, ticks:{font:{size:9},color:textCol}, grid:{color:gridCol}}
+    }
+  },
+  plugins: [addAxisLine(null, Math.PI/4, 60, 60, 0.38, '#E24B4A')]
+});
+
+/* 예제2 유추: 인구 vs 강수량 (무관, 원형 분산) */
+const pop2    = [30, 70, 80, 40, 60, 55, 50, 75, 35, 65];
+const rain2   = [70, 35, 65, 45, 80, 30, 55, 50, 40, 60];
+new Chart(document.getElementById('c8'), {
+  type: 'scatter',
+  data: { datasets: [{
+    data: pop2.map((p,i) => ({x:p, y:rain2[i]})),
+    pointBackgroundColor: '#EF9F27', pointRadius: ptSize, pointBorderWidth: 0
+  }]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { min:20, max:90, title:{display:true,text:'인구 지수',font:{size:10},color:textCol}, ticks:{font:{size:9},color:textCol}, grid:{color:gridCol}},
+      y: { min:20, max:90, title:{display:true,text:'강수량 지수',font:{size:10},color:textCol}, ticks:{font:{size:9},color:textCol}, grid:{color:gridCol}}
+    }
+  },
+  plugins: [addAxisLine(null, 0, 55, 55, 0.38, '#E24B4A')]
+});
+
+/* 예제3 유추: 인구 vs 범죄(상관), 인구 vs 강수량(무관) */
+const pop3   = [20,40,55,70,85,100, 20,40,55,70,85,100];
+const crime3 = [18,38,52,72,83,98,  65,30,55,80,40,70];
+const colors3= ['#1D9E75','#1D9E75','#1D9E75','#1D9E75','#1D9E75','#1D9E75',
+                '#9FE1CB','#9FE1CB','#9FE1CB','#9FE1CB','#9FE1CB','#9FE1CB'];
+new Chart(document.getElementById('c9'), {
+  type: 'scatter',
+  data: { datasets: [
+    { label:'인구 vs 범죄', data: pop3.slice(0,6).map((p,i)=>({x:p,y:crime3[i]})), pointBackgroundColor:'#1D9E75', pointRadius:ptSize, pointBorderWidth:0 },
+    { label:'인구 vs 강수량', data: pop3.slice(6).map((p,i)=>({x:p,y:crime3[i+6]})), pointBackgroundColor:'#9FE1CB', pointRadius:ptSize, pointBorderWidth:0 }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: {
+      display: true,
+      labels: { boxWidth:8, font:{size:9}, color:textCol, usePointStyle:true }
+    }},
+    scales: {
+      x: { min:10, max:110, title:{display:true,text:'인구 지수',font:{size:10},color:textCol}, ticks:{font:{size:9},color:textCol}, grid:{color:gridCol}},
+      y: { min:20, max:90, title:{display:true,text:'값',font:{size:10},color:textCol}, ticks:{font:{size:9},color:textCol}, grid:{color:gridCol}}
+    }
+  },
+  plugins: [addAxisLine(null, Math.PI/4, 60, 58, 0.3, '#E24B4A')]
+});
+</script>
