@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java vs Python — 기본 문법 완전 비교</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --white:   #ffffff;
+  --bg:      #f7f8fc;
+  --surface: #ffffff;
+  --border:  #e4e8f0;
+  --border2: #d0d6e4;
+
+  --java:        #e65c00;
+  --java-light:  #fff4ed;
+  --java-mid:    #fde8d6;
+  --java-dark:   #b84600;
+
+  --py:          #2563eb;
+  --py-light:    #eff6ff;
+  --py-mid:      #dbeafe;
+  --py-dark:     #1d4ed8;
+
+  --green:   #16a34a;
+  --purple:  #7c3aed;
+  --red:     #dc2626;
+  --gray:    #64748b;
+  --gray2:   #94a3b8;
+  --dark:    #0f172a;
+  --dark2:   #1e293b;
+  --dark3:   #334155;
+
+  /* code colors */
+  --ck:  #d73a49;   /* keyword */
+  --cs:  #1657a0;   /* string */
+  --cn:  #005cc5;   /* number */
+  --cc:  #6a737d;   /* comment */
+  --cf:  #6f42c1;   /* function */
+  --ctype: #c37600; /* type */
+  --cop:  #e36209;  /* operator */
+  --cvar: #24292e;  /* variable */
+  --cann: #2c7e52;  /* annotation */
+}
+
+body {
+  background: var(--bg);
+  color: var(--dark);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ════════════════════════════════════════
+   HEADER
+════════════════════════════════════════ */
+.site-header {
+  background: var(--white);
+  border-bottom: 3px solid var(--border);
+  padding: 0 40px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.header-inner {
+  max-width: 1400px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 900; font-size: 18px; letter-spacing: -.3px;
+}
+.logo-j { color: var(--java); }
+.logo-vs { color: var(--gray2); font-size: 14px; font-weight: 400; margin: 0 4px; }
+.logo-p { color: var(--py); }
+.header-nav {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.nav-btn {
+  padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--border2); background: var(--white);
+  color: var(--gray); cursor: pointer; text-decoration: none;
+  transition: all .15s;
+}
+.nav-btn:hover { background: var(--dark); color: white; border-color: var(--dark); }
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+.hero {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 56px 40px 48px;
+  text-align: center;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 5px 16px;
+  font-size: 11px; font-weight: 700; color: var(--gray);
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px;
+}
+.hero h1 {
+  font-size: clamp(36px, 5vw, 72px);
+  font-weight: 900; letter-spacing: -2px;
+  line-height: 1.05; margin-bottom: 16px;
+}
+.hero h1 .j { color: var(--java); }
+.hero h1 .p { color: var(--py); }
+.hero h1 .vs {
+  color: var(--border2);
+  font-size: .55em; vertical-align: middle;
+  margin: 0 12px; letter-spacing: 0;
+}
+.hero-sub {
+  font-size: 16px; color: var(--gray); max-width: 560px; margin: 0 auto 32px;
+}
+.hero-stats {
+  display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+}
+.hero-stat {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 24px; text-align: center;
+}
+.hero-stat-n { font-size: 28px; font-weight: 900; color: var(--dark); }
+.hero-stat-l { font-size: 11px; color: var(--gray); margin-top: 2px; }
+
+/* ════════════════════════════════════════
+   LAYOUT
+════════════════════════════════════════ */
+.main { max-width: 1400px; margin: 0 auto; padding: 40px 32px 80px; }
+
+/* ════════════════════════════════════════
+   SECTION
+════════════════════════════════════════ */
+.section { margin-bottom: 56px; }
+.section-header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--border);
+}
+.section-num {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--dark); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 900; flex-shrink: 0;
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;
+}
+.section-title { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
+.section-desc { font-size: 13px; color: var(--gray); margin-top: 2px; }
+
+/* ════════════════════════════════════════
+   COMPARE PANEL
+════════════════════════════════════════ */
+.compare-block { margin-bottom: 28px; }
+.compare-label {
+  font-size: 12px; font-weight: 700; color: var(--gray);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 10px;
+}
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border: 1.5px solid var(--border2); border-radius: 14px;
+  overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,.05);
+}
+.compare-grid.single { grid-template-columns: 1fr; }
+
+.lang-panel { display: flex; flex-direction: column; }
+.lang-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px; font-size: 12px; font-weight: 700;
+  letter-spacing: .5px;
+}
+.lang-header.java-h { background: var(--java-mid); color: var(--java-dark); border-bottom: 2px solid var(--java); }
+.lang-header.py-h   { background: var(--py-mid);   color: var(--py-dark);   border-bottom: 2px solid var(--py); border-left: 1.5px solid var(--border2); }
+.lang-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.panel-divider { border-left: 1.5px solid var(--border2); }
+
+/* ════════════════════════════════════════
+   CODE BLOCK
+════════════════════════════════════════ */
+.code-wrap {
+  background: var(--white); padding: 18px 20px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px; line-height: 1.8;
+  overflow-x: auto; flex: 1;
+  white-space: pre;
+  tab-size: 4;
+  -moz-tab-size: 4;
+}
+.py-h + .code-wrap { border-left: 1.5px solid var(--border2); }
+
+/* syntax */
+.kw  { color: var(--ck); font-weight: 600; }
+.st  { color: var(--cs); }
+.nu  { color: var(--cn); }
+.cm  { color: var(--cc); font-style: italic; }
+.fn  { color: var(--cf); }
+.ty  { color: var(--ctype); font-weight: 600; }
+.op  { color: var(--cop); }
+.an  { color: var(--cann); }
+.var { color: var(--cvar); }
+.dec { color: #7c3aed; font-weight: 600; }
+
+/* ════════════════════════════════════════
+   DIFF TABLE
+════════════════════════════════════════ */
+.diff-table {
+  width: 100%; border-collapse: collapse;
+  border: 1.5px solid var(--border2); border-radius: 12px;
+  overflow: hidden; font-size: 13px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.04);
+}
+.diff-table th {
+  padding: 11px 16px; font-size: 11px; font-weight: 700;
+  letter-spacing: .5px; text-align: left;
+  border-bottom: 2px solid var(--border2);
+}
+.diff-table th:nth-child(1) { background: var(--bg); color: var(--gray); width: 18%; }
+.diff-table th:nth-child(2) { background: var(--java-mid); color: var(--java-dark); width: 41%; }
+.diff-table th:nth-child(3) { background: var(--py-mid); color: var(--py-dark); width: 41%; }
+.diff-table td {
+  padding: 10px 16px; vertical-align: top;
+  border-bottom: 1px solid var(--border); line-height: 1.6;
+}
+.diff-table tr:last-child td { border-bottom: none; }
+.diff-table tr:hover td { background: rgba(37,99,235,.02); }
+.diff-table td:nth-child(1) { font-weight: 700; color: var(--dark3); font-size: 12px; }
+.diff-table td code {
+  font-family: 'Fira Code', monospace; font-size: 12px;
+  background: var(--bg); padding: 1px 6px;
+  border-radius: 4px; border: 1px solid var(--border);
+  color: var(--dark2);
+}
+
+/* ════════════════════════════════════════
+   CALLOUT BOX
+════════════════════════════════════════ */
+.callout {
+  border-radius: 10px; padding: 14px 18px;
+  margin: 16px 0; font-size: 13px; line-height: 1.6;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.callout-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+.callout.info  { background: #eff6ff; border-left: 3px solid var(--py); }
+.callout.warn  { background: #fffbeb; border-left: 3px solid #d97706; }
+.callout.tip   { background: #f0fdf4; border-left: 3px solid var(--green); }
+.callout.java  { background: var(--java-light); border-left: 3px solid var(--java); }
+.callout strong { font-weight: 700; }
+
+/* ════════════════════════════════════════
+   TAGS
+════════════════════════════════════════ */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+}
+.tag-java   { background: var(--java-mid); color: var(--java-dark); border: 1px solid #fbc9a0; }
+.tag-py     { background: var(--py-mid); color: var(--py-dark); border: 1px solid #93c5fd; }
+.tag-both   { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.tag-diff   { background: #fdf4ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+
+/* ════════════════════════════════════════
+   FEATURE CARDS
+════════════════════════════════════════ */
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.feature-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 18px;
+  transition: box-shadow .2s, border-color .2s;
+}
+.feature-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); border-color: var(--border2); }
+.fc-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--dark2); }
+.fc-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+.fc-lang { font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 4px; flex-shrink: 0; }
+.fc-java { background: var(--java-mid); color: var(--java-dark); }
+.fc-py   { background: var(--py-mid); color: var(--py-dark); }
+.fc-code { font-family: 'Fira Code', monospace; font-size: 11.5px; color: var(--dark3); flex: 1; }
+
+/* ════════════════════════════════════════
+   SEPARATOR
+════════════════════════════════════════ */
+.subsection-title {
+  font-size: 15px; font-weight: 800; color: var(--dark2);
+  margin: 28px 0 14px; display: flex; align-items: center; gap: 8px;
+}
+.subsection-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+.site-footer {
+  background: var(--dark); color: #94a3b8;
+  text-align: center; padding: 40px 20px; font-size: 12px;
+}
+.site-footer strong { color: white; }
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .py-h { border-left: none; border-top: 1.5px solid var(--border2); }
+  .py-h + .code-wrap { border-left: none; border-top: 1px solid var(--border2); }
+  .header-nav { display: none; }
+  .main { padding: 24px 16px; }
+  .hero { padding: 32px 20px; }
+}
+
+/* ════════════════════════════════════════
+   ANIMATIONS
+════════════════════════════════════════ */
+@keyframes fadeIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+.section { animation: fadeIn .4s ease both; }
+.section:nth-child(2)  { animation-delay: .05s; }
+.section:nth-child(3)  { animation-delay: .10s; }
+.section:nth-child(4)  { animation-delay: .15s; }
+.section:nth-child(5)  { animation-delay: .20s; }
+.section:nth-child(6)  { animation-delay: .25s; }
+.section:nth-child(7)  { animation-delay: .30s; }
+.section:nth-child(8)  { animation-delay: .35s; }
+.section:nth-child(9)  { animation-delay: .40s; }
+.section:nth-child(10) { animation-delay: .45s; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-j">☕ Java</span>
+      <span class="logo-vs">VS</span>
+      <span class="logo-p">🐍 Python</span>
+    </div>
+    <nav class="header-nav">
+      <a class="nav-btn" href="#s1">변수·타입</a>
+      <a class="nav-btn" href="#s2">배열·컬렉션</a>
+      <a class="nav-btn" href="#s3">조건문</a>
+      <a class="nav-btn" href="#s4">반복문</a>
+      <a class="nav-btn" href="#s5">함수</a>
+      <a class="nav-btn" href="#s6">클래스·OOP</a>
+      <a class="nav-btn" href="#s7">예외처리</a>
+      <a class="nav-btn" href="#s8">입출력</a>
+      <a class="nav-btn" href="#s9">문자열</a>
+      <a class="nav-btn" href="#s10">고급문법</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="hero">
+  <div class="hero-eyebrow">🔥 기본 문법 완전 비교 가이드</div>
+  <h1><span class="j">Java</span><span class="vs">vs</span><span class="p">Python</span></h1>
+  <p class="hero-sub">변수, 배열, 반복문, 함수, 클래스 등 핵심 문법을<br>정확한 소스코드와 함께 나란히 비교합니다</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-n">10</div><div class="hero-stat-l">비교 주제</div></div>
+    <div class="hero-stat"><div class="hero-stat-n">60+</div><div class="hero-stat-l">코드 예제</div></div>
+    <div class="hero-stat"><div class="hero-stat-n" style="color:var(--java)">정적 타입</div><div class="hero-stat-l">Java</div></div>
+    <div class="hero-stat"><div class="hero-stat-n" style="color:var(--py)">동적 타입</div><div class="hero-stat-l">Python</div></div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+
+<!-- ═══════════════════════════════════════
+  1. 변수 & 데이터 타입
+═══════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div>
+      <div class="section-title">변수 & 데이터 타입</div>
+      <div class="section-desc">Variables & Data Types — 선언 방식과 기본 타입 비교</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">기본 변수 선언</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 타입을 반드시 명시</div>
+        <div class="code-wrap"><span class="cm">// 기본형 (Primitive Type)</span>
+<span class="ty">int</span>     num    = <span class="nu">42</span>;
+<span class="ty">long</span>    big    = <span class="nu">9999999999L</span>;
+<span class="ty">double</span>  pi     = <span class="nu">3.14159</span>;
+<span class="ty">float</span>   f      = <span class="nu">3.14f</span>;
+<span class="ty">char</span>    ch     = <span class="st">'A'</span>;
+<span class="ty">boolean</span> flag   = <span class="kw">true</span>;
+<span class="ty">byte</span>    b      = <span class="nu">127</span>;
+<span class="ty">short</span>   s      = <span class="nu">32767</span>;
+
+<span class="cm">// 참조형 (Reference Type)</span>
+<span class="ty">String</span>  name   = <span class="st">"홍길동"</span>;
+<span class="ty">Integer</span> boxed  = <span class="nu">100</span>;   <span class="cm">// Wrapper 클래스</span>
+
+<span class="cm">// 상수</span>
+<span class="kw">final</span> <span class="ty">int</span> MAX = <span class="nu">100</span>;
+
+<span class="cm">// 타입 추론 (Java 10+)</span>
+<span class="kw">var</span> x = <span class="nu">10</span>;        <span class="cm">// int로 추론</span>
+<span class="kw">var</span> s2 = <span class="st">"hello"</span>;  <span class="cm">// String으로 추론</span></div>
+      </div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 타입 선언 불필요</div>
+        <div class="code-wrap"><span class="cm"># 타입을 자동으로 결정 (동적 타입)</span>
+num   = <span class="nu">42</span>           <span class="cm"># int</span>
+big   = <span class="nu">9999999999</span>   <span class="cm"># int (크기 제한 없음!)</span>
+pi    = <span class="nu">3.14159</span>       <span class="cm"># float</span>
+ch    = <span class="st">'A'</span>          <span class="cm"># str (char 없음)</span>
+flag  = <span class="kw">True</span>          <span class="cm"># bool (대문자 T!)</span>
+<span class="cm"># byte, short, float 없음 → 모두 int/float</span>
+
+<span class="cm"># 문자열</span>
+name  = <span class="st">"홍길동"</span>        <span class="cm"># str</span>
+
+<span class="cm"># 상수 (관례적으로 대문자, 강제 아님)</span>
+MAX = <span class="nu">100</span>
+
+<span class="cm"># 타입 힌트 (선택 사항, Python 3.5+)</span>
+x: <span class="ty">int</span> = <span class="nu">10</span>
+s2: <span class="ty">str</span> = <span class="st">"hello"</span></div></div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">타입 확인 & 변환</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA</div>
+        <div class="code-wrap"><span class="cm">// 타입 확인</span>
+<span class="ty">int</span> a = <span class="nu">10</span>;
+<span class="cm">// instanceof (클래스 타입 확인)</span>
+<span class="ty">String</span> s = <span class="st">"hi"</span>;
+<span class="ty">boolean</span> r = s <span class="kw">instanceof</span> <span class="ty">String</span>; <span class="cm">// true</span>
+
+<span class="cm">// 명시적 타입 변환 (캐스팅)</span>
+<span class="ty">double</span> d = <span class="nu">3.99</span>;
+<span class="ty">int</span>    i = (<span class="ty">int</span>) d;   <span class="cm">// 3 (소수점 버림)</span>
+
+<span class="cm">// 문자열 → 숫자</span>
+<span class="ty">int</span>    n1 = <span class="ty">Integer</span>.parseInt(<span class="st">"42"</span>);
+<span class="ty">double</span> n2 = <span class="ty">Double</span>.parseDouble(<span class="st">"3.14"</span>);
+
+<span class="cm">// 숫자 → 문자열</span>
+<span class="ty">String</span> s1 = <span class="ty">String</span>.valueOf(<span class="nu">42</span>);
+<span class="ty">String</span> s2 = <span class="ty">Integer</span>.toString(<span class="nu">42</span>);</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON</div>
+        <div class="code-wrap"><span class="cm"># 타입 확인</span>
+a = <span class="nu">10</span>
+<span class="fn">type</span>(a)          <span class="cm"># &lt;class 'int'&gt;</span>
+<span class="fn">isinstance</span>(a, <span class="ty">int</span>)  <span class="cm"># True</span>
+<span class="fn">isinstance</span>(a, (<span class="ty">int</span>, <span class="ty">float</span>))  <span class="cm"># True</span>
+
+<span class="cm"># 타입 변환 (명시적 형변환)</span>
+d = <span class="nu">3.99</span>
+i = <span class="ty">int</span>(d)        <span class="cm"># 3 (소수점 버림)</span>
+
+<span class="cm"># 문자열 → 숫자</span>
+n1 = <span class="ty">int</span>(<span class="st">"42"</span>)
+n2 = <span class="ty">float</span>(<span class="st">"3.14"</span>)
+
+<span class="cm"># 숫자 → 문자열</span>
+s1 = <span class="ty">str</span>(<span class="nu">42</span>)      <span class="cm"># "42"</span>
+s2 = <span class="ty">str</span>(<span class="nu">3.14</span>)    <span class="cm"># "3.14"</span></div></div></div>
+  </div>
+
+  <table class="diff-table">
+    <tr>
+      <th>항목</th>
+      <th>☕ Java</th>
+      <th>🐍 Python</th>
+    </tr>
+    <tr><td>타입 시스템</td><td>정적 타입 (컴파일 시 결정)</td><td>동적 타입 (실행 시 결정)</td></tr>
+    <tr><td>변수 선언</td><td><code>int x = 10;</code></td><td><code>x = 10</code></td></tr>
+    <tr><td>상수 선언</td><td><code>final int MAX = 100;</code></td><td><code>MAX = 100</code> (관례)</td></tr>
+    <tr><td>정수 크기</td><td>int(32bit), long(64bit) 구분</td><td>크기 제한 없는 int 하나만</td></tr>
+    <tr><td>불리언 값</td><td><code>true</code> / <code>false</code> (소문자)</td><td><code>True</code> / <code>False</code> (대문자)</td></tr>
+    <tr><td>null / None</td><td><code>null</code></td><td><code>None</code></td></tr>
+    <tr><td>세미콜론</td><td>문장 끝에 <code>;</code> 필수</td><td>불필요 (줄바꿈이 구분자)</td></tr>
+    <tr><td>다중 할당</td><td>불가 (별도 선언)</td><td><code>a, b, c = 1, 2, 3</code></td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════
+  2. 배열 & 컬렉션
+═══════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div>
+      <div class="section-title">배열 & 컬렉션</div>
+      <div class="section-desc">Array, List, Map, Set — 자료 구조 선언과 사용법</div>
+    </div>
+  </div>
+
+  <div class="subsection-title">📦 배열 (Array)</div>
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 고정 크기 배열</div>
+        <div class="code-wrap"><span class="cm">// 1차원 배열 선언 & 초기화</span>
+<span class="ty">int</span>[] arr1 = <span class="kw">new</span> <span class="ty">int</span>[<span class="nu">5</span>];         <span class="cm">// 크기 5, 0으로 초기화</span>
+<span class="ty">int</span>[] arr2 = {<span class="nu">10</span>, <span class="nu">20</span>, <span class="nu">30</span>, <span class="nu">40</span>, <span class="nu">50</span>};
+
+<span class="cm">// 2차원 배열</span>
+<span class="ty">int</span>[][] matrix = {
+    {<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>},
+    {<span class="nu">4</span>, <span class="nu">5</span>, <span class="nu">6</span>},
+    {<span class="nu">7</span>, <span class="nu">8</span>, <span class="nu">9</span>}
+};
+
+<span class="cm">// 접근 & 수정</span>
+arr2[<span class="nu">0</span>] = <span class="nu">100</span>;
+<span class="ty">int</span> last = arr2[arr2.length - <span class="nu">1</span>];
+
+<span class="cm">// 배열 길이</span>
+<span class="ty">int</span> len = arr2.length;    <span class="cm">// 5</span>
+
+<span class="cm">// 배열 출력</span>
+<span class="ty">System</span>.out.println(
+    <span class="ty">Arrays</span>.toString(arr2));
+
+<span class="cm">// 배열 정렬</span>
+<span class="ty">Arrays</span>.sort(arr2);</div>
+      </div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 리스트 (동적 크기)</div>
+        <div class="code-wrap"><span class="cm"># 리스트 선언 & 초기화</span>
+arr1 = [<span class="nu">0</span>] * <span class="nu">5</span>              <span class="cm"># [0,0,0,0,0]</span>
+arr2 = [<span class="nu">10</span>, <span class="nu">20</span>, <span class="nu">30</span>, <span class="nu">40</span>, <span class="nu">50</span>]
+
+<span class="cm"># 2차원 리스트</span>
+matrix = [
+    [<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>],
+    [<span class="nu">4</span>, <span class="nu">5</span>, <span class="nu">6</span>],
+    [<span class="nu">7</span>, <span class="nu">8</span>, <span class="nu">9</span>]
+]
+
+<span class="cm"># 접근 & 수정</span>
+arr2[<span class="nu">0</span>] = <span class="nu">100</span>
+last = arr2[<span class="op">-</span><span class="nu">1</span>]           <span class="cm"># 마지막 원소</span>
+
+<span class="cm"># 리스트 길이</span>
+ln = <span class="fn">len</span>(arr2)             <span class="cm"># 5</span>
+
+<span class="cm"># 리스트 출력 (그냥 print)</span>
+<span class="fn">print</span>(arr2)
+
+<span class="cm"># 정렬</span>
+arr2.sort()               <span class="cm"># 원본 변경</span>
+s = <span class="fn">sorted</span>(arr2)          <span class="cm"># 새 리스트 반환</span></div></div>
+    </div>
+  </div>
+
+  <div class="subsection-title">📋 리스트 / ArrayList</div>
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — ArrayList</div>
+        <div class="code-wrap"><span class="kw">import</span> java.util.*;
+
+<span class="ty">ArrayList</span>&lt;<span class="ty">String</span>&gt; list = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+<span class="cm">// 추가</span>
+list.add(<span class="st">"apple"</span>);
+list.add(<span class="st">"banana"</span>);
+list.add(<span class="nu">0</span>, <span class="st">"grape"</span>);  <span class="cm">// 인덱스 0에 삽입</span>
+
+<span class="cm">// 조회</span>
+<span class="ty">String</span> item = list.get(<span class="nu">0</span>); <span class="cm">// "grape"</span>
+<span class="ty">int</span> idx = list.indexOf(<span class="st">"apple"</span>);
+
+<span class="cm">// 삭제</span>
+list.remove(<span class="st">"banana"</span>);
+list.remove(<span class="nu">0</span>);          <span class="cm">// 인덱스로 삭제</span>
+
+<span class="cm">// 크기 & 포함 여부</span>
+<span class="ty">int</span> size = list.size();
+<span class="ty">boolean</span> has = list.contains(<span class="st">"apple"</span>);
+
+<span class="cm">// 서브리스트</span>
+<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; sub = list.subList(<span class="nu">0</span>, <span class="nu">2</span>);</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — list</div>
+        <div class="code-wrap">fruits = []
+
+<span class="cm"># 추가</span>
+fruits.append(<span class="st">"apple"</span>)
+fruits.append(<span class="st">"banana"</span>)
+fruits.insert(<span class="nu">0</span>, <span class="st">"grape"</span>)   <span class="cm"># 인덱스 0에 삽입</span>
+
+<span class="cm"># 조회</span>
+item = fruits[<span class="nu">0</span>]            <span class="cm"># "grape"</span>
+idx  = fruits.index(<span class="st">"apple"</span>)
+
+<span class="cm"># 삭제</span>
+fruits.remove(<span class="st">"banana"</span>)    <span class="cm"># 값으로 삭제</span>
+fruits.pop(<span class="nu">0</span>)              <span class="cm"># 인덱스로 삭제</span>
+
+<span class="cm"># 크기 & 포함 여부</span>
+size = <span class="fn">len</span>(fruits)
+has  = <span class="st">"apple"</span> <span class="kw">in</span> fruits
+
+<span class="cm"># 슬라이싱</span>
+sub  = fruits[<span class="nu">0</span>:<span class="nu">2</span>]         <span class="cm"># 0 이상 2 미만</span>
+rev  = fruits[::<span class="op">-</span><span class="nu">1</span>]        <span class="cm"># 역순</span></div></div></div>
+  </div>
+
+  <div class="subsection-title">🗺️ Map (딕셔너리)</div>
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — HashMap</div>
+        <div class="code-wrap"><span class="ty">HashMap</span>&lt;<span class="ty">String</span>, <span class="ty">Integer</span>&gt; map
+    = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+<span class="cm">// 추가 / 수정</span>
+map.put(<span class="st">"alice"</span>, <span class="nu">25</span>);
+map.put(<span class="st">"bob"</span>, <span class="nu">30</span>);
+
+<span class="cm">// 조회</span>
+<span class="ty">int</span> age = map.get(<span class="st">"alice"</span>);          <span class="cm">// 25</span>
+<span class="ty">int</span> def = map.getOrDefault(<span class="st">"x"</span>,<span class="nu">0</span>); <span class="cm">// 없으면 0</span>
+
+<span class="cm">// 포함 여부</span>
+<span class="ty">boolean</span> hk = map.containsKey(<span class="st">"bob"</span>);
+<span class="ty">boolean</span> hv = map.containsValue(<span class="nu">30</span>);
+
+<span class="cm">// 삭제</span>
+map.remove(<span class="st">"bob"</span>);
+
+<span class="cm">// 순회</span>
+<span class="kw">for</span> (<span class="ty">Map</span>.Entry&lt;<span class="ty">String</span>,<span class="ty">Integer</span>&gt; e
+        : map.entrySet()) {
+    <span class="ty">System</span>.out.println(
+        e.getKey() + <span class="st">": "</span> + e.getValue());
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — dict</div>
+        <div class="code-wrap">ages = {}
+
+<span class="cm"># 추가 / 수정</span>
+ages[<span class="st">"alice"</span>] = <span class="nu">25</span>
+ages[<span class="st">"bob"</span>]   = <span class="nu">30</span>
+
+<span class="cm"># 조회</span>
+age = ages[<span class="st">"alice"</span>]              <span class="cm"># 25</span>
+def_= ages.get(<span class="st">"x"</span>, <span class="nu">0</span>)          <span class="cm"># 없으면 0</span>
+
+<span class="cm"># 포함 여부</span>
+hk = <span class="st">"bob"</span> <span class="kw">in</span> ages              <span class="cm"># 키 확인</span>
+hv = <span class="nu">30</span> <span class="kw">in</span> ages.values()          <span class="cm"># 값 확인</span>
+
+<span class="cm"># 삭제</span>
+<span class="kw">del</span> ages[<span class="st">"bob"</span>]
+ages.pop(<span class="st">"bob"</span>, <span class="kw">None</span>)
+
+<span class="cm"># 순회</span>
+<span class="kw">for</span> key, val <span class="kw">in</span> ages.items():
+    <span class="fn">print</span>(<span class="st">f"</span>{key}<span class="st">: </span>{val}<span class="st">"</span>)
+
+<span class="cm"># keys, values</span>
+<span class="fn">list</span>(ages.keys())
+<span class="fn">list</span>(ages.values())</div></div></div>
+  </div>
+
+  <div class="subsection-title">⭕ Set (집합)</div>
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — HashSet</div>
+        <div class="code-wrap"><span class="ty">HashSet</span>&lt;<span class="ty">Integer</span>&gt; set = <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;();
+set.add(<span class="nu">1</span>); set.add(<span class="nu">2</span>); set.add(<span class="nu">3</span>);
+set.add(<span class="nu">2</span>);  <span class="cm">// 중복 → 무시</span>
+
+set.contains(<span class="nu">2</span>);      <span class="cm">// true</span>
+set.remove(<span class="nu">3</span>);
+set.size();            <span class="cm">// 2</span></div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — set</div>
+        <div class="code-wrap">s = {<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>}
+s.add(<span class="nu">2</span>)         <span class="cm"># 중복 → 무시</span>
+s.add(<span class="nu">4</span>)
+
+<span class="nu">2</span> <span class="kw">in</span> s           <span class="cm"># True</span>
+s.remove(<span class="nu">3</span>)
+<span class="fn">len</span>(s)           <span class="cm"># 3</span>
+
+<span class="cm"># 집합 연산</span>
+a | b  <span class="cm"># 합집합</span>
+a &amp; b  <span class="cm"># 교집합</span>
+a - b  <span class="cm"># 차집합</span></div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  3. 조건문
+═══════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div>
+      <div class="section-title">조건문</div>
+      <div class="section-desc">if / else if / else / switch — 분기 처리</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">if / else if / else</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 중괄호 { } 필수</div>
+        <div class="code-wrap"><span class="ty">int</span> score = <span class="nu">85</span>;
+<span class="ty">String</span> grade;
+
+<span class="kw">if</span> (score >= <span class="nu">90</span>) {
+    grade = <span class="st">"A"</span>;
+} <span class="kw">else if</span> (score >= <span class="nu">80</span>) {
+    grade = <span class="st">"B"</span>;
+} <span class="kw">else if</span> (score >= <span class="nu">70</span>) {
+    grade = <span class="st">"C"</span>;
+} <span class="kw">else</span> {
+    grade = <span class="st">"F"</span>;
+}
+
+<span class="cm">// 삼항 연산자</span>
+<span class="ty">String</span> result = (score >= <span class="nu">60</span>)
+    ? <span class="st">"합격"</span> : <span class="st">"불합격"</span>;</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 들여쓰기가 블록</div>
+        <div class="code-wrap">score = <span class="nu">85</span>
+
+<span class="kw">if</span> score >= <span class="nu">90</span>:
+    grade = <span class="st">"A"</span>
+<span class="kw">elif</span> score >= <span class="nu">80</span>:          <span class="cm"># 'else if' → 'elif'</span>
+    grade = <span class="st">"B"</span>
+<span class="kw">elif</span> score >= <span class="nu">70</span>:
+    grade = <span class="st">"C"</span>
+<span class="kw">else</span>:
+    grade = <span class="st">"F"</span>
+
+<span class="cm"># 조건 표현식 (삼항 연산자)</span>
+result = <span class="st">"합격"</span> <span class="kw">if</span> score >= <span class="nu">60</span> <span class="kw">else</span> <span class="st">"불합격"</span></div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">switch / match</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — switch (break 필수!)</div>
+        <div class="code-wrap"><span class="ty">int</span> day = <span class="nu">3</span>;
+<span class="ty">String</span> name;
+
+<span class="cm">// 기존 switch</span>
+<span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="nu">1</span>: name = <span class="st">"월요일"</span>; <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="nu">2</span>: name = <span class="st">"화요일"</span>; <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="nu">3</span>: name = <span class="st">"수요일"</span>; <span class="kw">break</span>;
+    <span class="kw">default</span>: name = <span class="st">"기타"</span>; <span class="kw">break</span>;
+}
+
+<span class="cm">// switch 표현식 (Java 14+, break 불필요)</span>
+name = <span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="nu">1</span> -> <span class="st">"월요일"</span>;
+    <span class="kw">case</span> <span class="nu">2</span> -> <span class="st">"화요일"</span>;
+    <span class="kw">case</span> <span class="nu">3</span> -> <span class="st">"수요일"</span>;
+    <span class="kw">default</span> -> <span class="st">"기타"</span>;
+};</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — match (3.10+)</div>
+        <div class="code-wrap">day = <span class="nu">3</span>
+
+<span class="cm"># match-case (Python 3.10+)</span>
+<span class="kw">match</span> day:
+    <span class="kw">case</span> <span class="nu">1</span>:
+        name = <span class="st">"월요일"</span>
+    <span class="kw">case</span> <span class="nu">2</span>:
+        name = <span class="st">"화요일"</span>
+    <span class="kw">case</span> <span class="nu">3</span>:
+        name = <span class="st">"수요일"</span>
+    <span class="kw">case</span> _:              <span class="cm"># default</span>
+        name = <span class="st">"기타"</span>
+
+<span class="cm"># 구버전 대안: 딕셔너리 활용</span>
+days = {<span class="nu">1</span>:<span class="st">"월"</span>, <span class="nu">2</span>:<span class="st">"화"</span>, <span class="nu">3</span>:<span class="st">"수"</span>}
+name = days.get(day, <span class="st">"기타"</span>)</div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  4. 반복문
+═══════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div>
+      <div class="section-title">반복문</div>
+      <div class="section-desc">for / while / do-while / 향상된 for — 루프 완전 비교</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">① 기본 for 루프</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA</div>
+        <div class="code-wrap"><span class="cm">// 기본 for</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i < <span class="nu">5</span>; i++) {
+    <span class="ty">System</span>.out.println(i); <span class="cm">// 0,1,2,3,4</span>
+}
+
+<span class="cm">// 역순</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">4</span>; i >= <span class="nu">0</span>; i--) {
+    <span class="ty">System</span>.out.println(i); <span class="cm">// 4,3,2,1,0</span>
+}
+
+<span class="cm">// 2씩 증가</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i <= <span class="nu">10</span>; i += <span class="nu">2</span>) {
+    <span class="ty">System</span>.out.println(i); <span class="cm">// 0,2,4,6,8,10</span>
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — range() 사용</div>
+        <div class="code-wrap"><span class="cm"># 기본 for (range)</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">5</span>):
+    <span class="fn">print</span>(i)           <span class="cm"># 0,1,2,3,4</span>
+
+<span class="cm"># 역순</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">4</span>, <span class="op">-</span><span class="nu">1</span>, <span class="op">-</span><span class="nu">1</span>):
+    <span class="fn">print</span>(i)           <span class="cm"># 4,3,2,1,0</span>
+
+<span class="cm"># 2씩 증가</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">0</span>, <span class="nu">11</span>, <span class="nu">2</span>):
+    <span class="fn">print</span>(i)           <span class="cm"># 0,2,4,6,8,10</span></div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">② 향상된 for / for-each</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — enhanced for</div>
+        <div class="code-wrap"><span class="ty">String</span>[] fruits = {<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>};
+
+<span class="cm">// 향상된 for (인덱스 없음)</span>
+<span class="kw">for</span> (<span class="ty">String</span> fruit : fruits) {
+    <span class="ty">System</span>.out.println(fruit);
+}
+
+<span class="cm">// 인덱스와 함께 → 일반 for 사용</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i < fruits.length; i++) {
+    <span class="ty">System</span>.out.printf(
+        <span class="st">"%d: %s%n"</span>, i, fruits[i]);
+}
+
+<span class="cm">// ArrayList forEach</span>
+<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; list = <span class="ty">Arrays</span>.asList(fruits);
+list.forEach(f ->
+    <span class="ty">System</span>.out.println(f));</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — for-in</div>
+        <div class="code-wrap">fruits = [<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>]
+
+<span class="cm"># 직접 순회</span>
+<span class="kw">for</span> fruit <span class="kw">in</span> fruits:
+    <span class="fn">print</span>(fruit)
+
+<span class="cm"># 인덱스와 함께 → enumerate()</span>
+<span class="kw">for</span> i, fruit <span class="kw">in</span> <span class="fn">enumerate</span>(fruits):
+    <span class="fn">print</span>(<span class="st">f"</span>{i}<span class="st">: </span>{fruit}<span class="st">"</span>)
+
+<span class="cm"># 딕셔너리 순회</span>
+d = {<span class="st">"a"</span>:<span class="nu">1</span>, <span class="st">"b"</span>:<span class="nu">2</span>}
+<span class="kw">for</span> k, v <span class="kw">in</span> d.items():
+    <span class="fn">print</span>(k, v)
+
+<span class="cm"># 두 리스트 동시 순회 → zip()</span>
+<span class="kw">for</span> a, b <span class="kw">in</span> <span class="fn">zip</span>([<span class="nu">1</span>,<span class="nu">2</span>], [<span class="st">"x"</span>,<span class="st">"y"</span>]):
+    <span class="fn">print</span>(a, b)</div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">③ while 루프</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — while / do-while</div>
+        <div class="code-wrap"><span class="cm">// while</span>
+<span class="ty">int</span> i = <span class="nu">0</span>;
+<span class="kw">while</span> (i < <span class="nu">5</span>) {
+    <span class="ty">System</span>.out.println(i);
+    i++;
+}
+
+<span class="cm">// do-while (최소 1번 실행)</span>
+<span class="ty">int</span> n = <span class="nu">10</span>;
+<span class="kw">do</span> {
+    <span class="ty">System</span>.out.println(n);
+    n--;
+} <span class="kw">while</span> (n > <span class="nu">0</span>);
+
+<span class="cm">// 무한 루프</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="cm">// ...</span>
+    <span class="kw">if</span> (조건) <span class="kw">break</span>;
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — while (do-while 없음)</div>
+        <div class="code-wrap"><span class="cm"># while</span>
+i = <span class="nu">0</span>
+<span class="kw">while</span> i < <span class="nu">5</span>:
+    <span class="fn">print</span>(i)
+    i += <span class="nu">1</span>
+
+<span class="cm"># do-while 대안 (Python에는 없음)</span>
+n = <span class="nu">10</span>
+<span class="kw">while True</span>:             <span class="cm"># 일단 실행하고</span>
+    <span class="fn">print</span>(n)
+    n -= <span class="nu">1</span>
+    <span class="kw">if</span> n <= <span class="nu">0</span>:           <span class="cm"># 조건 검사</span>
+        <span class="kw">break</span>
+
+<span class="cm"># 무한 루프</span>
+<span class="kw">while True</span>:
+    <span class="cm"># ...</span>
+    <span class="kw">if</span> 조건:
+        <span class="kw">break</span>
+
+<span class="cm"># while else (루프 정상 종료 시 실행)</span>
+<span class="kw">while</span> i < <span class="nu">5</span>:
+    i += <span class="nu">1</span>
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"완료"</span>)</div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">④ break / continue / return</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA</div>
+        <div class="code-wrap"><span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i < <span class="nu">10</span>; i++) {
+    <span class="kw">if</span> (i == <span class="nu">3</span>) <span class="kw">continue</span>;  <span class="cm">// 3은 건너뜀</span>
+    <span class="kw">if</span> (i == <span class="nu">7</span>) <span class="kw">break</span>;    <span class="cm">// 7에서 루프 종료</span>
+    <span class="ty">System</span>.out.println(i); <span class="cm">// 0,1,2,4,5,6</span>
+}
+
+<span class="cm">// 레이블 break (중첩 루프 탈출)</span>
+outer:
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i < <span class="nu">3</span>; i++) {
+    <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nu">0</span>; j < <span class="nu">3</span>; j++) {
+        <span class="kw">if</span> (i==<span class="nu">1</span> && j==<span class="nu">1</span>) <span class="kw">break outer</span>;
+    }
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON</div>
+        <div class="code-wrap"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">10</span>):
+    <span class="kw">if</span> i == <span class="nu">3</span>: <span class="kw">continue</span>  <span class="cm"># 3은 건너뜀</span>
+    <span class="kw">if</span> i == <span class="nu">7</span>: <span class="kw">break</span>    <span class="cm"># 7에서 루프 종료</span>
+    <span class="fn">print</span>(i)              <span class="cm"># 0,1,2,4,5,6</span>
+
+<span class="cm"># 레이블 break 없음 → flag 변수 사용</span>
+done = <span class="kw">False</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">3</span>):
+    <span class="kw">if</span> done: <span class="kw">break</span>
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">3</span>):
+        <span class="kw">if</span> i==<span class="nu">1</span> <span class="kw">and</span> j==<span class="nu">1</span>:
+            done = <span class="kw">True</span>
+            <span class="kw">break</span></div></div></div>
+  </div>
+
+  <div class="callout info">
+    <span class="callout-icon">💡</span>
+    <div><strong>Python에는 do-while이 없습니다!</strong> <code>while True: ... if 조건: break</code> 패턴으로 대체합니다. 또한 Python의 <code>for-else</code> / <code>while-else</code> 구문은 Java에 없는 독특한 기능입니다.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  5. 함수 (메서드)
+═══════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div>
+      <div class="section-title">함수 & 메서드</div>
+      <div class="section-desc">Function / Method — 정의, 파라미터, 반환값, 람다</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">기본 함수 정의 & 호출</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 반환 타입 명시 필수</div>
+        <div class="code-wrap"><span class="cm">// 반환값 없는 메서드</span>
+<span class="kw">public static void</span> <span class="fn">sayHello</span>(<span class="ty">String</span> name) {
+    <span class="ty">System</span>.out.println(<span class="st">"안녕, "</span> + name);
+}
+
+<span class="cm">// 반환값 있는 메서드</span>
+<span class="kw">public static</span> <span class="ty">int</span> <span class="fn">add</span>(<span class="ty">int</span> a, <span class="ty">int</span> b) {
+    <span class="kw">return</span> a + b;
+}
+
+<span class="cm">// 기본값 파라미터 없음 → 오버로딩으로 구현</span>
+<span class="kw">public static</span> <span class="ty">int</span> <span class="fn">multiply</span>(<span class="ty">int</span> a, <span class="ty">int</span> b) {
+    <span class="kw">return</span> a * b;
+}
+<span class="kw">public static</span> <span class="ty">int</span> <span class="fn">multiply</span>(<span class="ty">int</span> a) {
+    <span class="kw">return</span> a * <span class="nu">2</span>;  <span class="cm">// b 기본값 2</span>
+}
+
+<span class="cm">// 가변 인수</span>
+<span class="kw">public static</span> <span class="ty">int</span> <span class="fn">sum</span>(<span class="ty">int</span>... nums) {
+    <span class="ty">int</span> total = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="ty">int</span> n : nums) total += n;
+    <span class="kw">return</span> total;
+}
+
+<span class="cm">// 호출</span>
+<span class="fn">sayHello</span>(<span class="st">"Alice"</span>);
+<span class="ty">int</span> result = <span class="fn">add</span>(<span class="nu">3</span>, <span class="nu">4</span>);
+<span class="ty">int</span> s = <span class="fn">sum</span>(<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>);</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — def 키워드</div>
+        <div class="code-wrap"><span class="cm"># 반환값 없는 함수</span>
+<span class="kw">def</span> <span class="fn">say_hello</span>(name):
+    <span class="fn">print</span>(<span class="st">f"안녕, {name}"</span>)
+
+<span class="cm"># 반환값 있는 함수</span>
+<span class="kw">def</span> <span class="fn">add</span>(a, b):
+    <span class="kw">return</span> a + b
+
+<span class="cm"># 기본값 파라미터 (default parameter)</span>
+<span class="kw">def</span> <span class="fn">multiply</span>(a, b=<span class="nu">2</span>):     <span class="cm"># b 기본값 2</span>
+    <span class="kw">return</span> a * b
+
+<span class="cm"># 가변 인수 (*args)</span>
+<span class="kw">def</span> <span class="fn">sum_all</span>(*nums):
+    <span class="kw">return</span> <span class="fn">sum</span>(nums)
+
+<span class="cm"># 키워드 가변 인수 (**kwargs)</span>
+<span class="kw">def</span> <span class="fn">print_info</span>(**kwargs):
+    <span class="kw">for</span> k, v <span class="kw">in</span> kwargs.items():
+        <span class="fn">print</span>(<span class="st">f"</span>{k}<span class="st">=</span>{v}<span class="st">"</span>)
+
+<span class="cm"># 호출</span>
+<span class="fn">say_hello</span>(<span class="st">"Alice"</span>)
+result = <span class="fn">add</span>(<span class="nu">3</span>, <span class="nu">4</span>)
+s = <span class="fn">sum_all</span>(<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>)
+<span class="fn">print_info</span>(name=<span class="st">"Alice"</span>, age=<span class="nu">25</span>)</div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">다중 반환값 & 람다 표현식</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 다중 반환 불가 → 배열/객체</div>
+        <div class="code-wrap"><span class="cm">// 다중 반환 → 배열 또는 객체</span>
+<span class="kw">public static</span> <span class="ty">int</span>[] <span class="fn">minMax</span>(<span class="ty">int</span>[] arr) {
+    <span class="kw">return new</span> <span class="ty">int</span>[]{
+        <span class="ty">Arrays</span>.stream(arr).min().getAsInt(),
+        <span class="ty">Arrays</span>.stream(arr).max().getAsInt()
+    };
+}
+
+<span class="cm">// 람다 표현식 (Java 8+)</span>
+<span class="ty">Runnable</span> r = () ->
+    <span class="ty">System</span>.out.println(<span class="st">"Hello"</span>);
+
+<span class="ty">Comparator</span>&lt;<span class="ty">Integer</span>&gt; comp
+    = (a, b) -> a - b;
+
+<span class="cm">// 함수형 인터페이스 (Function)</span>
+<span class="ty">Function</span>&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; square
+    = x -> x * x;
+<span class="ty">int</span> result = square.apply(<span class="nu">5</span>); <span class="cm">// 25</span>
+
+<span class="cm">// 메서드 레퍼런스</span>
+<span class="ty">Consumer</span>&lt;<span class="ty">String</span>&gt; printer
+    = <span class="ty">System</span>.out::println;</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 다중 반환 & lambda</div>
+        <div class="code-wrap"><span class="cm"># 다중 반환 (튜플 자동 포장)</span>
+<span class="kw">def</span> <span class="fn">min_max</span>(lst):
+    <span class="kw">return</span> <span class="fn">min</span>(lst), <span class="fn">max</span>(lst)   <span class="cm"># 튜플 반환</span>
+
+lo, hi = <span class="fn">min_max</span>([<span class="nu">3</span>,<span class="nu">1</span>,<span class="nu">4</span>,<span class="nu">1</span>,<span class="nu">5</span>])
+
+<span class="cm"># lambda (익명 함수)</span>
+square = <span class="kw">lambda</span> x: x * x
+result = square(<span class="nu">5</span>)  <span class="cm"># 25</span>
+
+<span class="cm"># lambda 활용 → 정렬</span>
+people = [(<span class="st">"Bob"</span>,<span class="nu">30</span>), (<span class="st">"Alice"</span>,<span class="nu">25</span>)]
+people.sort(key=<span class="kw">lambda</span> p: p[<span class="nu">1</span>])
+
+<span class="cm"># 고차 함수 (map, filter)</span>
+nums = [<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>]
+sq   = <span class="fn">list</span>(<span class="fn">map</span>(<span class="kw">lambda</span> x: x**<span class="nu">2</span>, nums))
+even = <span class="fn">list</span>(<span class="fn">filter</span>(<span class="kw">lambda</span> x: x%<span class="nu">2</span>==<span class="nu">0</span>, nums))
+
+<span class="cm"># 리스트 컴프리헨션 (더 Pythonic)</span>
+sq2  = [x**<span class="nu">2</span> <span class="kw">for</span> x <span class="kw">in</span> nums]
+even2= [x <span class="kw">for</span> x <span class="kw">in</span> nums <span class="kw">if</span> x%<span class="nu">2</span>==<span class="nu">0</span>]</div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  6. 클래스 & OOP
+═══════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div>
+      <div class="section-title">클래스 & 객체지향</div>
+      <div class="section-desc">Class, Inheritance, Encapsulation, Polymorphism</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">클래스 정의 & 생성자</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA</div>
+        <div class="code-wrap"><span class="kw">public class</span> <span class="ty">Person</span> {
+    <span class="cm">// 필드 (인스턴스 변수)</span>
+    <span class="kw">private</span> <span class="ty">String</span> name;
+    <span class="kw">private</span> <span class="ty">int</span>    age;
+    <span class="kw">public static int</span> count = <span class="nu">0</span>; <span class="cm">// 클래스 변수</span>
+
+    <span class="cm">// 생성자</span>
+    <span class="kw">public</span> <span class="fn">Person</span>(<span class="ty">String</span> name, <span class="ty">int</span> age) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.age  = age;
+        count++;
+    }
+
+    <span class="cm">// getter / setter</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getName</span>() { <span class="kw">return</span> name; }
+    <span class="kw">public void</span> <span class="fn">setName</span>(<span class="ty">String</span> n) { name = n; }
+
+    <span class="cm">// 인스턴스 메서드</span>
+    <span class="kw">public void</span> <span class="fn">introduce</span>() {
+        <span class="ty">System</span>.out.printf(
+            <span class="st">"이름: %s, 나이: %d%n"</span>, name, age);
+    }
+
+    <span class="cm">// toString 오버라이드</span>
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">toString</span>() {
+        <span class="kw">return</span> <span class="st">"Person{"</span> + name + <span class="st">","</span> + age + <span class="st">"}"</span>;
+    }
+}
+
+<span class="cm">// 객체 생성</span>
+<span class="ty">Person</span> p = <span class="kw">new</span> <span class="ty">Person</span>(<span class="st">"Alice"</span>, <span class="nu">25</span>);
+p.introduce();</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON</div>
+        <div class="code-wrap"><span class="kw">class</span> <span class="ty">Person</span>:
+    count = <span class="nu">0</span>          <span class="cm"># 클래스 변수</span>
+
+    <span class="cm"># 생성자 (__init__)</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, name: <span class="ty">str</span>, age: <span class="ty">int</span>):
+        <span class="kw">self</span>.name  = name  <span class="cm"># 인스턴스 변수</span>
+        <span class="kw">self</span>.age   = age
+        <span class="kw">self</span>.__secret = <span class="st">"비밀"</span>  <span class="cm"># __ : private</span>
+        <span class="ty">Person</span>.count += <span class="nu">1</span>
+
+    <span class="cm"># 인스턴스 메서드 (self 필수)</span>
+    <span class="kw">def</span> <span class="fn">introduce</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="st">f"이름: {self.name}, 나이: {self.age}"</span>)
+
+    <span class="cm"># __str__ (toString 상당)</span>
+    <span class="kw">def</span> <span class="fn">__str__</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="st">f"Person({self.name},{self.age})"</span>
+
+    <span class="cm"># 클래스 메서드</span>
+    <span class="an">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">get_count</span>(cls):
+        <span class="kw">return</span> cls.count
+
+    <span class="cm"># 정적 메서드</span>
+    <span class="an">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">is_adult</span>(age):
+        <span class="kw">return</span> age >= <span class="nu">18</span>
+
+<span class="cm"># 객체 생성 (new 없음!)</span>
+p = <span class="ty">Person</span>(<span class="st">"Alice"</span>, <span class="nu">25</span>)
+p.introduce()</div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">상속 (Inheritance)</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — extends</div>
+        <div class="code-wrap"><span class="kw">public class</span> <span class="ty">Student</span> <span class="kw">extends</span> <span class="ty">Person</span> {
+    <span class="kw">private</span> <span class="ty">String</span> major;
+
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="ty">String</span> name, <span class="ty">int</span> age,
+                   <span class="ty">String</span> major) {
+        <span class="kw">super</span>(name, age);  <span class="cm">// 부모 생성자</span>
+        <span class="kw">this</span>.major = major;
+    }
+
+    <span class="cm">// 메서드 오버라이드</span>
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">introduce</span>() {
+        <span class="kw">super</span>.introduce();  <span class="cm">// 부모 메서드</span>
+        <span class="ty">System</span>.out.println(
+            <span class="st">"전공: "</span> + major);
+    }
+}
+
+<span class="cm">// 추상 클래스</span>
+<span class="kw">public abstract class</span> <span class="ty">Shape</span> {
+    <span class="kw">abstract double</span> <span class="fn">area</span>();
+    <span class="kw">void</span> <span class="fn">print</span>() {
+        <span class="ty">System</span>.out.println(<span class="st">"넓이:"</span>+<span class="fn">area</span>());
+    }
+}
+
+<span class="cm">// 인터페이스</span>
+<span class="kw">interface</span> <span class="ty">Flyable</span> {
+    <span class="kw">void</span> <span class="fn">fly</span>();
+    <span class="kw">default void</span> <span class="fn">land</span>() {
+        <span class="ty">System</span>.out.println(<span class="st">"착지"</span>);
+    }
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 괄호 안에 부모 클래스</div>
+        <div class="code-wrap"><span class="kw">class</span> <span class="ty">Student</span>(<span class="ty">Person</span>):     <span class="cm"># 상속</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, name, age, major):
+        <span class="fn">super</span>().__init__(name, age)  <span class="cm"># 부모 생성자</span>
+        <span class="kw">self</span>.major = major
+
+    <span class="cm"># 메서드 오버라이드</span>
+    <span class="kw">def</span> <span class="fn">introduce</span>(<span class="kw">self</span>):
+        <span class="fn">super</span>().introduce()  <span class="cm"># 부모 메서드</span>
+        <span class="fn">print</span>(<span class="st">f"전공: {self.major}"</span>)
+
+<span class="cm"># 추상 클래스 (abc 모듈)</span>
+<span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="ty">Shape</span>(ABC):
+    <span class="an">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">area</span>(<span class="kw">self</span>): ...
+
+    <span class="kw">def</span> <span class="fn">print_area</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="st">f"넓이: {self.area()}"</span>)
+
+<span class="cm"># 다중 상속 (Python만 가능)</span>
+<span class="kw">class</span> <span class="ty">FlyingStudent</span>(<span class="ty">Student</span>, <span class="ty">Shape</span>):
+    <span class="kw">pass</span></div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  7. 예외 처리
+═══════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div>
+      <div class="section-title">예외 처리</div>
+      <div class="section-desc">try / catch / finally / throw — 오류 핸들링</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — checked / unchecked</div>
+        <div class="code-wrap"><span class="cm">// 기본 try-catch-finally</span>
+<span class="kw">try</span> {
+    <span class="ty">int</span> result = <span class="nu">10</span> / <span class="nu">0</span>;
+} <span class="kw">catch</span> (<span class="ty">ArithmeticException</span> e) {
+    <span class="ty">System</span>.out.println(
+        <span class="st">"산술 오류: "</span> + e.getMessage());
+} <span class="kw">catch</span> (<span class="ty">Exception</span> e) {
+    <span class="ty">System</span>.out.println(
+        <span class="st">"일반 오류: "</span> + e.getMessage());
+} <span class="kw">finally</span> {
+    <span class="ty">System</span>.out.println(<span class="st">"항상 실행"</span>);
+}
+
+<span class="cm">// 다중 예외 (Java 7+)</span>
+<span class="kw">try</span> {
+    <span class="cm">// ...</span>
+} <span class="kw">catch</span> (<span class="ty">IOException</span> | <span class="ty">SQLException</span> e) {
+    e.printStackTrace();
+}
+
+<span class="cm">// 예외 발생</span>
+<span class="kw">throw new</span> <span class="ty">IllegalArgumentException</span>(<span class="st">"잘못됨"</span>);
+
+<span class="cm">// 커스텀 예외</span>
+<span class="kw">class</span> <span class="ty">MyException</span> <span class="kw">extends</span> <span class="ty">RuntimeException</span> {
+    <span class="kw">public</span> <span class="fn">MyException</span>(<span class="ty">String</span> msg) {
+        <span class="kw">super</span>(msg);
+    }
+}
+
+<span class="cm">// try-with-resources (자동 close)</span>
+<span class="kw">try</span> (<span class="ty">FileReader</span> fr = <span class="kw">new</span> <span class="ty">FileReader</span>(<span class="st">"f.txt"</span>)) {
+    <span class="cm">// 자동으로 close() 호출</span>
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — except 구문</div>
+        <div class="code-wrap"><span class="cm"># 기본 try-except-finally</span>
+<span class="kw">try</span>:
+    result = <span class="nu">10</span> / <span class="nu">0</span>
+<span class="kw">except</span> ZeroDivisionError <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">f"나누기 오류: {e}"</span>)
+<span class="kw">except</span> Exception <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">f"일반 오류: {e}"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"예외 없을 때 실행"</span>)  <span class="cm"># Java 없음</span>
+<span class="kw">finally</span>:
+    <span class="fn">print</span>(<span class="st">"항상 실행"</span>)
+
+<span class="cm"># 다중 예외</span>
+<span class="kw">except</span> (ValueError, TypeError) <span class="kw">as</span> e:
+    <span class="fn">print</span>(e)
+
+<span class="cm"># 예외 발생</span>
+<span class="kw">raise</span> ValueError(<span class="st">"잘못됨"</span>)
+
+<span class="cm"># 커스텀 예외</span>
+<span class="kw">class</span> <span class="ty">MyException</span>(Exception):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, msg):
+        <span class="fn">super</span>().__init__(msg)
+
+<span class="cm"># with문 (try-with-resources 상당)</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"f.txt"</span>) <span class="kw">as</span> f:
+    data = f.read()  <span class="cm"># 자동으로 close()</span></div></div></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">✅</span>
+    <div><strong>Python의 try-except-else:</strong> <code>else</code> 블록은 예외가 발생하지 않았을 때만 실행됩니다. Java에는 이 구문이 없습니다. <code>try-except-else-finally</code> 순서로 씁니다.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  8. 입출력
+═══════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <div>
+      <div class="section-title">입출력 (I/O)</div>
+      <div class="section-desc">표준 입력 / 출력 / 파일 읽기 쓰기</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA</div>
+        <div class="code-wrap"><span class="kw">import</span> java.util.Scanner;
+
+<span class="cm">// 표준 출력</span>
+<span class="ty">System</span>.out.println(<span class="st">"줄바꿈 포함"</span>);
+<span class="ty">System</span>.out.print(<span class="st">"줄바꿈 없음"</span>);
+<span class="ty">System</span>.out.printf(<span class="st">"이름: %s, 나이: %d%n"</span>, name, age);
+<span class="ty">System</span>.out.printf(<span class="st">"소수점: %.2f%n"</span>, pi);
+
+<span class="cm">// 표준 입력 (Scanner)</span>
+<span class="ty">Scanner</span> sc = <span class="kw">new</span> <span class="ty">Scanner</span>(<span class="ty">System</span>.in);
+<span class="ty">String</span> line  = sc.nextLine();  <span class="cm">// 한 줄</span>
+<span class="ty">String</span> word  = sc.next();      <span class="cm">// 단어</span>
+<span class="ty">int</span>    num   = sc.nextInt();
+<span class="ty">double</span> d     = sc.nextDouble();
+
+<span class="cm">// 파일 쓰기</span>
+<span class="kw">try</span> (<span class="ty">PrintWriter</span> pw
+        = <span class="kw">new</span> <span class="ty">PrintWriter</span>(<span class="st">"out.txt"</span>)) {
+    pw.println(<span class="st">"Hello"</span>);
+}
+
+<span class="cm">// 파일 읽기</span>
+<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; lines =
+    <span class="ty">Files</span>.readAllLines(
+        <span class="ty">Path</span>.of(<span class="st">"out.txt"</span>));</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON</div>
+        <div class="code-wrap"><span class="cm"># 표준 출력</span>
+<span class="fn">print</span>(<span class="st">"줄바꿈 포함"</span>)
+<span class="fn">print</span>(<span class="st">"줄바꿈 없음"</span>, end=<span class="st">""</span>)
+<span class="fn">print</span>(<span class="st">f"이름: {name}, 나이: {age}"</span>)   <span class="cm"># f-string</span>
+<span class="fn">print</span>(<span class="st">f"소수점: {pi:.2f}"</span>)
+
+<span class="cm"># 표준 입력 (input)</span>
+line = <span class="fn">input</span>(<span class="st">"입력: "</span>)          <span class="cm"># 항상 str</span>
+num  = <span class="ty">int</span>(<span class="fn">input</span>(<span class="st">"숫자: "</span>))    <span class="cm"># 형변환 필요</span>
+a, b = <span class="fn">map</span>(<span class="ty">int</span>, <span class="fn">input</span>().split()) <span class="cm"># 공백 구분 입력</span>
+lst  = <span class="fn">list</span>(<span class="fn">map</span>(<span class="ty">int</span>, <span class="fn">input</span>().split()))
+
+<span class="cm"># 파일 쓰기</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"out.txt"</span>, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    f.write(<span class="st">"Hello\n"</span>)
+    f.writelines([<span class="st">"line1\n"</span>, <span class="st">"line2\n"</span>])
+
+<span class="cm"># 파일 읽기</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"out.txt"</span>, <span class="st">"r"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    content = f.read()           <span class="cm"># 전체 읽기</span>
+    lines   = f.readlines()      <span class="cm"># 줄 단위 리스트</span></div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  9. 문자열 처리
+═══════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <div>
+      <div class="section-title">문자열 처리</div>
+      <div class="section-desc">String — 가장 많이 쓰는 문자열 메서드 완전 비교</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA</div>
+        <div class="code-wrap"><span class="ty">String</span> s = <span class="st">"  Hello, World!  "</span>;
+
+<span class="cm">// 기본 조작</span>
+s.length()               <span class="cm">// 18</span>
+s.trim()                 <span class="cm">// "Hello, World!"</span>
+s.strip()                <span class="cm">// trim() + 유니코드 (Java 11+)</span>
+s.toUpperCase()          <span class="cm">// "  HELLO, WORLD!  "</span>
+s.toLowerCase()
+
+<span class="cm">// 포함 / 검색</span>
+s.contains(<span class="st">"World"</span>)     <span class="cm">// true</span>
+s.startsWith(<span class="st">"  H"</span>)     <span class="cm">// true</span>
+s.endsWith(<span class="st">"  "</span>)        <span class="cm">// true</span>
+s.indexOf(<span class="st">"o"</span>)          <span class="cm">// 4</span>
+
+<span class="cm">// 분리 / 결합</span>
+s.split(<span class="st">", "</span>)            <span class="cm">// ["  Hello","World!  "]</span>
+<span class="ty">String</span>.join(<span class="st">"-"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>) <span class="cm">// "a-b-c"</span>
+
+<span class="cm">// 치환 / 추출</span>
+s.replace(<span class="st">"World"</span>, <span class="st">"Java"</span>)
+s.replaceAll(<span class="st">"\\s+"</span>, <span class="st">" "</span>)   <span class="cm">// 정규식</span>
+s.substring(<span class="nu">2</span>, <span class="nu">7</span>)          <span class="cm">// "Hello"</span>
+
+<span class="cm">// 비교</span>
+s.equals(<span class="st">"other"</span>)          <span class="cm">// == 아님!</span>
+s.equalsIgnoreCase(<span class="st">"hello"</span>)
+s.compareTo(<span class="st">"other"</span>)       <span class="cm">// 사전순 비교</span>
+
+<span class="cm">// 숫자 포맷</span>
+<span class="ty">String</span> fmt = <span class="ty">String</span>.format(<span class="st">"%.2f"</span>, <span class="nu">3.14159</span>);</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON</div>
+        <div class="code-wrap">s = <span class="st">"  Hello, World!  "</span>
+
+<span class="cm"># 기본 조작</span>
+<span class="fn">len</span>(s)                   <span class="cm"># 18</span>
+s.strip()                <span class="cm"># "Hello, World!"</span>
+s.lstrip(); s.rstrip()   <span class="cm"># 왼쪽/오른쪽만</span>
+s.upper(); s.lower()
+s.title()                <span class="cm"># "Hello, World!" (첫글자 대문자)</span>
+
+<span class="cm"># 포함 / 검색</span>
+<span class="st">"World"</span> <span class="kw">in</span> s            <span class="cm"># True</span>
+s.startswith(<span class="st">"  H"</span>)     <span class="cm"># True</span>
+s.endswith(<span class="st">"  "</span>)        <span class="cm"># True</span>
+s.find(<span class="st">"o"</span>)             <span class="cm"># 4 (없으면 -1)</span>
+
+<span class="cm"># 분리 / 결합</span>
+s.split(<span class="st">", "</span>)            <span class="cm"># ["  Hello", "World!  "]</span>
+<span class="st">"-"</span>.join([<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>]) <span class="cm"># "a-b-c"</span>
+
+<span class="cm"># 치환 / 추출</span>
+s.replace(<span class="st">"World"</span>, <span class="st">"Python"</span>)
+s[<span class="nu">2</span>:<span class="nu">7</span>]                   <span class="cm"># "Hello" (슬라이싱)</span>
+s[::<span class="op">-</span><span class="nu">1</span>]                  <span class="cm"># 문자열 뒤집기</span>
+
+<span class="cm"># 비교 (== 사용 가능)</span>
+s == <span class="st">"other"</span>
+s.lower() == <span class="st">"hello"</span>
+
+<span class="cm"># 숫자 포맷</span>
+fmt = <span class="st">f"</span>{<span class="nu">3.14159</span>:.2f}<span class="st">"</span>   <span class="cm"># "3.14"</span>
+fmt2 = <span class="st">"{:.2f}"</span>.format(<span class="nu">3.14159</span>)</div></div></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div><strong>Java 문자열 비교 주의!</strong> Java에서 <code>==</code>는 참조 비교, <code>equals()</code>는 값 비교입니다. Python에서는 <code>==</code>가 값 비교이므로 둘의 동작이 다릅니다.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+  10. 고급 문법
+═══════════════════════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div>
+      <div class="section-title">고급 문법</div>
+      <div class="section-desc">제네릭, 스트림, 컴프리헨션, 데코레이터 등 현대적 문법</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">스트림 / 컴프리헨션 — 함수형 처리</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — Stream API (Java 8+)</div>
+        <div class="code-wrap"><span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; nums =
+    <span class="ty">Arrays</span>.asList(<span class="nu">1</span>,<span class="nu">2</span>,<span class="nu">3</span>,<span class="nu">4</span>,<span class="nu">5</span>,<span class="nu">6</span>,<span class="nu">7</span>,<span class="nu">8</span>,<span class="nu">9</span>,<span class="nu">10</span>);
+
+<span class="cm">// 필터 + 변환 + 수집</span>
+<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; result = nums.stream()
+    .filter(n -> n % <span class="nu">2</span> == <span class="nu">0</span>)   <span class="cm">// 짝수만</span>
+    .map(n -> n * n)            <span class="cm">// 제곱</span>
+    .sorted()
+    .collect(<span class="ty">Collectors</span>.toList());
+
+<span class="cm">// 합계 / 평균</span>
+<span class="ty">int</span> sum = nums.stream()
+    .mapToInt(<span class="ty">Integer</span>::intValue)
+    .sum();
+<span class="ty">double</span> avg = nums.stream()
+    .mapToInt(<span class="ty">Integer</span>::intValue)
+    .average().getAsDouble();
+
+<span class="cm">// 최댓값</span>
+<span class="ty">Optional</span>&lt;<span class="ty">Integer</span>&gt; max = nums.stream()
+    .max(<span class="ty">Integer</span>::compareTo);
+
+<span class="cm">// 문자열 조인</span>
+<span class="ty">String</span> joined = nums.stream()
+    .map(<span class="ty">String</span>::valueOf)
+    .collect(<span class="ty">Collectors</span>.joining(<span class="st">", "</span>));</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 리스트 컴프리헨션</div>
+        <div class="code-wrap">nums = <span class="fn">list</span>(<span class="fn">range</span>(<span class="nu">1</span>, <span class="nu">11</span>))  <span class="cm"># [1..10]</span>
+
+<span class="cm"># 리스트 컴프리헨션</span>
+result = [n**<span class="nu">2</span> <span class="kw">for</span> n <span class="kw">in</span> nums <span class="kw">if</span> n%<span class="nu">2</span>==<span class="nu">0</span>]
+<span class="cm"># [4, 16, 36, 64, 100]</span>
+
+<span class="cm"># 합계 / 평균</span>
+total = <span class="fn">sum</span>(nums)
+avg   = <span class="fn">sum</span>(nums) / <span class="fn">len</span>(nums)
+
+<span class="cm"># 최댓값</span>
+mx = <span class="fn">max</span>(nums)
+
+<span class="cm"># 문자열 조인</span>
+joined = <span class="st">", "</span>.join(<span class="fn">map</span>(<span class="ty">str</span>, nums))
+
+<span class="cm"># 딕셔너리 컴프리헨션</span>
+sq_dict = {n: n**<span class="nu">2</span> <span class="kw">for</span> n <span class="kw">in</span> nums}
+<span class="cm"># {1:1, 2:4, 3:9, ...}</span>
+
+<span class="cm"># 제너레이터 표현식 (메모리 효율)</span>
+gen = (n**<span class="nu">2</span> <span class="kw">for</span> n <span class="kw">in</span> nums)
+<span class="fn">sum</span>(gen)  <span class="cm"># 385</span></div></div></div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-label">데코레이터 / 어노테이션</div>
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 어노테이션 (@)</div>
+        <div class="code-wrap"><span class="cm">// 내장 어노테이션</span>
+<span class="an">@Override</span>
+<span class="kw">public</span> <span class="ty">String</span> <span class="fn">toString</span>() { ... }
+
+<span class="an">@Deprecated</span>
+<span class="kw">public void</span> <span class="fn">oldMethod</span>() { ... }
+
+<span class="an">@SuppressWarnings</span>(<span class="st">"unchecked"</span>)
+<span class="kw">public void</span> <span class="fn">method</span>() { ... }
+
+<span class="cm">// 커스텀 어노테이션 (선언)</span>
+<span class="kw">public @interface</span> <span class="ty">MyAnnotation</span> {
+    <span class="ty">String</span> value() default <span class="st">""</span>;
+}
+
+<span class="cm">// 사용</span>
+<span class="an">@MyAnnotation</span>(<span class="st">"test"</span>)
+<span class="kw">public void</span> <span class="fn">myMethod</span>() { ... }</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 데코레이터 (@)</div>
+        <div class="code-wrap"><span class="cm"># 내장 데코레이터</span>
+<span class="kw">class</span> <span class="ty">MyClass</span>:
+    <span class="an">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">static_method</span>(): ...
+
+    <span class="an">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">class_method</span>(cls): ...
+
+    <span class="an">@property</span>
+    <span class="kw">def</span> <span class="fn">name</span>(<span class="kw">self</span>): <span class="kw">return</span> <span class="kw">self</span>._name
+
+<span class="cm"># 커스텀 데코레이터</span>
+<span class="kw">def</span> <span class="fn">timer</span>(func):
+    <span class="kw">import</span> time
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        <span class="fn">print</span>(<span class="st">f"{time.time()-start:.3f}s"</span>)
+        <span class="kw">return</span> result
+    <span class="kw">return</span> wrapper
+
+<span class="an">@timer</span>
+<span class="kw">def</span> <span class="fn">heavy_task</span>():
+    <span class="kw">pass</span></div></div></div>
+  </div>
+
+  <!-- 핵심 차이점 총정리 표 -->
+  <div class="subsection-title">🔑 핵심 차이점 총정리</div>
+  <table class="diff-table">
+    <tr><th>항목</th><th>☕ Java</th><th>🐍 Python</th></tr>
+    <tr><td>실행 방식</td><td>컴파일 (JVM 바이트코드)</td><td>인터프리터 (직접 실행)</td></tr>
+    <tr><td>타입</td><td>정적 타입 (명시 필수)</td><td>동적 타입 (자동 추론)</td></tr>
+    <tr><td>블록 구분</td><td>중괄호 <code>{ }</code></td><td>들여쓰기 (4칸 권장)</td></tr>
+    <tr><td>문장 끝</td><td>세미콜론 <code>;</code> 필수</td><td>줄바꿈 (세미콜론 불필요)</td></tr>
+    <tr><td>클래스</td><td>파일명 = 클래스명 (필수)</td><td>자유로운 구조</td></tr>
+    <tr><td>객체 생성</td><td><code>new ClassName()</code></td><td><code>ClassName()</code></td></tr>
+    <tr><td>null 처리</td><td><code>null</code> (NullPointerException)</td><td><code>None</code> (AttributeError)</td></tr>
+    <tr><td>접근제어</td><td><code>public/private/protected</code></td><td>없음 (<code>_</code>, <code>__</code> 관례)</td></tr>
+    <tr><td>다중 상속</td><td>인터페이스로만 가능</td><td>클래스 직접 다중 상속 가능</td></tr>
+    <tr><td>do-while</td><td><code>do { } while()</code> 지원</td><td>없음 (while + break 대체)</td></tr>
+    <tr><td>제네릭</td><td><code>List&lt;String&gt;</code> (컴파일 타입 검사)</td><td>타입 힌트 (선택적, 런타임 무관)</td></tr>
+    <tr><td>람다</td><td><code>(a,b) -&gt; a+b</code></td><td><code>lambda a,b: a+b</code></td></tr>
+    <tr><td>문자열 포맷</td><td><code>String.format()</code>, <code>printf()</code></td><td>f-string <code>f"{var}"</code></td></tr>
+    <tr><td>다중 반환값</td><td>불가 (배열/객체 반환)</td><td>튜플로 자연스럽게 가능</td></tr>
+    <tr><td>메인 함수</td><td><code>public static void main(String[] args)</code></td><td><code>if __name__ == "__main__":</code></td></tr>
+  </table>
+</section>
+
+<!-- 실전 비교 예제 -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">★</div>
+    <div>
+      <div class="section-title">실전 종합 예제</div>
+      <div class="section-desc">같은 프로그램을 Java와 Python으로 — 성적 처리 프로그램</div>
+    </div>
+  </div>
+
+  <div class="compare-block">
+    <div class="compare-grid">
+      <div class="lang-panel">
+        <div class="lang-header java-h"><div class="lang-dot" style="background:var(--java)"></div>☕ JAVA — 성적 처리</div>
+        <div class="code-wrap"><span class="kw">import</span> java.util.*;
+
+<span class="kw">public class</span> <span class="ty">GradeSystem</span> {
+    <span class="kw">record</span> <span class="ty">Student</span>(<span class="ty">String</span> name, <span class="ty">int</span> score) {}
+
+    <span class="kw">public static</span> <span class="ty">String</span> <span class="fn">getGrade</span>(<span class="ty">int</span> score) {
+        <span class="kw">return switch</span> (score / <span class="nu">10</span>) {
+            <span class="kw">case</span> <span class="nu">10</span>, <span class="nu">9</span> -> <span class="st">"A"</span>;
+            <span class="kw">case</span> <span class="nu">8</span>     -> <span class="st">"B"</span>;
+            <span class="kw">case</span> <span class="nu">7</span>     -> <span class="st">"C"</span>;
+            <span class="kw">case</span> <span class="nu">6</span>     -> <span class="st">"D"</span>;
+            <span class="kw">default</span>    -> <span class="st">"F"</span>;
+        };
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+        <span class="ty">List</span>&lt;<span class="ty">Student</span>&gt; students = <span class="ty">List</span>.of(
+            <span class="kw">new</span> <span class="ty">Student</span>(<span class="st">"Alice"</span>, <span class="nu">92</span>),
+            <span class="kw">new</span> <span class="ty">Student</span>(<span class="st">"Bob"</span>,   <span class="nu">75</span>),
+            <span class="kw">new</span> <span class="ty">Student</span>(<span class="st">"Carol"</span>, <span class="nu">88</span>),
+            <span class="kw">new</span> <span class="ty">Student</span>(<span class="st">"Dave"</span>,  <span class="nu">54</span>)
+        );
+
+        <span class="cm">// 평균</span>
+        <span class="ty">double</span> avg = students.stream()
+            .mapToInt(<span class="ty">Student</span>::score)
+            .average().getAsDouble();
+
+        <span class="cm">// 정렬 (점수 내림차순)</span>
+        students.stream()
+            .sorted((a,b) -> b.score()-a.score())
+            .forEach(s -> <span class="ty">System</span>.out.printf(
+                <span class="st">"%-8s %3d점  %s%n"</span>,
+                s.name(), s.score(),
+                <span class="fn">getGrade</span>(s.score())));
+
+        <span class="ty">System</span>.out.printf(<span class="st">"평균: %.1f%n"</span>, avg);
+    }
+}</div></div>
+      <div class="lang-panel">
+        <div class="lang-header py-h"><div class="lang-dot" style="background:var(--py)"></div>🐍 PYTHON — 성적 처리</div>
+        <div class="code-wrap"><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+
+<span class="an">@dataclass</span>
+<span class="kw">class</span> <span class="ty">Student</span>:
+    name: <span class="ty">str</span>
+    score: <span class="ty">int</span>
+
+<span class="kw">def</span> <span class="fn">get_grade</span>(score: <span class="ty">int</span>) -> <span class="ty">str</span>:
+    <span class="kw">match</span> score // <span class="nu">10</span>:
+        <span class="kw">case</span> <span class="nu">10</span> | <span class="nu">9</span>: <span class="kw">return</span> <span class="st">"A"</span>
+        <span class="kw">case</span> <span class="nu">8</span>:       <span class="kw">return</span> <span class="st">"B"</span>
+        <span class="kw">case</span> <span class="nu">7</span>:       <span class="kw">return</span> <span class="st">"C"</span>
+        <span class="kw">case</span> <span class="nu">6</span>:       <span class="kw">return</span> <span class="st">"D"</span>
+        <span class="kw">case</span> _:       <span class="kw">return</span> <span class="st">"F"</span>
+
+students = [
+    Student(<span class="st">"Alice"</span>, <span class="nu">92</span>),
+    Student(<span class="st">"Bob"</span>,   <span class="nu">75</span>),
+    Student(<span class="st">"Carol"</span>, <span class="nu">88</span>),
+    Student(<span class="st">"Dave"</span>,  <span class="nu">54</span>),
+]
+
+<span class="cm"># 평균</span>
+avg = <span class="fn">sum</span>(s.score <span class="kw">for</span> s <span class="kw">in</span> students) / <span class="fn">len</span>(students)
+
+<span class="cm"># 정렬 (점수 내림차순)</span>
+<span class="kw">for</span> s <span class="kw">in</span> <span class="fn">sorted</span>(students, key=<span class="kw">lambda</span> x: x.score, reverse=<span class="kw">True</span>):
+    <span class="fn">print</span>(<span class="st">f"{s.name:<span class="nu">8</span>} {s.score:>3}점  {<span class="fn">get_grade</span>(s.score)}"</span>)
+
+<span class="fn">print</span>(<span class="st">f"평균: {avg:.1f}"</span>)
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    <span class="fn">print</span>(<span class="st">"실행 완료"</span>)</div></div></div>
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="site-footer">
+  <strong>☕ Java vs 🐍 Python</strong> — 기본 문법 완전 비교 가이드<br>
+  <span style="font-family:'Fira Code',monospace;font-size:11px;opacity:.6">
+    Java 17+ · Python 3.10+ 기준 · 정확한 소스코드 예제
+  </span>
+</footer>
+
+</body>
+</html>
