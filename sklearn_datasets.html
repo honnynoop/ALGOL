@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sklearn 내장 데이터셋 분류</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --text: #1a1a18;
+    --text2: #5a5a56;
+    --text3: #9a9a94;
+    --border: #e2dfd7;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
+    --shadow-hover: 0 4px 14px rgba(0,0,0,.1), 0 10px 28px rgba(0,0,0,.06);
+
+    --toy-bg:#EEEDFE; --toy-bd:#AFA9EC; --toy-t1:#3C3489; --toy-t2:#534AB7; --toy-tag-bg:#AFA9EC; --toy-tag-c:#26215C;
+    --real-bg:#E1F5EE; --real-bd:#5DCAA5; --real-t1:#085041; --real-t2:#0F6E56; --real-tag-bg:#5DCAA5; --real-tag-c:#04342C;
+    --gen-bg:#FAEEDA; --gen-bd:#EF9F27; --gen-t1:#633806; --gen-t2:#854F0B; --gen-tag-bg:#EF9F27; --gen-tag-c:#412402;
+    --img-bg:#FAECE7; --img-bd:#F0997B; --img-t1:#4A1B0C; --img-t2:#993C1D; --img-tag-bg:#F0997B; --img-tag-c:#4A1B0C;
+    --txt-bg:#E6F1FB; --txt-bd:#85B7EB; --txt-t1:#042C53; --txt-t2:#185FA5; --txt-tag-bg:#85B7EB; --txt-tag-c:#042C53;
+    --bio-bg:#FBEAF0; --bio-bd:#ED93B1; --bio-t1:#4B1528; --bio-t2:#993556; --bio-tag-bg:#ED93B1; --bio-tag-c:#4B1528;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#161614; --surface:#1e1e1b; --surface2:#252521;
+      --text:#e8e6de; --text2:#a8a69e; --text3:#68665e; --border:#2e2e2a;
+      --toy-bg:#1a1840; --toy-bd:#534AB7; --toy-t1:#CECBF6; --toy-t2:#AFA9EC; --toy-tag-bg:#3C3489; --toy-tag-c:#CECBF6;
+      --real-bg:#032418; --real-bd:#1D9E75; --real-t1:#9FE1CB; --real-t2:#5DCAA5; --real-tag-bg:#085041; --real-tag-c:#9FE1CB;
+      --gen-bg:#2a1800; --gen-bd:#BA7517; --gen-t1:#FAC775; --gen-t2:#EF9F27; --gen-tag-bg:#633806; --gen-tag-c:#FAC775;
+      --img-bg:#2e1008; --img-bd:#D85A30; --img-t1:#F5C4B3; --img-t2:#F0997B; --img-tag-bg:#993C1D; --img-tag-c:#F5C4B3;
+      --txt-bg:#021c36; --txt-bd:#378ADD; --txt-t1:#B5D4F4; --txt-t2:#85B7EB; --txt-tag-bg:#0C447C; --txt-tag-c:#B5D4F4;
+      --bio-bg:#300d1c; --bio-bd:#D4537E; --bio-t1:#F4C0D1; --bio-t2:#ED93B1; --bio-tag-bg:#72243E; --bio-tag-c:#F4C0D1;
+    }
+  }
+
+  html { font-size: 15px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 64px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 40px 24px;
+  }
+  .header-inner { max-width: 1020px; margin: 0 auto; }
+  .header-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+  h1 { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+  .total-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    background: var(--surface2); color: var(--text3);
+    padding: 3px 9px; border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+  .header-desc { font-size: 13px; color: var(--text3); margin-bottom: 20px; line-height: 1.6; }
+
+  /* ── Filter bar ── */
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fbtn {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px; font-weight: 500;
+    padding: 5px 13px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2);
+    cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .fbtn:hover { border-color: var(--text3); color: var(--text); }
+  .fbtn.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* ── Main layout ── */
+  .main { max-width: 1020px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Section ── */
+  .section { margin-top: 28px; }
+  .section.hide { display: none; }
+
+  .sec-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-radius: var(--radius);
+    border: 1px solid transparent; margin-bottom: 11px;
+  }
+  .sec-label { font-size: 14px; font-weight: 700; }
+  .sec-sub { font-size: 12px; opacity: .65; }
+  .sec-fn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 9px; border-radius: 20px;
+    opacity: .7;
+  }
+  .sec-cnt { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; opacity: .5; }
+
+  /* ── Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .card {
+    padding: 13px 15px; border-radius: var(--radius-lg);
+    border: 1px solid transparent; cursor: pointer;
+    transition: transform .14s, box-shadow .14s;
+    position: relative; overflow: hidden;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+  .card-fn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 600; margin-bottom: 3px;
+  }
+  .card-meta { font-size: 10.5px; opacity: .55; margin-bottom: 5px; }
+  .card-desc { font-size: 12px; line-height: 1.5; margin-bottom: 8px; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 12px; }
+
+  /* ── Category colors ── */
+  .toy .sec-head { background: var(--toy-bg); border-color: var(--toy-bd); }
+  .toy .sec-label { color: var(--toy-t1); }
+  .toy .sec-sub { color: var(--toy-t2); }
+  .toy .sec-fn { background: var(--toy-tag-bg); color: var(--toy-tag-c); }
+  .toy .card { background: var(--toy-bg); border-color: var(--toy-bd); }
+  .toy .card-fn { color: var(--toy-t1); }
+  .toy .card-desc { color: var(--toy-t2); }
+  .toy .card-meta { color: var(--toy-t2); }
+  .toy .tag { background: var(--toy-tag-bg); color: var(--toy-tag-c); }
+
+  .real .sec-head { background: var(--real-bg); border-color: var(--real-bd); }
+  .real .sec-label { color: var(--real-t1); }
+  .real .sec-sub { color: var(--real-t2); }
+  .real .sec-fn { background: var(--real-tag-bg); color: var(--real-tag-c); }
+  .real .card { background: var(--real-bg); border-color: var(--real-bd); }
+  .real .card-fn { color: var(--real-t1); }
+  .real .card-desc { color: var(--real-t2); }
+  .real .card-meta { color: var(--real-t2); }
+  .real .tag { background: var(--real-tag-bg); color: var(--real-tag-c); }
+
+  .gen .sec-head { background: var(--gen-bg); border-color: var(--gen-bd); }
+  .gen .sec-label { color: var(--gen-t1); }
+  .gen .sec-sub { color: var(--gen-t2); }
+  .gen .sec-fn { background: var(--gen-tag-bg); color: var(--gen-tag-c); }
+  .gen .card { background: var(--gen-bg); border-color: var(--gen-bd); }
+  .gen .card-fn { color: var(--gen-t1); }
+  .gen .card-desc { color: var(--gen-t2); }
+  .gen .card-meta { color: var(--gen-t2); }
+  .gen .tag { background: var(--gen-tag-bg); color: var(--gen-tag-c); }
+
+  .img .sec-head { background: var(--img-bg); border-color: var(--img-bd); }
+  .img .sec-label { color: var(--img-t1); }
+  .img .sec-sub { color: var(--img-t2); }
+  .img .sec-fn { background: var(--img-tag-bg); color: var(--img-tag-c); }
+  .img .card { background: var(--img-bg); border-color: var(--img-bd); }
+  .img .card-fn { color: var(--img-t1); }
+  .img .card-desc { color: var(--img-t2); }
+  .img .card-meta { color: var(--img-t2); }
+  .img .tag { background: var(--img-tag-bg); color: var(--img-tag-c); }
+
+  .txt .sec-head { background: var(--txt-bg); border-color: var(--txt-bd); }
+  .txt .sec-label { color: var(--txt-t1); }
+  .txt .sec-sub { color: var(--txt-t2); }
+  .txt .sec-fn { background: var(--txt-tag-bg); color: var(--txt-tag-c); }
+  .txt .card { background: var(--txt-bg); border-color: var(--txt-bd); }
+  .txt .card-fn { color: var(--txt-t1); }
+  .txt .card-desc { color: var(--txt-t2); }
+  .txt .card-meta { color: var(--txt-t2); }
+  .txt .tag { background: var(--txt-tag-bg); color: var(--txt-tag-c); }
+
+  .bio .sec-head { background: var(--bio-bg); border-color: var(--bio-bd); }
+  .bio .sec-label { color: var(--bio-t1); }
+  .bio .sec-sub { color: var(--bio-t2); }
+  .bio .sec-fn { background: var(--bio-tag-bg); color: var(--bio-tag-c); }
+  .bio .card { background: var(--bio-bg); border-color: var(--bio-bd); }
+  .bio .card-fn { color: var(--bio-t1); }
+  .bio .card-desc { color: var(--bio-t2); }
+  .bio .card-meta { color: var(--bio-t2); }
+  .bio .tag { background: var(--bio-tag-bg); color: var(--bio-tag-c); }
+
+  /* ── Quick ref code block ── */
+  .code-wrap {
+    margin-top: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .code-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .code-title { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .4px; text-transform: uppercase; }
+  .copy-btn {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); cursor: pointer; transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--text3); }
+  pre {
+    padding: 18px 20px; overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.8; color: var(--text2);
+  }
+  .kw { color: #7F77DD; }
+  .fn { color: #1D9E75; }
+  .st { color: #854F0B; }
+  .cm { color: var(--text3); font-style: italic; }
+  @media (prefers-color-scheme: dark) {
+    .kw { color: #AFA9EC; }
+    .fn { color: #5DCAA5; }
+    .st { color: #EF9F27; }
+  }
+
+  /* ── Footer ── */
+  .footer { text-align: center; margin-top: 48px; font-size: 11px; color: var(--text3); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .section { animation: fadeUp .3s ease both; }
+  .section:nth-child(1) { animation-delay: .04s; }
+  .section:nth-child(2) { animation-delay: .09s; }
+  .section:nth-child(3) { animation-delay: .14s; }
+  .section:nth-child(4) { animation-delay: .19s; }
+  .section:nth-child(5) { animation-delay: .24s; }
+  .section:nth-child(6) { animation-delay: .29s; }
+
+  @media (max-width: 600px) {
+    .header { padding: 24px 18px 20px; }
+    .main { padding: 0 14px; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    h1 { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <h1>sklearn 내장 데이터셋 분류</h1>
+      <span class="total-badge">32개+</span>
+    </div>
+    <p class="header-desc">
+      scikit-learn이 제공하는 모든 데이터셋을 유형별로 분류한 레퍼런스.
+      <code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">load_*</code> ·
+      <code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">fetch_*</code> ·
+      <code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">make_*</code>
+      세 접두사로 구분됨.
+    </p>
+    <div class="filter-bar">
+      <button class="fbtn on" onclick="filter('all',this)">전체</button>
+      <button class="fbtn" onclick="filter('toy',this)">Toy datasets (7)</button>
+      <button class="fbtn" onclick="filter('real',this)">Real-world (7)</button>
+      <button class="fbtn" onclick="filter('gen',this)">Generated (10+)</button>
+      <button class="fbtn" onclick="filter('img',this)">Image (3)</button>
+      <button class="fbtn" onclick="filter('txt',this)">Text (2)</button>
+      <button class="fbtn" onclick="filter('bio',this)">Specialty (3)</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ── Toy datasets ── -->
+  <div class="section toy" data-cat="toy">
+    <div class="sec-head">
+      <span class="sec-label">Toy datasets</span>
+      <span class="sec-fn">load_*()</span>
+      <span class="sec-sub">소규모 · 교육용 · 인터넷 불필요</span>
+      <span class="sec-cnt">7개</span>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-fn">load_iris()</div>
+        <div class="card-meta">150행 × 4특성 · 3클래스</div>
+        <div class="card-desc">붓꽃 3종 분류. 다중분류 실습의 기본 표준 데이터셋</div>
+        <div class="card-tags">
+          <span class="tag">다중분류</span><span class="tag">PCA</span><span class="tag">빅분기</span><span class="tag">ADP</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">load_wine()</div>
+        <div class="card-meta">178행 × 13특성 · 3클래스</div>
+        <div class="card-desc">와인 화학 성분으로 3종류 분류. iris보다 특성 수 많아 전처리 연습에 적합</div>
+        <div class="card-tags">
+          <span class="tag">다중분류</span><span class="tag">화학성분</span><span class="tag">스케일링</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">load_breast_cancer()</div>
+        <div class="card-meta">569행 × 30특성 · 2클래스</div>
+        <div class="card-desc">유방암 악성/양성 이진 분류. 의료 도메인 실습 · ROC 곡선 연습</div>
+        <div class="card-tags">
+          <span class="tag">이진분류</span><span class="tag">의료</span><span class="tag">ROC</span><span class="tag">ADP</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">load_diabetes()</div>
+        <div class="card-meta">442행 × 10특성 · 연속값</div>
+        <div class="card-desc">당뇨병 1년 후 진행도 예측. 회귀 분석 기본 실습의 표준</div>
+        <div class="card-tags">
+          <span class="tag">회귀</span><span class="tag">의료</span><span class="tag">Ridge</span><span class="tag">빅분기</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">load_digits()</div>
+        <div class="card-meta">1,797행 × 64특성 · 10클래스</div>
+        <div class="card-desc">8×8 손글씨 숫자 이미지. PCA 차원축소 + SVM 분류 파이프라인 실습</div>
+        <div class="card-tags">
+          <span class="tag">이미지분류</span><span class="tag">PCA</span><span class="tag">SVM</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">load_linnerud()</div>
+        <div class="card-meta">20행 × 3특성 · 3타겟</div>
+        <div class="card-desc">운동량 → 생리 지표 다중 출력 회귀. 다중 타겟 회귀 연습</div>
+        <div class="card-tags">
+          <span class="tag">다중출력회귀</span><span class="tag">운동생리</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">load_sample_image()</div>
+        <div class="card-meta">427×640 · RGB · 2장</div>
+        <div class="card-desc">중국 사원·꽃 이미지 2장. 이미지 배열 처리 · 컬러 채널 실습용</div>
+        <div class="card-tags">
+          <span class="tag">이미지처리</span><span class="tag">RGB</span><span class="tag">넘파이</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Real-world ── -->
+  <div class="section real" data-cat="real">
+    <div class="sec-head">
+      <span class="sec-label">Real-world datasets</span>
+      <span class="sec-fn">fetch_*()</span>
+      <span class="sec-sub">실제 수집 데이터 · 첫 실행 시 다운로드</span>
+      <span class="sec-cnt">7개</span>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-fn">fetch_california_housing()</div>
+        <div class="card-meta">20,640행 × 8특성 · 연속값</div>
+        <div class="card-desc">캘리포니아 주택 가격 회귀. Boston 데이터셋의 윤리적 대안 표준</div>
+        <div class="card-tags">
+          <span class="tag">회귀</span><span class="tag">부동산</span><span class="tag">GBM</span><span class="tag">ADP</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_covtype()</div>
+        <div class="card-meta">581,012행 × 54특성 · 7클래스</div>
+        <div class="card-desc">로키 산맥 산림 피복 유형 분류. 대용량 분류 벤치마크</div>
+        <div class="card-tags">
+          <span class="tag">대용량분류</span><span class="tag">자연환경</span><span class="tag">GBM</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_kddcup99()</div>
+        <div class="card-meta">494K+ 행 · 네트워크 패킷</div>
+        <div class="card-desc">네트워크 침입 탐지 데이터. 이상 탐지 · 클래스 불균형 실습</div>
+        <div class="card-tags">
+          <span class="tag">이상탐지</span><span class="tag">보안</span><span class="tag">불균형</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_lfw_people()</div>
+        <div class="card-meta">다수 · 62×47 컬러 얼굴</div>
+        <div class="card-desc">실제 인물 얼굴 인식. PCA(eigenface) + SVM 얼굴 인식 파이프라인</div>
+        <div class="card-tags">
+          <span class="tag">얼굴인식</span><span class="tag">PCA</span><span class="tag">SVM</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_openml()</div>
+        <div class="card-meta">OpenML 저장소 전체 접근</div>
+        <div class="card-desc">name 또는 data_id로 OpenML 임의 데이터셋 로드 (titanic, mnist 등)</div>
+        <div class="card-tags">
+          <span class="tag">범용</span><span class="tag">OpenML</span><span class="tag">커스텀</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_rcv1()</div>
+        <div class="card-meta">804,414행 · 희소행렬 · 103레이블</div>
+        <div class="card-desc">로이터 뉴스 다중레이블 분류. 대규모 희소 NLP 벤치마크</div>
+        <div class="card-tags">
+          <span class="tag">NLP</span><span class="tag">희소행렬</span><span class="tag">다중레이블</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_species_distributions()</div>
+        <div class="card-meta">남미 지리 좌표 데이터</div>
+        <div class="card-desc">생물 서식지 분포 지도. One-class SVM 밀도 추정 실습</div>
+        <div class="card-tags">
+          <span class="tag">지리데이터</span><span class="tag">밀도추정</span><span class="tag">생태학</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Generated ── -->
+  <div class="section gen" data-cat="gen">
+    <div class="sec-head">
+      <span class="sec-label">Generated datasets</span>
+      <span class="sec-fn">make_*()</span>
+      <span class="sec-sub">파라미터로 직접 생성 · 알고리즘 원리 검증용</span>
+      <span class="sec-cnt">10개+</span>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-fn">make_classification()</div>
+        <div class="card-meta">n_samples, n_classes, n_features 지정</div>
+        <div class="card-desc">n클래스 분류용 가상 데이터 생성. 클래스 불균형·노이즈·공선성 조절 가능</div>
+        <div class="card-tags">
+          <span class="tag">분류</span><span class="tag">불균형조절</span><span class="tag">커스텀</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_regression()</div>
+        <div class="card-meta">noise, n_informative, coef 지정</div>
+        <div class="card-desc">회귀용 가상 데이터. 노이즈·유효 특성 수·공선성 제어 가능</div>
+        <div class="card-tags">
+          <span class="tag">회귀</span><span class="tag">노이즈제어</span><span class="tag">빅분기</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_blobs()</div>
+        <div class="card-meta">centers, cluster_std 지정</div>
+        <div class="card-desc">가우시안 클러스터 생성. K-Means · DBSCAN 클러스터링 실습 필수</div>
+        <div class="card-tags">
+          <span class="tag">클러스터링</span><span class="tag">K-Means</span><span class="tag">빅분기</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_moons()</div>
+        <div class="card-meta">noise, n_samples 지정</div>
+        <div class="card-desc">초승달 2개 모양 비선형 분포. SVM 커널 · 신경망 결정경계 시각화</div>
+        <div class="card-tags">
+          <span class="tag">비선형</span><span class="tag">SVM커널</span><span class="tag">시각화</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_circles()</div>
+        <div class="card-meta">noise, factor 지정</div>
+        <div class="card-desc">안팎 원형 비선형 분포. RBF 커널 SVM · 비선형 경계 시각화</div>
+        <div class="card-tags">
+          <span class="tag">비선형</span><span class="tag">RBF</span><span class="tag">시각화</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_swiss_roll()</div>
+        <div class="card-meta">3D 매니폴드 → 2D 펼치기</div>
+        <div class="card-desc">스위스롤 3D 구조. UMAP · t-SNE · LLE 매니폴드 학습 실습</div>
+        <div class="card-tags">
+          <span class="tag">차원축소</span><span class="tag">매니폴드</span><span class="tag">UMAP</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_s_curve()</div>
+        <div class="card-meta">3D S자 형태 매니폴드</div>
+        <div class="card-desc">S자 곡면 구조. 비선형 차원축소 알고리즘 비교 시각화</div>
+        <div class="card-tags">
+          <span class="tag">차원축소</span><span class="tag">매니폴드</span><span class="tag">3D</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_multilabel_classification()</div>
+        <div class="card-meta">n_labels 지정</div>
+        <div class="card-desc">샘플당 복수 레이블 생성. 다중레이블 분류 모델 실습</div>
+        <div class="card-tags">
+          <span class="tag">다중레이블</span><span class="tag">고급</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_friedman1/2/3()</div>
+        <div class="card-meta">비선형 회귀 벤치마크</div>
+        <div class="card-desc">Friedman 비선형 회귀 함수 3종. GBM · 랜덤포레스트 성능 비교</div>
+        <div class="card-tags">
+          <span class="tag">비선형회귀</span><span class="tag">GBM</span><span class="tag">벤치마크</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">make_biclusters()</div>
+        <div class="card-meta">행·열 동시 클러스터링</div>
+        <div class="card-desc">행렬 바이클러스터링 데이터 생성. SpectralBiclustering 실습</div>
+        <div class="card-tags">
+          <span class="tag">바이클러스터링</span><span class="tag">고급</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Image ── -->
+  <div class="section img" data-cat="img">
+    <div class="sec-head">
+      <span class="sec-label">Image datasets</span>
+      <span class="sec-fn">load_* / fetch_*</span>
+      <span class="sec-sub">픽셀 배열 · 차원축소 · 얼굴 인식</span>
+      <span class="sec-cnt">3개</span>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-fn">load_digits()</div>
+        <div class="card-meta">1,797 × 64픽셀 (8×8 그레이스케일)</div>
+        <div class="card-desc">0–9 손글씨 숫자. PCA로 차원축소 후 SVM 분류 파이프라인 기본 실습</div>
+        <div class="card-tags">
+          <span class="tag">손글씨</span><span class="tag">PCA</span><span class="tag">SVM</span><span class="tag">10클래스</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_olivetti_faces()</div>
+        <div class="card-meta">400장 · 64×64 · 40인 · 그레이스케일</div>
+        <div class="card-desc">AT&T 얼굴 데이터셋. PCA(eigenface) 직접 구현 실습의 표준</div>
+        <div class="card-tags">
+          <span class="tag">얼굴인식</span><span class="tag">eigenface</span><span class="tag">40클래스</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_lfw_people()</div>
+        <div class="card-meta">다수 · 62×47 컬러 RGB</div>
+        <div class="card-desc">실제 인물 얼굴 사진. 실전 얼굴 인식 파이프라인 구축 실습</div>
+        <div class="card-tags">
+          <span class="tag">실제인물</span><span class="tag">컬러</span><span class="tag">SVM</span><span class="tag">PCA</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Text ── -->
+  <div class="section txt" data-cat="txt">
+    <div class="sec-head">
+      <span class="sec-label">Text datasets</span>
+      <span class="sec-fn">fetch_*</span>
+      <span class="sec-sub">NLP · TF-IDF · 텍스트 분류</span>
+      <span class="sec-cnt">2개</span>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-fn">fetch_20newsgroups()</div>
+        <div class="card-meta">18,846건 · 20개 카테고리 · 원문 텍스트</div>
+        <div class="card-desc">뉴스그룹 텍스트 분류. TF-IDF 벡터화 + 나이브 베이즈 NLP 파이프라인 기본</div>
+        <div class="card-tags">
+          <span class="tag">NLP</span><span class="tag">TF-IDF</span><span class="tag">나이브베이즈</span><span class="tag">ADP</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_20newsgroups_vectorized()</div>
+        <div class="card-meta">TF-IDF 희소행렬 (전처리 완료)</div>
+        <div class="card-desc">위 데이터셋의 TF-IDF 벡터화 완료 버전. 전처리 없이 바로 모델 학습 가능</div>
+        <div class="card-tags">
+          <span class="tag">NLP</span><span class="tag">희소행렬</span><span class="tag">전처리완료</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Specialty ── -->
+  <div class="section bio" data-cat="bio">
+    <div class="sec-head">
+      <span class="sec-label">Specialty datasets</span>
+      <span class="sec-fn">fetch_*</span>
+      <span class="sec-sub">생물정보 · 지리 · 대규모 특수 도메인</span>
+      <span class="sec-cnt">3개</span>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-fn">fetch_species_distributions()</div>
+        <div class="card-meta">남미 지리 좌표 (위도·경도)</div>
+        <div class="card-desc">2종 생물 서식지 분포 지도. One-class SVM으로 밀도 기반 분포 추정</div>
+        <div class="card-tags">
+          <span class="tag">생태학</span><span class="tag">지리데이터</span><span class="tag">밀도추정</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_rcv1()</div>
+        <div class="card-meta">804K행 · 103레이블 · 희소행렬</div>
+        <div class="card-desc">로이터 뉴스 코퍼스. 대규모 다중레이블 분류 · 희소 행렬 처리 실습</div>
+        <div class="card-tags">
+          <span class="tag">대규모NLP</span><span class="tag">다중레이블</span><span class="tag">희소행렬</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-fn">fetch_covtype()</div>
+        <div class="card-meta">581K행 · 7클래스 · 54특성</div>
+        <div class="card-desc">로키 산맥 산림 피복 유형. 대용량 다중분류 · 부스팅 모델 벤치마크</div>
+        <div class="card-tags">
+          <span class="tag">자연환경</span><span class="tag">대용량</span><span class="tag">GBM</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Quick reference ── -->
+  <div class="code-wrap">
+    <div class="code-top">
+      <span class="code-title">Quick Reference</span>
+      <button class="copy-btn" onclick="copyCode()">복사</button>
+    </div>
+    <pre id="qcode"><span class="kw">from</span> sklearn <span class="kw">import</span> datasets
+
+<span class="cm"># ── Toy (load_*) ──────────────────────────────</span>
+iris     = datasets.<span class="fn">load_iris</span>()            <span class="cm"># 분류 기본</span>
+wine     = datasets.<span class="fn">load_wine</span>()            <span class="cm"># 다중분류</span>
+cancer   = datasets.<span class="fn">load_breast_cancer</span>()  <span class="cm"># 이진분류</span>
+diabetes = datasets.<span class="fn">load_diabetes</span>()        <span class="cm"># 회귀 기본</span>
+digits   = datasets.<span class="fn">load_digits</span>()          <span class="cm"># 이미지 분류</span>
+
+<span class="cm"># ── Real-world (fetch_*) ──────────────────────</span>
+housing  = datasets.<span class="fn">fetch_california_housing</span>()
+news     = datasets.<span class="fn">fetch_20newsgroups</span>(subset=<span class="st">'train'</span>, categories=[<span class="st">'sci.space'</span>])
+faces    = datasets.<span class="fn">fetch_lfw_people</span>(min_faces_per_person=70)
+any_ds   = datasets.<span class="fn">fetch_openml</span>(name=<span class="st">'titanic'</span>, version=1, as_frame=<span class="kw">True</span>)
+
+<span class="cm"># ── Generated (make_*) ────────────────────────</span>
+X, y = datasets.<span class="fn">make_classification</span>(n_samples=1000, n_features=20,
+                                     n_classes=3, n_informative=5)
+X, y = datasets.<span class="fn">make_regression</span>(n_samples=500, noise=0.1)
+X, y = datasets.<span class="fn">make_blobs</span>(n_samples=300, centers=4, cluster_std=0.6)
+X, y = datasets.<span class="fn">make_moons</span>(n_samples=200, noise=0.1)
+X, y = datasets.<span class="fn">make_circles</span>(n_samples=200, noise=0.05, factor=0.5)
+X, t = datasets.<span class="fn">make_swiss_roll</span>(n_samples=1000, noise=0.05)
+
+<span class="cm"># ── 공통 속성 ──────────────────────────────────</span>
+<span class="fn">print</span>(iris.data.shape)    <span class="cm"># (150, 4)</span>
+<span class="fn">print</span>(iris.target_names)  <span class="cm"># ['setosa', 'versicolor', 'virginica']</span>
+<span class="fn">print</span>(iris.feature_names) <span class="cm"># 특성 이름</span>
+<span class="fn">print</span>(iris.DESCR)         <span class="cm"># 상세 설명</span></pre>
+  </div>
+
+  <div class="footer">
+    scikit-learn 내장 데이터셋 레퍼런스 · 빅데이터분석기사 / ADP 실기 대비
+  </div>
+
+</div>
+
+<script>
+function filter(cat, btn) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.section[data-cat]').forEach(s => {
+    s.classList.toggle('hide', cat !== 'all' && s.dataset.cat !== cat);
+  });
+}
+
+function copyCode() {
+  const el = document.getElementById('qcode');
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '복사됨!';
+    setTimeout(() => btn.textContent = '복사', 1500);
+  });
+}
+</script>
+</body>
+</html>
