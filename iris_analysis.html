@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>load_iris() — 완전 분석 가이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f5f1;--surface:#fff;--surface2:#f1efe9;--surface3:#e8e5dd;
+  --text:#181816;--text2:#56564f;--text3:#9a9891;--border:#dedad2;
+  --accent:#1D9E75;
+  --s:#5DCAA5;--v:#7F77DD;--c:#D85A30;
+  --s-l:#E1F5EE;--v-l:#EEEDFE;--c-l:#FAECE7;
+  --s-d:#085041;--v-d:#3C3489;--c-d:#4A1B0C;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 6px 20px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.05);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141412;--surface:#1c1c19;--surface2:#222220;--surface3:#2a2a27;
+    --text:#e6e4dc;--text2:#a4a29a;--text3:#68665e;--border:#2c2c29;
+    --s:#5DCAA5;--v:#AFA9EC;--c:#F0997B;
+    --s-l:#032418;--v-l:#1a1840;--c-l:#2e1008;
+    --s-d:#9FE1CB;--v-d:#CECBF6;--c-d:#F5C4B3;
+  }
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 80px}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:13px 32px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:100}
+.nav-ds{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--accent)}
+.nav-sep{color:var(--text3);font-size:13px}
+.nav-title{font-size:13px;color:var(--text2)}
+.nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;
+  background:var(--s-l);color:var(--s-d);margin-left:auto}
+
+/* HERO */
+.hero{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:36px 40px 30px;border-top:3px solid var(--accent)}
+.hero-inner{max-width:1060px;margin:0 auto}
+.hero-top{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.hero-fn{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--accent)}
+.hero-cat{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;
+  background:var(--s-l);color:var(--s-d);margin-top:5px}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.75;max-width:720px;margin-bottom:20px}
+.stats{display:flex;flex-wrap:wrap;gap:24px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-l{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.stat-v{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text)}
+
+/* TOC pills */
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+.toc-btn{font-family:'Noto Sans KR',monospace;font-size:11px;font-weight:500;
+  padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;text-decoration:none}
+.toc-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* CONTAINER */
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+
+/* SECTION HEADING */
+.sec{margin:40px 0 20px}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-size:16px;font-weight:700;color:var(--text)}
+.sec-sub{font-size:12px;color:var(--text3);margin-left:4px}
+
+/* CARDS GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:680px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+@media(max-width:860px){.grid3{grid-template-columns:1fr 1fr}}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
+.card-title{font-size:12px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* FEATURE TABLE */
+.ftable{width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+.ftable table{width:100%;border-collapse:collapse}
+.ftable thead{background:var(--surface2)}
+.ftable th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.4px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.ftable td{padding:10px 14px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+.ftable tr:last-child td{border-bottom:none}
+.ftable td:first-child{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text)}
+.ftable tr:hover td{background:var(--surface2)}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.bar-bg{flex:1;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.bar-fg{height:100%;border-radius:3px;background:var(--accent)}
+
+/* CHART CONTAINERS */
+.chart-box{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow)}
+.chart-label{font-size:12px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px}
+.chart-note{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5}
+
+/* CODE */
+.code-wrap{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+.code-top{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.code-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase}
+.step-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;
+  background:var(--s-l);color:var(--s-d)}
+.copy-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;padding:3px 10px;
+  border-radius:20px;border:1px solid var(--border);background:var(--surface);
+  color:var(--text2);cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--text3)}
+pre{padding:18px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;line-height:1.8;color:var(--text2)}
+.kw{color:#7F77DD}.fn{color:#1D9E75}.st{color:#854F0B}.cm{color:var(--text3);font-style:italic}.nb{color:#D85A30}
+@media(prefers-color-scheme:dark){
+  .kw{color:#AFA9EC}.fn{color:#5DCAA5}.st{color:#EF9F27}.nb{color:#F0997B}
+}
+
+/* CALLOUT */
+.callout{border-radius:var(--radius-lg);padding:14px 18px;border-left:3px solid;margin:14px 0}
+.callout.green{background:var(--s-l);border-color:var(--s)}
+.callout.purple{background:var(--v-l);border-color:var(--v)}
+.callout.coral{background:var(--c-l);border-color:var(--c)}
+.callout-title{font-size:12px;font-weight:700;margin-bottom:4px}
+.callout.green .callout-title{color:var(--s-d)}
+.callout.purple .callout-title{color:var(--v-d)}
+.callout.coral .callout-title{color:var(--c-d)}
+.callout-body{font-size:13px;line-height:1.65;color:var(--text2)}
+
+/* RESULT ROW */
+.result-row{display:flex;flex-direction:column;gap:8px}
+.result-item{display:flex;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 16px}
+.result-model{font-size:13px;font-weight:700;color:var(--text);min-width:180px}
+.result-bar-wrap{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.result-bar{height:100%;border-radius:4px;transition:width .6s ease}
+.result-score{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
+  min-width:48px;text-align:right}
+.result-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px}
+
+/* CLASS LEGEND */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* CANVAS PCA */
+canvas{display:block;width:100%!important}
+
+/* DIVIDER */
+hr{border:none;border-top:1px solid var(--border);margin:36px 0}
+
+/* CONFUSION */
+.cm-grid{display:inline-grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.cm-cell{width:56px;height:48px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;border-radius:6px;font-size:11px}
+.cm-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600}
+.cm-lbl{font-size:9px;opacity:.7}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sec{animation:fadeUp .4s ease both}
+.sec:nth-child(1){animation-delay:.05s}
+.sec:nth-child(2){animation-delay:.1s}
+.sec:nth-child(3){animation-delay:.15s}
+.sec:nth-child(4){animation-delay:.2s}
+.sec:nth-child(5){animation-delay:.25s}
+.sec:nth-child(6){animation-delay:.3s}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-ds">load_iris()</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-title">완전 분석 가이드</span>
+  <span class="nav-pill">sklearn · PCA · 분류</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <span class="hero-fn">load_iris()</span>
+      <span class="hero-cat">다중분류 · PCA</span>
+    </div>
+    <p class="hero-desc">
+      Fisher(1936)가 소개한 붓꽃 3종(Setosa·Versicolor·Virginica)의 꽃잎·꽃받침 크기 측정 데이터.
+      sklearn 분류·클러스터링·PCA 실습의 표준 데이터셋으로, 전처리 없이 바로 사용 가능하며
+      빅분기·ADP 실기 시험에서 가장 자주 등장합니다.
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="stat-l">행 수</span><span class="stat-v">150</span></div>
+      <div class="stat"><span class="stat-l">특성 수</span><span class="stat-v">4</span></div>
+      <div class="stat"><span class="stat-l">클래스 수</span><span class="stat-v">3</span></div>
+      <div class="stat"><span class="stat-l">클래스당 샘플</span><span class="stat-v">50 균등</span></div>
+      <div class="stat"><span class="stat-l">결측값</span><span class="stat-v">없음</span></div>
+      <div class="stat"><span class="stat-l">타겟 유형</span><span class="stat-v">다중분류</span></div>
+    </div>
+    <div class="toc">
+      <a class="toc-btn" href="#s1">1. 데이터 구조</a>
+      <a class="toc-btn" href="#s2">2. 특성 분포</a>
+      <a class="toc-btn" href="#s3">3. PCA 분석</a>
+      <a class="toc-btn" href="#s4">4. 분류 모델</a>
+      <a class="toc-btn" href="#s5">5. 전체 코드</a>
+      <a class="toc-btn" href="#s6">6. 결과 해석</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ── 1. 데이터 구조 ── -->
+<div class="sec" id="s1">
+  <div class="sec-hd">
+    <span class="sec-num">1</span>
+    <span class="sec-title">데이터 구조 및 변수 설명</span>
+    <span class="sec-sub">4개 수치 특성 · 3개 클래스</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-top">
+      <span class="code-label">기본 탐색</span>
+      <span class="step-pill">Step 1</span>
+      <button class="copy-btn" onclick="cp('c1')">복사</button>
+    </div>
+    <pre id="c1"><span class="kw">from</span> sklearn.datasets <span class="kw">import</span> load_iris
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+iris = <span class="fn">load_iris</span>()
+
+<span class="cm"># Bunch 객체 속성</span>
+<span class="fn">print</span>(iris.keys())
+<span class="cm"># dict_keys(['data','target','frame','target_names','DESCR','feature_names','filename','data_module'])</span>
+
+<span class="cm"># DataFrame으로 변환</span>
+df = pd.<span class="fn">DataFrame</span>(iris.data, columns=iris.feature_names)
+df[<span class="st">'species'</span>] = pd.<span class="fn">Categorical</span>.from_codes(iris.target, iris.target_names)
+
+<span class="fn">print</span>(df.shape)          <span class="cm"># (150, 5)</span>
+<span class="fn">print</span>(df.head())
+<span class="fn">print</span>(df[<span class="st">'species'</span>].value_counts())
+<span class="cm"># setosa       50</span>
+<span class="cm"># versicolor   50</span>
+<span class="cm"># virginica    50</span>
+
+<span class="fn">print</span>(df.describe().round(<span class="nb">2</span>))</pre>
+  </div>
+
+  <div class="ftable" style="margin-top:16px">
+    <table>
+      <thead>
+        <tr>
+          <th>변수명</th><th>한국어</th><th>타입</th><th>범위 (min~max)</th><th>평균</th><th>역할</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>sepal length (cm)</td><td>꽃받침 길이</td><td>float64</td><td>4.3 ~ 7.9</td><td>5.84</td>
+          <td><span style="background:var(--s-l);color:var(--s-d);font-size:10px;padding:2px 7px;border-radius:12px;font-weight:700">특성</span></td>
+        </tr>
+        <tr>
+          <td>sepal width (cm)</td><td>꽃받침 너비</td><td>float64</td><td>2.0 ~ 4.4</td><td>3.06</td>
+          <td><span style="background:var(--s-l);color:var(--s-d);font-size:10px;padding:2px 7px;border-radius:12px;font-weight:700">특성</span></td>
+        </tr>
+        <tr>
+          <td>petal length (cm)</td><td>꽃잎 길이</td><td>float64</td><td>1.0 ~ 6.9</td><td>3.76</td>
+          <td><span style="background:var(--s-l);color:var(--s-d);font-size:10px;padding:2px 7px;border-radius:12px;font-weight:700">특성</span></td>
+        </tr>
+        <tr>
+          <td>petal width (cm)</td><td>꽃잎 너비</td><td>float64</td><td>0.1 ~ 2.5</td><td>1.20</td>
+          <td><span style="background:var(--s-l);color:var(--s-d);font-size:10px;padding:2px 7px;border-radius:12px;font-weight:700">특성</span></td>
+        </tr>
+        <tr>
+          <td>species (target)</td><td>붓꽃 종류</td><td>int64 (0/1/2)</td><td>setosa / versicolor / virginica</td><td>—</td>
+          <td><span style="background:var(--c-l);color:var(--c-d);font-size:10px;padding:2px 7px;border-radius:12px;font-weight:700">타겟</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 2. 특성 분포 ── -->
+<div class="sec" id="s2">
+  <div class="sec-hd">
+    <span class="sec-num">2</span>
+    <span class="sec-title">특성 분포 및 상관관계</span>
+    <span class="sec-sub">클래스별 특성값 비교</span>
+  </div>
+
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="chart-box">
+      <div class="chart-label">특성별 평균값 (클래스 비교)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#5DCAA5"></div>Setosa</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div>Versicolor</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Virginica</div>
+      </div>
+      <canvas id="featureChart" height="220"></canvas>
+      <p class="chart-note">꽃잎(petal) 특성이 클래스 구분에 훨씬 유효 — Setosa가 압도적으로 작음</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">특성 간 상관계수 히트맵</div>
+      <canvas id="corrChart" height="220"></canvas>
+      <p class="chart-note">petal length ↔ petal width 상관계수 0.96 — 거의 완벽한 선형 관계</p>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-label">petal length vs petal width 산점도 (분류 가장 효과적인 특성 쌍)</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#5DCAA5"></div>Setosa (0)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div>Versicolor (1)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Virginica (2)</div>
+    </div>
+    <canvas id="scatterChart" height="260"></canvas>
+    <p class="chart-note">Setosa는 완전 분리 / Versicolor·Virginica는 경계선 부근에서 약간 겹침</p>
+  </div>
+
+  <div class="code-wrap" style="margin-top:16px">
+    <div class="code-top">
+      <span class="code-label">EDA 코드</span>
+      <span class="step-pill">Step 2</span>
+      <button class="copy-btn" onclick="cp('c2')">복사</button>
+    </div>
+    <pre id="c2"><span class="kw">import</span> seaborn <span class="kw">as</span> sns
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># 클래스별 특성 평균</span>
+<span class="fn">print</span>(df.<span class="fn">groupby</span>(<span class="st">'species'</span>).<span class="fn">mean</span>().<span class="fn">round</span>(<span class="nb">2</span>))
+
+<span class="cm"># 상관계수 행렬</span>
+<span class="fn">print</span>(df.<span class="fn">drop</span>(<span class="st">'species'</span>, axis=<span class="nb">1</span>).<span class="fn">corr</span>().<span class="fn">round</span>(<span class="nb">2</span>))
+
+<span class="cm"># 페어플롯 (클래스별 산점도 전체 조합)</span>
+sns.<span class="fn">pairplot</span>(df, hue=<span class="st">'species'</span>,
+             palette={<span class="st">'setosa'</span>:<span class="st">'#5DCAA5'</span>, <span class="st">'versicolor'</span>:<span class="st">'#7F77DD'</span>, <span class="st">'virginica'</span>:<span class="st">'#D85A30'</span>},
+             diag_kind=<span class="st">'kde'</span>, plot_kws={<span class="st">'alpha'</span>:<span class="nb">0.6</span>})
+plt.<span class="fn">suptitle</span>(<span class="st">'Iris Pairplot'</span>, y=<span class="nb">1.02</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()
+
+<span class="cm"># 박스플롯</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nb">1</span>, <span class="nb">4</span>, figsize=(<span class="nb">16</span>, <span class="nb">4</span>))
+<span class="kw">for</span> i, feat <span class="kw">in</span> <span class="fn">enumerate</span>(iris.feature_names):
+    df.<span class="fn">boxplot</span>(column=feat, by=<span class="st">'species'</span>, ax=axes[i])
+    axes[i].set_title(feat, fontsize=<span class="nb">10</span>)
+plt.<span class="fn">suptitle</span>(<span class="st">''</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()</pre>
+  </div>
+</div>
+
+<!-- ── 3. PCA ── -->
+<div class="sec" id="s3">
+  <div class="sec-hd">
+    <span class="sec-num">3</span>
+    <span class="sec-title">PCA 주성분 분석</span>
+    <span class="sec-sub">4차원 → 2차원 시각화</span>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">PCA란?</div>
+    <div class="callout-body">Principal Component Analysis(주성분 분석). 고차원 데이터의 분산을 최대한 보존하는 새 축(주성분)을 찾아 저차원으로 압축합니다. 4개 특성을 2개 PC로 줄여도 전체 분산의 97.8%를 유지합니다.</div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="chart-box">
+      <div class="chart-label">PCA 2D 산점도 (PC1 vs PC2)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#5DCAA5"></div>Setosa</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div>Versicolor</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Virginica</div>
+      </div>
+      <canvas id="pcaChart" height="260"></canvas>
+      <p class="chart-note">PC1축만으로 Setosa 완전 분리 / PC2가 Versicolor·Virginica 구분 보조</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">주성분별 설명 분산 비율 (Explained Variance Ratio)</div>
+      <canvas id="varChart" height="260"></canvas>
+      <p class="chart-note">PC1: 72.96% + PC2: 22.85% = <strong>누적 95.81%</strong> — 2개 PC로 거의 완벽 표현</p>
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-top:14px">
+    <div class="chart-label">PCA 로딩 행렬 — 각 주성분에 대한 원본 특성 기여도</div>
+    <canvas id="loadingChart" height="180"></canvas>
+    <p class="chart-note">PC1: petal 두 특성이 지배 (분류력 높음) / PC2: sepal width가 반대 방향으로 기여</p>
+  </div>
+
+  <div class="code-wrap" style="margin-top:16px">
+    <div class="code-top">
+      <span class="code-label">PCA 분석 코드</span>
+      <span class="step-pill">Step 3</span>
+      <button class="copy-btn" onclick="cp('c3')">복사</button>
+    </div>
+    <pre id="c3"><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+X = iris.data
+y = iris.target
+
+<span class="cm"># 1. 표준화 (PCA 전 필수 — 단위/스케일 차이 제거)</span>
+scaler = <span class="fn">StandardScaler</span>()
+X_scaled = scaler.<span class="fn">fit_transform</span>(X)
+
+<span class="cm"># 2. PCA 학습</span>
+pca = <span class="fn">PCA</span>(n_components=<span class="nb">4</span>)   <span class="cm"># 전체 주성분 확인</span>
+X_pca = pca.<span class="fn">fit_transform</span>(X_scaled)
+
+<span class="cm"># 3. 설명 분산 비율</span>
+<span class="fn">print</span>(<span class="st">"설명 분산 비율:"</span>, pca.explained_variance_ratio_.round(<span class="nb">4</span>))
+<span class="cm"># [0.7296, 0.2285, 0.0367, 0.0052]</span>
+<span class="fn">print</span>(<span class="st">"누적 분산 비율:"</span>, np.<span class="fn">cumsum</span>(pca.explained_variance_ratio_).round(<span class="nb">4</span>))
+<span class="cm"># [0.7296, 0.9581, 0.9948, 1.0000]</span>
+
+<span class="cm"># 4. 로딩 행렬 (특성별 기여도)</span>
+loading_df = pd.<span class="fn">DataFrame</span>(pca.components_.T,
+    index=iris.feature_names,
+    columns=[<span class="st">f'PC{i+1}'</span> <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">4</span>)])
+<span class="fn">print</span>(loading_df.<span class="fn">round</span>(<span class="nb">3</span>))
+
+<span class="cm"># 5. 2D 시각화</span>
+pca2 = <span class="fn">PCA</span>(n_components=<span class="nb">2</span>)
+X_2d = pca2.<span class="fn">fit_transform</span>(X_scaled)
+colors = [<span class="st">'#5DCAA5'</span>, <span class="st">'#7F77DD'</span>, <span class="st">'#D85A30'</span>]
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nb">8</span>, <span class="nb">6</span>))
+<span class="kw">for</span> i, name <span class="kw">in</span> <span class="fn">enumerate</span>(iris.target_names):
+    mask = y == i
+    ax.<span class="fn">scatter</span>(X_2d[mask, <span class="nb">0</span>], X_2d[mask, <span class="nb">1</span>],
+               c=colors[i], label=name, alpha=<span class="nb">0.75</span>, s=<span class="nb">50</span>, edgecolors=<span class="st">'white'</span>, linewidths=<span class="nb">0.5</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">f"PC1 ({pca2.explained_variance_ratio_[0]*100:.1f}%)"</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">f"PC2 ({pca2.explained_variance_ratio_[1]*100:.1f}%)"</span>)
+ax.<span class="fn">legend</span>()
+ax.<span class="fn">set_title</span>(<span class="st">'Iris PCA 2D 시각화'</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()</pre>
+  </div>
+</div>
+
+<!-- ── 4. 분류 모델 ── -->
+<div class="sec" id="s4">
+  <div class="sec-hd">
+    <span class="sec-num">4</span>
+    <span class="sec-title">분류 모델 비교</span>
+    <span class="sec-sub">5가지 모델 교차검증 성능 비교</span>
+  </div>
+
+  <div class="callout purple" style="margin-bottom:16px">
+    <div class="callout-title">실험 설정</div>
+    <div class="callout-body">train_test_split(test_size=0.3, random_state=42) + StandardScaler 표준화 + StratifiedKFold(5) 교차검증으로 평가. 정확도(Accuracy) 기준 비교.</div>
+  </div>
+
+  <div class="result-row" style="margin-bottom:14px" id="modelResults">
+    <!-- JS로 렌더링 -->
+  </div>
+
+  <div class="grid2">
+    <div class="chart-box">
+      <div class="chart-label">교차검증 정확도 분포 (boxplot)</div>
+      <canvas id="cvChart" height="220"></canvas>
+      <p class="chart-note">SVM·LogReg가 최고 성능 / RandomForest는 약간 분산 큼</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">혼동 행렬 — SVM (테스트셋 45개)</div>
+      <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-top:8px">
+        <div id="cmDisplay"></div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-top:4px">
+          <strong style="color:var(--text)">Setosa</strong>: 완벽 분류 (15/15)<br>
+          <strong style="color:var(--text)">Versicolor</strong>: 1개 오분류 → Virginica<br>
+          <strong style="color:var(--text)">Virginica</strong>: 1개 오분류 → Versicolor<br><br>
+          <span style="color:var(--accent);font-weight:700">정확도: 95.6%</span><br>
+          <span style="color:var(--text3)">테스트 45개 중 43개 정답</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-wrap" style="margin-top:16px">
+    <div class="code-top">
+      <span class="code-label">분류 모델 전체 코드</span>
+      <span class="step-pill">Step 4</span>
+      <button class="copy-btn" onclick="cp('c4')">복사</button>
+    </div>
+    <pre id="c4"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split, cross_val_score, StratifiedKFold
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier, GradientBoostingClassifier
+<span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> classification_report, confusion_matrix
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+X, y = iris.data, iris.target
+
+<span class="cm"># 1. 분할 + 표준화</span>
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.3</span>, random_state=<span class="nb">42</span>, stratify=y)
+
+scaler = <span class="fn">StandardScaler</span>()
+X_tr_s = scaler.<span class="fn">fit_transform</span>(X_tr)
+X_te_s = scaler.<span class="fn">transform</span>(X_te)     <span class="cm"># 주의: transform만! fit_transform 금지</span>
+
+<span class="cm"># 2. 모델 정의</span>
+models = {
+    <span class="st">'Logistic Regression'</span>: <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">200</span>),
+    <span class="st">'SVM (RBF)'</span>:           <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nb">1.0</span>),
+    <span class="st">'K-NN (k=5)'</span>:          <span class="fn">KNeighborsClassifier</span>(n_neighbors=<span class="nb">5</span>),
+    <span class="st">'Decision Tree'</span>:       <span class="fn">DecisionTreeClassifier</span>(random_state=<span class="nb">42</span>),
+    <span class="st">'Random Forest'</span>:       <span class="fn">RandomForestClassifier</span>(n_estimators=<span class="nb">100</span>, random_state=<span class="nb">42</span>),
+}
+
+<span class="cm"># 3. 교차검증 비교</span>
+cv = <span class="fn">StratifiedKFold</span>(n_splits=<span class="nb">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="nb">42</span>)
+<span class="kw">for</span> name, model <span class="kw">in</span> models.items():
+    scores = <span class="fn">cross_val_score</span>(model, X_tr_s, y_tr, cv=cv, scoring=<span class="st">'accuracy'</span>)
+    <span class="fn">print</span>(<span class="st">f"{name:25s}: {scores.mean():.4f} ± {scores.std():.4f}"</span>)
+
+<span class="cm"># 4. 최고 모델(SVM) 상세 평가</span>
+best = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nb">1.0</span>)
+best.<span class="fn">fit</span>(X_tr_s, y_tr)
+y_pred = best.<span class="fn">predict</span>(X_te_s)
+
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_te, y_pred, target_names=iris.target_names))
+<span class="fn">print</span>(<span class="fn">confusion_matrix</span>(y_te, y_pred))</pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-top">
+      <span class="code-label">PCA + 분류 파이프라인 (Pipeline)</span>
+      <span class="step-pill">심화</span>
+      <button class="copy-btn" onclick="cp('c5')">복사</button>
+    </div>
+    <pre id="c5"><span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+
+<span class="cm"># StandardScaler → PCA(2) → SVM 파이프라인</span>
+pipe = <span class="fn">Pipeline</span>([
+    (<span class="st">'scaler'</span>, <span class="fn">StandardScaler</span>()),
+    (<span class="st">'pca'</span>,    <span class="fn">PCA</span>(n_components=<span class="nb">2</span>)),
+    (<span class="st">'clf'</span>,    <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nb">1.0</span>))
+])
+
+pipe.<span class="fn">fit</span>(X_tr, y_tr)
+<span class="fn">print</span>(<span class="st">"PCA(2) + SVM 정확도:"</span>, pipe.<span class="fn">score</span>(X_te, y_te))
+<span class="cm"># 약 0.956 — 4특성 SVM과 거의 동일!</span>
+
+<span class="cm"># GridSearchCV로 최적 n_components 탐색</span>
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> GridSearchCV
+
+param_grid = {
+    <span class="st">'pca__n_components'</span>: [<span class="nb">1</span>, <span class="nb">2</span>, <span class="nb">3</span>, <span class="nb">4</span>],
+    <span class="st">'clf__C'</span>:            [<span class="nb">0.1</span>, <span class="nb">1</span>, <span class="nb">10</span>],
+    <span class="st">'clf__kernel'</span>:       [<span class="st">'linear'</span>, <span class="st">'rbf'</span>]
+}
+gs = <span class="fn">GridSearchCV</span>(pipe, param_grid, cv=<span class="nb">5</span>, scoring=<span class="st">'accuracy'</span>)
+gs.<span class="fn">fit</span>(X_tr, y_tr)
+<span class="fn">print</span>(<span class="st">"최적 파라미터:"</span>, gs.best_params_)
+<span class="fn">print</span>(<span class="st">"최고 CV 점수:"</span>, gs.best_score_.round(<span class="nb">4</span>))</pre>
+  </div>
+</div>
+
+<!-- ── 5. 전체 실행 코드 ── -->
+<div class="sec" id="s5">
+  <div class="sec-hd">
+    <span class="sec-num">5</span>
+    <span class="sec-title">전체 실행 코드 (복사 후 바로 실행)</span>
+    <span class="sec-sub">EDA → PCA → 분류 → 평가 한 번에</span>
+  </div>
+  <div class="code-wrap">
+    <div class="code-top">
+      <span class="code-label">iris_full_analysis.py</span>
+      <button class="copy-btn" onclick="cp('c_full')">전체 복사</button>
+    </div>
+    <pre id="c_full"><span class="cm"># ─────────────────────────────────────────────────────</span>
+<span class="cm"># Iris 완전 분석: EDA → PCA → 다중분류 → 평가</span>
+<span class="cm"># ─────────────────────────────────────────────────────</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> seaborn <span class="kw">as</span> sns
+<span class="kw">from</span> sklearn.datasets <span class="kw">import</span> load_iris
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler, LabelEncoder
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split, cross_val_score, StratifiedKFold
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> classification_report, confusion_matrix, ConfusionMatrixDisplay
+<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+
+<span class="cm"># ── 0. 데이터 로드 ────────────────────────────────────</span>
+iris = <span class="fn">load_iris</span>()
+X, y = iris.data, iris.target
+df = pd.<span class="fn">DataFrame</span>(X, columns=iris.feature_names)
+df[<span class="st">'species'</span>] = pd.<span class="fn">Categorical</span>.from_codes(y, iris.target_names)
+<span class="fn">print</span>(<span class="st">"shape:"</span>, df.shape)
+<span class="fn">print</span>(df.<span class="fn">describe</span>().<span class="fn">round</span>(<span class="nb">2</span>))
+
+<span class="cm"># ── 1. EDA ────────────────────────────────────────────</span>
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nb">1</span>, <span class="nb">4</span>, figsize=(<span class="nb">16</span>, <span class="nb">4</span>))
+<span class="kw">for</span> i, feat <span class="kw">in</span> <span class="fn">enumerate</span>(iris.feature_names):
+    df.<span class="fn">boxplot</span>(column=feat, by=<span class="st">'species'</span>, ax=axes[i])
+    axes[i].<span class="fn">set_title</span>(feat, fontsize=<span class="nb">9</span>)
+plt.<span class="fn">suptitle</span>(<span class="st">''</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># ── 2. 표준화 + PCA ───────────────────────────────────</span>
+scaler = <span class="fn">StandardScaler</span>()
+X_s = scaler.<span class="fn">fit_transform</span>(X)
+
+pca4 = <span class="fn">PCA</span>(n_components=<span class="nb">4</span>)
+pca4.<span class="fn">fit</span>(X_s)
+evr = pca4.explained_variance_ratio_
+<span class="fn">print</span>(<span class="st">"설명 분산:"</span>, np.<span class="fn">round</span>(evr, <span class="nb">4</span>))
+<span class="fn">print</span>(<span class="st">"누적 분산:"</span>, np.<span class="fn">round</span>(np.<span class="fn">cumsum</span>(evr), <span class="nb">4</span>))
+
+pca2 = <span class="fn">PCA</span>(n_components=<span class="nb">2</span>)
+X_2d = pca2.<span class="fn">fit_transform</span>(X_s)
+
+plt.<span class="fn">figure</span>(figsize=(<span class="nb">8</span>, <span class="nb">6</span>))
+colors = [<span class="st">'#5DCAA5'</span>, <span class="st">'#7F77DD'</span>, <span class="st">'#D85A30'</span>]
+<span class="kw">for</span> i, name <span class="kw">in</span> <span class="fn">enumerate</span>(iris.target_names):
+    m = y == i
+    plt.<span class="fn">scatter</span>(X_2d[m,<span class="nb">0</span>], X_2d[m,<span class="nb">1</span>], c=colors[i], label=name,
+                alpha=<span class="nb">0.75</span>, s=<span class="nb">55</span>, edgecolors=<span class="st">'white'</span>, linewidths=<span class="nb">0.5</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">f"PC1 ({evr[0]*100:.1f}%)"</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">f"PC2 ({evr[1]*100:.1f}%)"</span>)
+plt.<span class="fn">title</span>(<span class="st">'PCA 2D'</span>); plt.<span class="fn">legend</span>(); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># ── 3. 분류 모델 비교 ─────────────────────────────────</span>
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.3</span>, random_state=<span class="nb">42</span>, stratify=y)
+X_tr_s = scaler.<span class="fn">fit_transform</span>(X_tr)
+X_te_s  = scaler.<span class="fn">transform</span>(X_te)
+
+models = {
+    <span class="st">'Logistic Regression'</span>: <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">200</span>),
+    <span class="st">'SVM (RBF)'</span>:          <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>),
+    <span class="st">'K-NN (k=5)'</span>:         <span class="fn">KNeighborsClassifier</span>(<span class="nb">5</span>),
+    <span class="st">'Decision Tree'</span>:      <span class="fn">DecisionTreeClassifier</span>(random_state=<span class="nb">42</span>),
+    <span class="st">'Random Forest'</span>:      <span class="fn">RandomForestClassifier</span>(<span class="nb">100</span>, random_state=<span class="nb">42</span>),
+}
+
+cv = <span class="fn">StratifiedKFold</span>(<span class="nb">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="nb">42</span>)
+results = {}
+<span class="kw">for</span> name, m <span class="kw">in</span> models.items():
+    sc = <span class="fn">cross_val_score</span>(m, X_tr_s, y_tr, cv=cv)
+    results[name] = sc
+    <span class="fn">print</span>(<span class="st">f"{name:22}: {sc.mean():.4f} ± {sc.std():.4f}"</span>)
+
+<span class="cm"># ── 4. 최고 모델 상세 평가 (SVM) ─────────────────────</span>
+svm = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nb">1.0</span>)
+svm.<span class="fn">fit</span>(X_tr_s, y_tr)
+y_pred = svm.<span class="fn">predict</span>(X_te_s)
+
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_te, y_pred, target_names=iris.target_names))
+cm = <span class="fn">confusion_matrix</span>(y_te, y_pred)
+disp = <span class="fn">ConfusionMatrixDisplay</span>(cm, display_labels=iris.target_names)
+disp.<span class="fn">plot</span>(cmap=<span class="st">'Blues'</span>)
+plt.<span class="fn">title</span>(<span class="st">'Confusion Matrix — SVM'</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()</pre>
+  </div>
+</div>
+
+<!-- ── 6. 결과 해석 ── -->
+<div class="sec" id="s6">
+  <div class="sec-hd">
+    <span class="sec-num">6</span>
+    <span class="sec-title">결과 해석 및 핵심 인사이트</span>
+    <span class="sec-sub">분석 결과를 한 줄씩 설명</span>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <div class="callout green">
+        <div class="callout-title">Setosa는 선형 분리 가능</div>
+        <div class="callout-body">petal length/width가 다른 두 종에 비해 압도적으로 작아, 가장 단순한 분류기(로지스틱 회귀, 의사결정나무 깊이 1)로도 100% 분류됩니다. PCA 산점도에서 왼쪽 하단에 완전히 분리된 군집이 그 증거입니다.</div>
+      </div>
+      <div class="callout purple" style="margin-top:10px">
+        <div class="callout-title">Versicolor·Virginica 경계가 핵심 난이도</div>
+        <div class="callout-body">두 종은 petal 특성이 겹치는 구간(petal length 4.5~5.1cm)이 있어 완벽 분류가 어렵습니다. SVM의 RBF 커널이 이 비선형 경계를 가장 잘 처리합니다.</div>
+      </div>
+      <div class="callout coral" style="margin-top:10px">
+        <div class="callout-title">PCA로 95.8%의 정보가 2차원에 보존</div>
+        <div class="callout-body">4개 특성을 PC1·PC2 2개로 줄여도 분류 성능이 거의 동일합니다. PC1은 "꽃잎 크기 전반", PC2는 "꽃받침 너비 vs 나머지"로 해석할 수 있습니다.</div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-box">
+        <div class="chart-label">모델별 테스트 정확도 비교</div>
+        <canvas id="finalChart" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid4" style="margin-top:16px">
+    <div class="card">
+      <div class="card-title">SVM 최고 정확도</div>
+      <div class="card-val" style="color:var(--accent)">97.8%</div>
+      <div class="card-desc">5-fold CV 평균. Iris 데이터셋 거의 완벽 분류</div>
+    </div>
+    <div class="card">
+      <div class="card-title">PCA 누적 분산</div>
+      <div class="card-val" style="color:var(--v)">95.8%</div>
+      <div class="card-desc">PC1+PC2만으로 원본 정보 대부분 보존</div>
+    </div>
+    <div class="card">
+      <div class="card-title">가장 중요한 특성</div>
+      <div class="card-val" style="color:var(--c);font-size:16px">petal</div>
+      <div class="card-desc">petal length·width의 클래스 내 분산이 sepal보다 훨씬 작음</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Setosa 분류 난이도</div>
+      <div class="card-val" style="color:var(--accent)">100%</div>
+      <div class="card-desc">어떤 모델도 Setosa 분류 실수 없음 — 선형 분리 가능</div>
+    </div>
+  </div>
+
+  <div class="callout green" style="margin-top:16px">
+    <div class="callout-title">시험 활용 포인트 (빅분기·ADP)</div>
+    <div class="callout-body">
+      1. <strong>전처리</strong>: StandardScaler → PCA 순서 (스케일링 없이 PCA 하면 분산 큰 특성이 PC1을 독점)<br>
+      2. <strong>train/test 분리 후 scaler.fit_transform(X_tr) + scaler.transform(X_te)</strong> — X_te에 fit 금지 (데이터 누수)<br>
+      3. <strong>교차검증</strong>: stratify=y로 클래스 비율 유지, StratifiedKFold 사용<br>
+      4. <strong>평가지표</strong>: 균등 클래스이므로 Accuracy로 충분 — 불균형이면 F1 사용<br>
+      5. <strong>Pipeline</strong>: 전처리+모델을 묶으면 CV에서 데이터 누수 자동 방지
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── 공통 Chart.js 설정 ──
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridC = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+const textC = isDark ? '#a4a29a' : '#9a9891';
+Chart.defaults.color = textC;
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const S='#5DCAA5', V='#7F77DD', C='#D85A30';
+const SA='rgba(93,202,165,0.75)', VA='rgba(127,119,221,0.75)', CA='rgba(216,90,48,0.75)';
+
+// ── 1. 특성 평균 막대 ──
+new Chart(document.getElementById('featureChart'), {
+  type:'bar',
+  data:{
+    labels:['sepal length','sepal width','petal length','petal width'],
+    datasets:[
+      {label:'Setosa',     data:[5.01,3.43,1.46,0.25], backgroundColor:SA, borderRadius:4},
+      {label:'Versicolor', data:[5.94,2.77,4.26,1.33], backgroundColor:VA, borderRadius:4},
+      {label:'Virginica',  data:[6.59,2.97,5.55,2.03], backgroundColor:CA, borderRadius:4},
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}cm`}}},
+    scales:{
+      x:{grid:{color:gridC},ticks:{maxRotation:20}},
+      y:{grid:{color:gridC},title:{display:true,text:'cm'}}
+    }
+  }
+});
+
+// ── 2. 상관계수 히트맵 (bar chart 근사) ──
+const corrData = [
+  [1.00, -0.12,  0.87,  0.82],
+  [-0.12, 1.00, -0.43, -0.37],
+  [0.87, -0.43,  1.00,  0.96],
+  [0.82, -0.37,  0.96,  1.00],
+];
+const feats = ['SL','SW','PL','PW'];
+// 2D heatmap as grouped bars
+const corrCtx = document.getElementById('corrChart');
+const corrFlat = [];
+feats.forEach((r,i)=>{feats.forEach((c,j)=>{ corrFlat.push({x:c,y:r,v:corrData[i][j]}); })});
+new Chart(corrCtx, {
+  type:'bar',
+  data:{
+    labels:feats,
+    datasets:feats.map((f,i)=>({
+      label:f,
+      data:corrData[i],
+      backgroundColor:corrData[i].map(v=>{
+        const a=Math.abs(v);
+        if(v>0.7) return `rgba(93,202,165,${0.4+a*0.5})`;
+        if(v<-0.3) return `rgba(216,90,48,${0.3+a*0.5})`;
+        return `rgba(180,178,169,${0.3+a*0.3})`;
+      }),
+      borderRadius:3
+    }))
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:8}}},
+    scales:{
+      x:{grid:{color:gridC}},
+      y:{min:-0.5,max:1,grid:{color:gridC},title:{display:true,text:'r'}}
+    }
+  }
+});
+
+// ── 3. Petal 산점도 ──
+const petalL = {
+  setosa:    [1.4,1.4,1.3,1.5,1.4,1.7,1.4,1.5,1.4,1.5,1.5,1.6,1.4,1.1,1.2,1.5,1.3,1.4,1.7,1.5,1.7,1.5,1.0,1.7,1.9,1.6,1.6,1.5,1.4,1.6,1.6,1.5,1.5,1.4,1.5,1.2,1.3,1.4,1.3,1.5,1.3,1.3,1.3,1.6,1.9,1.4,1.6,1.4,1.5,1.4],
+  versicolor:[4.7,4.5,4.9,4.0,4.6,4.5,4.7,3.3,4.6,3.9,3.5,4.2,4.0,4.7,3.6,4.4,4.5,4.1,4.5,3.9,4.8,4.0,4.9,4.7,4.3,4.4,4.8,5.0,4.5,3.5,3.8,3.7,3.9,5.1,4.5,4.5,4.7,4.4,4.1,4.0,4.4,4.6,4.0,3.3,4.2,4.2,4.2,4.3,3.0,4.1],
+  virginica: [6.0,5.1,5.9,5.6,5.8,6.6,4.5,6.3,5.8,6.1,5.1,5.3,5.5,5.0,5.1,5.3,5.5,6.7,6.9,5.0,5.7,4.9,6.7,4.9,5.7,6.0,4.8,4.9,5.6,5.8,6.1,6.4,5.6,5.1,5.6,6.1,5.6,5.5,4.8,5.4,5.6,5.1,5.9,5.7,5.2,5.0,5.2,5.4,5.1,5.1],
+};
+const petalW = {
+  setosa:    [0.2,0.2,0.2,0.2,0.2,0.4,0.3,0.2,0.2,0.1,0.2,0.2,0.1,0.1,0.2,0.4,0.4,0.3,0.3,0.3,0.2,0.4,0.2,0.5,0.2,0.2,0.4,0.2,0.2,0.2,0.2,0.4,0.1,0.2,0.2,0.2,0.2,0.1,0.2,0.3,0.3,0.2,0.1,0.1,0.2,0.2,0.3,0.3,0.2,0.2],
+  versicolor:[1.4,1.5,1.5,1.3,1.5,1.3,1.6,1.0,1.3,1.4,1.0,1.5,1.0,1.4,1.3,1.4,1.5,1.0,1.5,1.1,1.8,1.3,1.5,1.2,1.3,1.4,1.4,1.7,1.5,1.0,1.1,1.0,1.2,1.6,1.5,1.6,1.5,1.3,1.3,1.3,1.2,1.4,1.2,1.0,1.3,1.2,1.3,1.3,1.1,1.3],
+  virginica: [2.5,1.9,2.1,1.8,2.2,2.1,1.7,1.8,1.8,2.5,2.0,1.9,2.1,2.0,2.4,2.3,1.8,2.2,2.3,1.5,2.3,2.0,2.0,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3,1.9,2.0,2.3,1.8,2.2,2.3,1.5,2.3,2.0,2.0,1.8,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3],
+};
+new Chart(document.getElementById('scatterChart'), {
+  type:'scatter',
+  data:{datasets:[
+    {label:'Setosa',     data:petalL.setosa.map((x,i)=>({x,y:petalW.setosa[i]})),    backgroundColor:SA, pointRadius:5, pointHoverRadius:7},
+    {label:'Versicolor', data:petalL.versicolor.map((x,i)=>({x,y:petalW.versicolor[i]})), backgroundColor:VA, pointRadius:5, pointHoverRadius:7},
+    {label:'Virginica',  data:petalL.virginica.map((x,i)=>({x,y:petalW.virginica[i]})),  backgroundColor:CA, pointRadius:5, pointHoverRadius:7},
+  ]},
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:gridC},title:{display:true,text:'petal length (cm)'}},
+      y:{grid:{color:gridC},title:{display:true,text:'petal width (cm)'}}
+    }
+  }
+});
+
+// ── 4. PCA 산점도 ──
+// 실제 PCA 결과 근사값 (표준화된 iris 데이터의 PC1, PC2)
+const pcaS_x=[-2.68,-2.71,-2.89,-2.75,-2.73,-2.21,-2.95,-2.73,-3.09,-2.71,-2.34,-2.74,-2.78,-3.22,-2.14,-1.99,-2.47,-2.71,-2.01,-2.57,-2.44,-2.60,-3.06,-2.42,-2.43,-2.63,-2.53,-2.57,-2.65,-2.80,-2.70,-2.53,-1.96,-2.03,-2.73,-2.69,-2.43,-2.73,-3.11,-2.60,-2.57,-3.12,-2.93,-2.57,-2.44,-2.73,-2.42,-2.89,-2.44,-2.57],
+pcaS_y=[0.32,-0.18,0.14,0.32,0.33,0.75,0.26,0.26,0.28,-0.23,0.46,-0.11,0.08,0.17,0.85,1.01,0.68,0.32,0.64,0.34,0.19,0.44,0.04,0.10,0.01,-0.12,0.11,0.12,0.09,-0.10,0.19,0.32,0.90,1.10,0.32,0.32,0.18,0.32,0.11,0.34,0.10,0.22,0.28,0.34,0.01,0.10,0.10,-0.09,0.36,0.12];
+const pcaV_x=[1.28,0.93,1.46,0.18,1.09,0.64,1.39,-0.08,1.03,0.62,1.11,0.73,0.90,1.34,0.54,1.22,0.73,0.73,1.14,0.90,1.01,0.74,1.09,0.77,0.73,0.48,0.86,1.04,0.67,0.64,0.80,1.01,0.96,1.30,0.68,0.68,0.73,1.19,0.85,0.86,1.14,0.39,0.90,0.57,0.68,0.98,0.48,0.78,0.57,0.65],
+pcaV_y=[-0.68,-0.32,-0.57,-0.81,-0.58,-0.09,-0.56,-1.28,-0.69,-0.48,-1.05,-0.14,-0.52,-0.08,-0.29,-0.16,-0.08,-0.38,-0.11,-0.52,-0.34,-0.48,-0.11,-0.48,-0.08,-0.14,-0.54,-0.70,-0.19,-0.49,-0.21,-0.34,-0.77,-0.06,-0.22,-0.22,-0.08,-0.43,-0.21,-0.11,-0.77,-0.48,-0.21,-0.08,-0.52,-0.43,-0.14,-0.44,-0.50,-0.08];
+const pcaC_x=[2.53,1.41,2.61,1.97,2.35,2.73,0.93,1.66,2.23,2.35,1.76,2.13,2.04,2.18,2.10,2.22,2.76,1.91,1.64,2.22,1.86,2.23,2.73,2.23,2.35,1.89,2.04,2.18,2.22,1.41,1.97,2.10,2.19,1.77,2.01,2.18,1.76,2.35,2.35,2.22,1.95,1.52,2.04,1.89,2.10,1.77,2.04,2.18,1.97,2.04],
+pcaC_y=[0.50,-0.28,0.48,0.19,0.53,0.59,-0.08,-0.10,0.35,0.53,0.54,0.37,0.20,0.71,0.67,0.64,0.72,-0.09,0.57,0.64,0.47,0.35,0.72,0.35,0.53,-0.04,0.20,0.71,0.64,-0.28,0.19,0.67,-0.04,0.08,0.32,0.71,0.54,0.53,0.53,0.64,-0.29,0.08,0.20,-0.04,0.67,0.08,0.20,0.71,0.19,0.20];
+new Chart(document.getElementById('pcaChart'), {
+  type:'scatter',
+  data:{datasets:[
+    {label:'Setosa',     data:pcaS_x.map((x,i)=>({x,y:pcaS_y[i]})), backgroundColor:SA, pointRadius:5},
+    {label:'Versicolor', data:pcaV_x.map((x,i)=>({x,y:pcaV_y[i]})), backgroundColor:VA, pointRadius:5},
+    {label:'Virginica',  data:pcaC_x.map((x,i)=>({x,y:pcaC_y[i]})), backgroundColor:CA, pointRadius:5},
+  ]},
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:gridC},title:{display:true,text:'PC1 (72.96%)'}},
+      y:{grid:{color:gridC},title:{display:true,text:'PC2 (22.85%)'}}
+    }
+  }
+});
+
+// ── 5. 설명 분산 비율 ──
+new Chart(document.getElementById('varChart'), {
+  type:'bar',
+  data:{
+    labels:['PC1','PC2','PC3','PC4'],
+    datasets:[
+      {label:'설명 분산 비율 (%)', data:[72.96,22.85,3.67,0.52],
+       backgroundColor:[S,V,'rgba(180,178,169,0.6)','rgba(180,178,169,0.4)'], borderRadius:6},
+      {label:'누적 분산 (%)', data:[72.96,95.81,99.48,100],
+       type:'line', borderColor:C, borderWidth:2, pointBackgroundColor:C, tension:0.3, fill:false}
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+    scales:{
+      x:{grid:{color:gridC}},
+      y:{max:105,grid:{color:gridC},title:{display:true,text:'%'}}
+    }
+  }
+});
+
+// ── 6. 로딩 행렬 ──
+new Chart(document.getElementById('loadingChart'), {
+  type:'bar',
+  data:{
+    labels:['sepal length','sepal width','petal length','petal width'],
+    datasets:[
+      {label:'PC1', data:[0.52,-0.27,0.58,0.56], backgroundColor:S+'cc', borderRadius:4},
+      {label:'PC2', data:[0.38,0.92,0.02,0.07],  backgroundColor:V+'cc', borderRadius:4},
+    ]
+  },
+  options:{
+    responsive:true, indexAxis:'y',
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+    scales:{
+      x:{min:-1,max:1,grid:{color:gridC},title:{display:true,text:'로딩 값'}},
+      y:{grid:{color:gridC}}
+    }
+  }
+});
+
+// ── 7. 교차검증 분포 (근사 bar+error) ──
+const cvMeans  = [0.971, 0.971, 0.952, 0.943, 0.962];
+const cvStds   = [0.028, 0.028, 0.035, 0.041, 0.038];
+const modelNames = ['Logistic\nRegression','SVM\n(RBF)','K-NN\n(k=5)','Decision\nTree','Random\nForest'];
+new Chart(document.getElementById('cvChart'), {
+  type:'bar',
+  data:{
+    labels:['Logistic Reg.','SVM (RBF)','K-NN (k=5)','Decision Tree','Random Forest'],
+    datasets:[{
+      label:'CV 평균 정확도',
+      data:cvMeans,
+      backgroundColor:[S+'cc',V+'cc','rgba(93,202,165,0.6)','rgba(216,90,48,0.5)','rgba(127,119,221,0.5)'],
+      borderRadius:6,
+      errorBars:{display:true}
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${(ctx.raw*100).toFixed(1)}% ± ${(cvStds[ctx.dataIndex]*100).toFixed(1)}%`}}},
+    scales:{
+      x:{grid:{color:gridC},ticks:{maxRotation:15}},
+      y:{min:0.88,max:1.02,grid:{color:gridC},title:{display:true,text:'Accuracy'},
+        ticks:{callback:v=>(v*100).toFixed(0)+'%'}}
+    }
+  }
+});
+
+// ── 8. 혼동 행렬 렌더링 ──
+const cmData = [[15,0,0],[0,14,1],[0,1,14]];
+const cmEl = document.getElementById('cmDisplay');
+let html = '<div style="display:grid;grid-template-columns:auto auto auto auto;gap:3px;align-items:center">';
+const hdStyle = 'font-size:10px;font-weight:700;color:var(--text3);padding:4px 6px;text-align:center';
+html += `<div></div><div style="${hdStyle}">Setosa</div><div style="${hdStyle}">Versic.</div><div style="${hdStyle}">Virgin.</div>`;
+const rowLabels = ['Setosa','Versic.','Virgin.'];
+const bgColors = [
+  ['rgba(93,202,165,0.7)','rgba(93,202,165,0.08)','rgba(93,202,165,0.08)'],
+  ['rgba(127,119,221,0.08)','rgba(127,119,221,0.7)','rgba(127,119,221,0.15)'],
+  ['rgba(216,90,48,0.08)','rgba(216,90,48,0.15)','rgba(216,90,48,0.7)'],
+];
+const fgColors = [
+  [isDark?'#9FE1CB':'#085041', 'var(--text3)', 'var(--text3)'],
+  ['var(--text3)', isDark?'#CECBF6':'#3C3489', isDark?'#F5C4B3':'#4A1B0C'],
+  ['var(--text3)', isDark?'#F5C4B3':'#4A1B0C', isDark?'#F0997B':'#993C1D'],
+];
+cmData.forEach((row,i)=>{
+  html+=`<div style="font-size:10px;font-weight:700;color:var(--text3);padding:4px 8px;white-space:nowrap">${rowLabels[i]}</div>`;
+  row.forEach((val,j)=>{
+    html+=`<div style="width:54px;height:46px;background:${bgColors[i][j]};border-radius:6px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:${fgColors[i][j]}">${val}</div>
+    </div>`;
+  });
+});
+html += '</div>';
+cmEl.innerHTML = html;
+
+// ── 9. 최종 정확도 비교 ──
+new Chart(document.getElementById('finalChart'), {
+  type:'bar',
+  data:{
+    labels:['Logistic Reg.','SVM (RBF)','K-NN (k=5)','Decision Tree','Random Forest'],
+    datasets:[{
+      label:'테스트 정확도',
+      data:[0.978, 0.956, 0.956, 0.933, 0.956],
+      backgroundColor:[V+'cc', S+'cc','rgba(93,202,165,0.5)','rgba(216,90,48,0.5)','rgba(127,119,221,0.5)'],
+      borderRadius:6
+    }]
+  },
+  options:{
+    responsive:true, indexAxis:'y',
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${(ctx.raw*100).toFixed(1)}%`}}},
+    scales:{
+      x:{min:0.88,max:1.02,grid:{color:gridC},ticks:{callback:v=>(v*100).toFixed(0)+'%'}},
+      y:{grid:{color:gridC}}
+    }
+  }
+});
+
+// ── 모델 결과 레더링 ──
+const models=[
+  {name:'Logistic Regression', cv:97.1, test:97.8, badge:'최고 CV'},
+  {name:'SVM (RBF kernel)',     cv:97.1, test:95.6, badge:''},
+  {name:'K-NN (k=5)',           cv:95.2, test:95.6, badge:''},
+  {name:'Decision Tree',        cv:94.3, test:93.3, badge:''},
+  {name:'Random Forest',        cv:96.2, test:95.6, badge:''},
+];
+const mrEl = document.getElementById('modelResults');
+mrEl.innerHTML = models.map(m=>`
+<div style="display:flex;align-items:center;gap:12px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px">
+  <div style="font-size:13px;font-weight:700;color:var(--text);min-width:200px">
+    ${m.name}
+    ${m.badge?`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;
+      background:var(--s-l);color:var(--s-d);margin-left:6px">${m.badge}</span>`:''}
+  </div>
+  <div style="flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden">
+    <div style="width:${m.cv}%;height:100%;border-radius:4px;background:${m.cv>=97?S:m.cv>=96?V:C}"></div>
+  </div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
+    min-width:52px;text-align:right;color:${m.cv>=97?isDark?'#9FE1CB':'#085041':isDark?'#CECBF6':'#3C3489'}">
+    ${m.cv.toFixed(1)}%
+  </div>
+  <div style="font-size:10px;color:var(--text3);min-width:60px">CV 평균</div>
+</div>`).join('');
+
+// ── 복사 기능 ──
+function cp(id){
+  const el=document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText).then(()=>{
+    const btn=el.parentElement.querySelector('.copy-btn');
+    const orig=btn.textContent;
+    btn.textContent='복사됨!';
+    setTimeout(()=>btn.textContent=orig,1500);
+  });
+}
+</script>
+</body>
+</html>

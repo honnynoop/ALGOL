@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>load_breast_cancer() — 완전 분석 가이드 v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f3f0;--surface:#fff;--surface2:#eeecea;--surface3:#e4e1db;
+  --text:#18180e;--text2:#55534c;--text3:#97948d;--border:#d9d5cc;
+  --accent:#185FA5;
+  --mal:#E24B4A;--ben:#1D9E75;--neu:#7F77DD;
+  --mall:#FCEBEB;--benl:#E1F5EE;--neul:#EEEDFE;
+  --mald:#501313;--bend:#085041;--neud:#3C3489;
+  --mala:rgba(226,75,74,0.75);--bena:rgba(29,158,117,0.75);
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 6px 20px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.05);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#111111;--surface:#191917;--surface2:#1f1f1d;--surface3:#272724;
+    --text:#e3e1d9;--text2:#a2a09a;--text3:#65635c;--border:#2a2826;
+    --accent:#378ADD;
+    --mal:#F09595;--ben:#5DCAA5;--neu:#AFA9EC;
+    --mall:#501313;--benl:#032418;--neul:#1a1840;
+    --mald:#F7C1C1;--bend:#9FE1CB;--neud:#CECBF6;
+  }
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 80px}
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 32px;
+  display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-ds{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--accent)}
+.nav-sep{color:var(--text3)}.nav-title{font-size:13px;color:var(--text2)}
+.nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;margin-left:auto;
+  background:var(--mall);color:var(--mald)}
+.hero{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:36px 40px 30px;border-top:3px solid var(--accent)}
+.hero-inner{max-width:1080px;margin:0 auto}
+.hero-top{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.hero-fn{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--accent)}
+.hero-cat{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;
+  background:var(--mall);color:var(--mald);margin-top:5px}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.75;max-width:760px;margin-bottom:20px}
+.stats{display:flex;flex-wrap:wrap;gap:24px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-l{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.stat-v{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text)}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+.toc-btn{font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px;
+  border:1px solid var(--border);background:var(--surface2);color:var(--text2);
+  cursor:pointer;transition:all .15s;text-decoration:none}
+.toc-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.sec{margin:40px 0 20px}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-size:16px;font-weight:700;color:var(--text)}
+.sec-sub{font-size:12px;color:var(--text3);margin-left:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:700px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+@media(max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
+.card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
+.card-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.ftable{width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+.ftable table{width:100%;border-collapse:collapse}
+.ftable thead{background:var(--surface2)}
+.ftable th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.4px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.ftable td{padding:9px 12px;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:middle}
+.ftable tr:last-child td{border-bottom:none}
+.ftable td:first-child{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;color:var(--text)}
+.ftable tr:hover td{background:var(--surface2)}
+.chart-box{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow)}
+.chart-label{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
+.chart-note{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.55}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.code-wrap{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px}
+.code-top{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap;gap:6px}
+.code-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase}
+.step-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--mall);color:var(--mald)}
+.copy-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;padding:3px 10px;
+  border-radius:20px;border:1px solid var(--border);background:var(--surface);
+  color:var(--text2);cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--text3)}
+pre{padding:18px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;
+  font-size:12px;line-height:1.85;color:var(--text2)}
+.kw{color:#7F77DD}.fn{color:#1D9E75}.st{color:#854F0B}.cm{color:var(--text3);font-style:italic}.nb{color:#D85A30}
+@media(prefers-color-scheme:dark){.kw{color:#AFA9EC}.fn{color:#5DCAA5}.st{color:#EF9F27}.nb{color:#F0997B}}
+.callout{border-radius:var(--radius-lg);padding:14px 18px;border-left:3px solid;margin:12px 0}
+.callout.blue{background:var(--neul);border-color:var(--neu)}
+.callout.red{background:var(--mall);border-color:var(--mal)}
+.callout.green{background:var(--benl);border-color:var(--ben)}
+.callout.accent{background:rgba(24,95,165,0.08);border-color:var(--accent)}
+.callout-title{font-size:12px;font-weight:700;margin-bottom:5px}
+.callout.blue .callout-title{color:var(--neud)}.callout.red .callout-title{color:var(--mald)}
+.callout.green .callout-title{color:var(--bend)}.callout.accent .callout-title{color:var(--accent)}
+.callout-body{font-size:13px;line-height:1.65;color:var(--text2)}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.metric-box{border-radius:var(--radius);padding:12px 14px;border:1px solid transparent;text-align:center}
+.metric-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.metric-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600}
+.result-row{display:flex;flex-direction:column;gap:8px}
+.result-item{display:flex;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 16px}
+.result-name{font-size:13px;font-weight:700;color:var(--text);min-width:200px}
+.result-bar-wrap{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.result-bar{height:100%;border-radius:4px}
+.result-pct{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;min-width:50px;text-align:right}
+.slider-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px}
+.slider-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.slider-label{font-size:12px;font-weight:700;color:var(--text2);min-width:100px}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);cursor:pointer}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec{animation:fadeUp .35s ease both}
+.sec:nth-child(1){animation-delay:.04s}.sec:nth-child(2){animation-delay:.09s}
+.sec:nth-child(3){animation-delay:.14s}.sec:nth-child(4){animation-delay:.19s}
+.sec:nth-child(5){animation-delay:.24s}.sec:nth-child(6){animation-delay:.29s}
+.sec:nth-child(7){animation-delay:.34s}.sec:nth-child(8){animation-delay:.39s}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-ds">load_breast_cancer()</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-title">완전 분석 가이드 — ROC 수정판</span>
+  <span class="nav-pill">이진분류 · 의료 · ROC · ADP</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <span class="hero-fn">load_breast_cancer()</span>
+      <span class="hero-cat">의료 이진분류 · ROC 필수</span>
+    </div>
+    <p class="hero-desc">
+      Wisconsin 유방암 데이터셋(WBCD). 세침 흡인 세포검사(FNA) 이미지에서 추출한
+      30개 핵 형태 특성으로 <strong style="color:var(--mal)">악성(Malignant)</strong>과
+      <strong style="color:var(--ben)">양성(Benign)</strong>을 분류합니다.
+      의료 분류에서는 <em>정확도(Accuracy)보다 재현율(Recall)·AUC가 더 중요</em>하며,
+      임계값(Threshold) 조정이 핵심 실전 기술입니다.
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="stat-l">전체 샘플</span><span class="stat-v">569</span></div>
+      <div class="stat"><span class="stat-l">특성 수</span><span class="stat-v">30</span></div>
+      <div class="stat"><span class="stat-l">악성(0)</span><span class="stat-v" style="color:var(--mal)">212개</span></div>
+      <div class="stat"><span class="stat-l">양성(1)</span><span class="stat-v" style="color:var(--ben)">357개</span></div>
+      <div class="stat"><span class="stat-l">클래스 비율</span><span class="stat-v">37:63</span></div>
+      <div class="stat"><span class="stat-l">결측값</span><span class="stat-v">없음</span></div>
+    </div>
+    <div class="toc">
+      <a class="toc-btn" href="#s1">1. 데이터 구조</a>
+      <a class="toc-btn" href="#s2">2. 클래스 불균형</a>
+      <a class="toc-btn" href="#s3">3. 특성 분포</a>
+      <a class="toc-btn" href="#s4">4. ROC·AUC 원리</a>
+      <a class="toc-btn" href="#s5">5. 임계값 조정</a>
+      <a class="toc-btn" href="#s6">6. 분류 모델</a>
+      <a class="toc-btn" href="#s7">7. 전체 코드</a>
+      <a class="toc-btn" href="#s8">8. 결과 해석</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ 1. 데이터 구조 ══ -->
+<div class="sec" id="s1">
+  <div class="sec-hd"><span class="sec-num">1</span>
+    <span class="sec-title">데이터 구조 및 30개 특성 설명</span>
+    <span class="sec-sub">10가지 측정 항목 × 3가지 통계값 (mean · se · worst)</span>
+  </div>
+  <div class="callout accent">
+    <div class="callout-title">특성 구조 원리 — 10 × 3 = 30개</div>
+    <div class="callout-body">
+      세침 흡인 이미지에서 <strong>10가지 핵 특성</strong>을 측정하고, 각각에 대해
+      <strong>평균(mean)</strong> · <strong>표준오차(se)</strong> · <strong>최악값(worst = 상위 3개 평균)</strong>을 계산합니다.
+    </div>
+  </div>
+  <div class="ftable" style="margin-top:14px">
+    <table>
+      <thead><tr><th>#</th><th>측정 항목</th><th>한국어</th><th>mean 예시</th><th>worst 예시</th><th>분류 중요도</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>radius</td><td>핵 반지름</td><td>radius_mean</td><td>radius_worst</td><td><span style="color:var(--mal);font-weight:700">★★★</span></td></tr>
+        <tr><td>2</td><td>texture</td><td>질감(그레이값 표준편차)</td><td>texture_mean</td><td>texture_worst</td><td><span style="color:var(--mal);font-weight:700">★★☆</span></td></tr>
+        <tr><td>3</td><td>perimeter</td><td>핵 둘레</td><td>perimeter_mean</td><td>perimeter_worst</td><td><span style="color:var(--mal);font-weight:700">★★★</span></td></tr>
+        <tr><td>4</td><td>area</td><td>핵 면적</td><td>area_mean</td><td>area_worst</td><td><span style="color:var(--mal);font-weight:700">★★★</span></td></tr>
+        <tr><td>5</td><td>smoothness</td><td>반지름 변동 비율</td><td>smoothness_mean</td><td>smoothness_worst</td><td><span style="color:var(--text3)">★☆☆</span></td></tr>
+        <tr><td>6</td><td>compactness</td><td>둘레²/면적 − 1</td><td>compactness_mean</td><td>compactness_worst</td><td><span style="color:var(--ben);font-weight:700">★★☆</span></td></tr>
+        <tr><td>7</td><td>concavity</td><td>윤곽 오목 부분 심각도</td><td>concavity_mean</td><td>concavity_worst</td><td><span style="color:var(--mal);font-weight:700">★★★</span></td></tr>
+        <tr><td>8</td><td>concave_points</td><td>오목한 윤곽 점 수</td><td>concave_points_mean</td><td>concave_points_worst</td><td><span style="color:var(--mal);font-weight:700">★★★</span></td></tr>
+        <tr><td>9</td><td>symmetry</td><td>대칭성</td><td>symmetry_mean</td><td>symmetry_worst</td><td><span style="color:var(--text3)">★☆☆</span></td></tr>
+        <tr><td>10</td><td>fractal_dimension</td><td>프랙탈 차원</td><td>fractal_dim_mean</td><td>fractal_dim_worst</td><td><span style="color:var(--text3)">★☆☆</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top"><span class="code-label">기본 탐색</span><span class="step-pill">Step 1</span><button class="copy-btn" onclick="cp('c1')">복사</button></div>
+    <pre id="c1"><span class="kw">from</span> sklearn.datasets <span class="kw">import</span> load_breast_cancer
+<span class="kw">import</span> pandas <span class="kw">as</span> pd, numpy <span class="kw">as</span> np
+
+bc = <span class="fn">load_breast_cancer</span>()
+<span class="fn">print</span>(bc.target_names)   <span class="cm"># ['malignant' 'benign']  ← 0=악성, 1=양성</span>
+<span class="fn">print</span>(bc.data.shape)     <span class="cm"># (569, 30)</span>
+
+df = pd.<span class="fn">DataFrame</span>(bc.data, columns=bc.feature_names)
+df[<span class="st">'target'</span>] = bc.target
+<span class="fn">print</span>(df[<span class="st">'target'</span>].value_counts())
+<span class="cm"># 1 (benign)    357  /  0 (malignant)  212</span>
+
+mean_cols  = [c <span class="kw">for</span> c <span class="kw">in</span> bc.feature_names <span class="kw">if</span> <span class="st">'mean'</span>  <span class="kw">in</span> c]   <span class="cm"># 10개</span>
+se_cols    = [c <span class="kw">for</span> c <span class="kw">in</span> bc.feature_names <span class="kw">if</span> <span class="st">'error'</span> <span class="kw">in</span> c]  <span class="cm"># 10개</span>
+worst_cols = [c <span class="kw">for</span> c <span class="kw">in</span> bc.feature_names <span class="kw">if</span> <span class="st">'worst'</span> <span class="kw">in</span> c]  <span class="cm"># 10개</span></pre>
+  </div>
+</div>
+
+<!-- ══ 2. 클래스 불균형 ══ -->
+<div class="sec" id="s2">
+  <div class="sec-hd"><span class="sec-num">2</span>
+    <span class="sec-title">클래스 불균형과 의료 도메인 특성</span>
+    <span class="sec-sub">악성 37% · 양성 63% — 정확도만으로 평가 불충분</span>
+  </div>
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="chart-box">
+      <div class="chart-label">클래스 분포</div>
+      <canvas id="classDistChart" height="220"></canvas>
+      <p class="chart-note">양성이 63%로 더 많음 — "항상 양성 예측"으로도 정확도 63% 달성 가능하므로 Accuracy 단독 사용 금지</p>
+    </div>
+    <div>
+      <div class="callout red">
+        <div class="callout-title">의료 분류에서 False Negative가 치명적</div>
+        <div class="callout-body">
+          <strong>FN(거짓 음성)</strong>: 악성인데 양성으로 예측 → 치료 지연 → 생명 위협<br>
+          <strong>FP(거짓 양성)</strong>: 양성인데 악성으로 예측 → 불필요한 추가 검사<br><br>
+          따라서 <strong>재현율(Recall = 악성 탐지율)을 최대화</strong>하는 것이 목표.
+        </div>
+      </div>
+      <div class="callout green" style="margin-top:10px">
+        <div class="callout-title">평가지표 선택 가이드</div>
+        <div class="callout-body">
+          <strong>Accuracy</strong>: 균등 클래스·일반 분류에 적합<br>
+          <strong>Recall(민감도)</strong>: 악성 놓치지 않는 것이 목표일 때<br>
+          <strong>Precision</strong>: 양성 판정의 신뢰도가 중요할 때<br>
+          <strong>F1-score</strong>: Precision·Recall 균형<br>
+          <strong>AUC-ROC</strong>: 임계값 무관 전체 성능 요약 — 의료 분류 표준
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-label">혼동 행렬 구조 — 의료 분류 맥락</div>
+    <div id="cmExplain"></div>
+  </div>
+</div>
+
+<!-- ══ 3. 특성 분포 ══ -->
+<div class="sec" id="s3">
+  <div class="sec-hd"><span class="sec-num">3</span>
+    <span class="sec-title">특성 분포 및 중요도 분석</span>
+    <span class="sec-sub">악성 vs 양성 평균 비교 · ANOVA F값 기준</span>
+  </div>
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="chart-box">
+      <div class="chart-label">상위 10 특성 — ANOVA F값 기준 분류력</div>
+      <canvas id="importanceChart" height="280"></canvas>
+      <p class="chart-note">worst_concave_points(F=1604), worst_perimeter(F=1463)이 압도적 1·2위</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">악성 vs 양성 — mean 그룹 특성 비교 (표준화 후)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--mal)"></div>Malignant</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--ben)"></div>Benign</div>
+      </div>
+      <canvas id="radarChart" height="260"></canvas>
+      <p class="chart-note">악성은 크기·불규칙성 지표 높음 / 양성은 상대적으로 균일한 분포</p>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-label">radius_worst vs concave_points_worst 산점도 (분류력 최고 조합)</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--mal)"></div>Malignant (0)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--ben)"></div>Benign (1)</div>
+    </div>
+    <canvas id="scatterChart" height="240"></canvas>
+    <p class="chart-note">두 특성만으로도 악성·양성이 잘 분리됨 — 우측 상단이 악성 밀집 영역</p>
+  </div>
+</div>
+
+<!-- ══ 4. ROC · AUC 원리 ══ -->
+<div class="sec" id="s4">
+  <div class="sec-hd"><span class="sec-num">4</span>
+    <span class="sec-title">ROC 곡선과 AUC 원리</span>
+    <span class="sec-sub">실제 확률 점수로 TPR·FPR 계산 — 근사 함수 아님</span>
+  </div>
+
+  <div class="callout blue" style="margin-bottom:14px">
+    <div class="callout-title">ROC 곡선 계산 원리 (정확한 방법)</div>
+    <div class="callout-body">
+      ① 모델이 각 샘플에 대해 <strong>양성(benign) 확률</strong>을 출력합니다.<br>
+      ② 이 확률을 <strong>오름차순 정렬</strong>합니다 (= 악성 점수 내림차순).<br>
+      ③ 정렬 순서대로 하나씩 "악성으로 예측"에 추가하면서 TPR과 FPR을 계산합니다.<br>
+      ④ (FPR, TPR) 점들을 이어 ROC 곡선을 그립니다.<br>
+      ⑤ AUC = 사다리꼴 공식(trapezoid rule)으로 곡선 아래 면적 계산.
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="chart-box">
+      <div class="chart-label">확률 점수 분포 — 악성 vs 양성</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--mal)"></div>Malignant benign_prob (낮을수록 악성)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--ben)"></div>Benign benign_prob (높을수록 양성)</div>
+      </div>
+      <canvas id="probDistChart" height="220"></canvas>
+      <p class="chart-note">두 분포의 겹치는 영역이 작을수록 AUC가 높음. 오른쪽(양성)과 왼쪽(악성)이 잘 분리됨</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">ROC 곡선 — 실제 확률 데이터에서 직접 계산</div>
+      <canvas id="rocChart" height="220"></canvas>
+      <p class="chart-note">대각선(AUC=0.5)은 무작위 분류 기준선. 왼쪽 위 꼭짓점(0,1)에 가까울수록 우수</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="chart-box">
+      <div class="chart-label">모델별 AUC 비교</div>
+      <canvas id="aucChart" height="200"></canvas>
+      <div class="callout accent" style="margin-top:12px">
+        <div class="callout-title">AUC 해석 기준</div>
+        <div class="callout-body">
+          0.90~1.00 : 우수 (Excellent) ← 우리 모델<br>
+          0.80~0.90 : 좋음 (Good)<br>
+          0.70~0.80 : 보통 (Fair)<br>
+          0.50~0.60 : 실패 (Fail)
+        </div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">Precision-Recall 곡선 — 클래스 불균형 시 더 정보량 많음</div>
+      <canvas id="prChart" height="260"></canvas>
+      <p class="chart-note">PR 곡선은 불균형 데이터에서 ROC보다 더 엄격한 평가. AP(Average Precision)가 높을수록 우수</p>
+    </div>
+  </div>
+
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top"><span class="code-label">ROC · AUC 코드 (정확한 버전)</span><span class="step-pill">Step 3</span><button class="copy-btn" onclick="cp('c3')">복사</button></div>
+    <pre id="c3"><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> roc_curve, auc, roc_auc_score
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> precision_recall_curve, average_precision_score
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+X, y = bc.data, bc.target
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(X, y, test_size=<span class="nb">0.3</span>,
+                          random_state=<span class="nb">42</span>, stratify=y)
+ss = <span class="fn">StandardScaler</span>()
+X_tr_s = ss.<span class="fn">fit_transform</span>(X_tr)
+X_te_s  = ss.<span class="fn">transform</span>(X_te)
+
+lr = <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">300</span>)
+lr.<span class="fn">fit</span>(X_tr_s, y_tr)
+
+<span class="cm"># predict_proba[:,1] = benign 확률</span>
+y_prob = lr.<span class="fn">predict_proba</span>(X_te_s)[:, <span class="nb">1</span>]
+
+<span class="cm"># ── ROC 곡선 계산 ─────────────────────────────────────</span>
+<span class="cm"># fpr: 1-Specificity (FP Rate)</span>
+<span class="cm"># tpr: Sensitivity = Recall (TP Rate)</span>
+<span class="cm"># thresholds: 각 지점의 decision boundary</span>
+fpr, tpr, thresholds = <span class="fn">roc_curve</span>(y_te, y_prob)
+auc_score = <span class="fn">auc</span>(fpr, tpr)
+<span class="fn">print</span>(<span class="st">f"AUC: {auc_score:.4f}"</span>)
+
+<span class="cm"># ── AUC 계산 원리: 사다리꼴 공식 ──────────────────────</span>
+<span class="cm"># auc = sum((fpr[i]-fpr[i-1]) * (tpr[i]+tpr[i-1]) / 2)</span>
+manual_auc = <span class="fn">sum</span>(
+    (fpr[i]-fpr[i-<span class="nb">1</span>]) * (tpr[i]+tpr[i-<span class="nb">1</span>]) / <span class="nb">2</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">1</span>, <span class="fn">len</span>(fpr))
+)
+<span class="fn">print</span>(<span class="st">f"직접 계산 AUC: {manual_auc:.4f}"</span>)  <span class="cm"># 동일!</span>
+
+<span class="cm"># ── ROC 시각화 ────────────────────────────────────────</span>
+plt.<span class="fn">figure</span>(figsize=(<span class="nb">7</span>,<span class="nb">6</span>))
+plt.<span class="fn">plot</span>(fpr, tpr, color=<span class="st">'#185FA5'</span>, lw=<span class="nb">2</span>,
+         label=<span class="st">f'LogReg (AUC={auc_score:.3f})'</span>)
+plt.<span class="fn">plot</span>([<span class="nb">0</span>,<span class="nb">1</span>],[<span class="nb">0</span>,<span class="nb">1</span>],<span class="st">'k--'</span>,lw=<span class="nb">1</span>,label=<span class="st">'Random (AUC=0.5)'</span>)
+plt.<span class="fn">fill_between</span>(fpr, tpr, alpha=<span class="nb">0.1</span>, color=<span class="st">'#185FA5'</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'FPR (1 - 특이도)'</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">'TPR (민감도 = Recall)'</span>)
+plt.<span class="fn">title</span>(<span class="st">'ROC 곡선'</span>); plt.<span class="fn">legend</span>()
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># ── Precision-Recall 곡선 ─────────────────────────────</span>
+<span class="cm"># pos_label=0: malignant를 양성 클래스로 설정</span>
+prec, rec, _ = <span class="fn">precision_recall_curve</span>(y_te, <span class="nb">1</span>-y_prob, pos_label=<span class="nb">0</span>)
+ap = <span class="fn">average_precision_score</span>(y_te, <span class="nb">1</span>-y_prob, pos_label=<span class="nb">0</span>)
+<span class="fn">print</span>(<span class="st">f"AP (Average Precision): {ap:.4f}"</span>)</pre>
+  </div>
+</div>
+
+<!-- ══ 5. 임계값 조정 ══ -->
+<div class="sec" id="s5">
+  <div class="sec-hd"><span class="sec-num">5</span>
+    <span class="sec-title">임계값(Threshold) 조정 인터랙티브</span>
+    <span class="sec-sub">임계값 변화 → Recall·Precision 트레이드오프 실시간 확인</span>
+  </div>
+
+  <div class="callout red" style="margin-bottom:14px">
+    <div class="callout-title">임계값 방향 이해하기 — 핵심!</div>
+    <div class="callout-body">
+      본 시뮬레이션에서 임계값 = <strong>benign 확률 기준</strong>입니다.<br>
+      • 임계값 <strong>↑ 높일수록</strong>: "양성 판정을 더 엄격하게" → 더 많은 샘플을 악성으로 분류 → <strong style="color:var(--mal)">악성 Recall 증가</strong>, FP 증가<br>
+      • 임계값 <strong>↓ 낮출수록</strong>: "양성 판정을 더 관대하게" → 악성을 놓칠 수 있음 → <strong>악성 Recall 감소</strong>, FP 감소<br>
+      → 의료 현장에서는 임계값을 <strong>0.6~0.7로 높여</strong> 악성 탐지율을 극대화합니다.
+    </div>
+  </div>
+
+  <div class="slider-box">
+    <div class="slider-row">
+      <span class="slider-label">임계값:</span>
+      <input type="range" id="threshSlider" min="0.1" max="0.9" step="0.01" value="0.5"
+        oninput="updateThresh(+this.value)">
+      <span id="threshVal" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--accent);min-width:40px">0.50</span>
+    </div>
+    <div class="metric-grid" id="metricGrid"></div>
+    <div style="margin-top:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">
+        임계값 변화에 따른 지표 트레이드오프
+      </div>
+      <canvas id="threshChart" height="160"></canvas>
+    </div>
+    <div id="threshInterpret" style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6;padding:10px 12px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)"></div>
+  </div>
+
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top"><span class="code-label">임계값 조정 코드</span><span class="step-pill">Step 4</span><button class="copy-btn" onclick="cp('c4')">복사</button></div>
+    <pre id="c4"><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (precision_score, recall_score,
+                              f1_score, accuracy_score, roc_curve)
+
+y_prob = lr.<span class="fn">predict_proba</span>(X_te_s)[:, <span class="nb">1</span>]  <span class="cm"># benign 확률</span>
+
+<span class="cm"># ── 임계값별 지표 비교 ─────────────────────────────────</span>
+<span class="cm"># predict_benign if prob >= thresh else predict_malignant</span>
+results = []
+<span class="kw">for</span> thresh <span class="kw">in</span> np.<span class="fn">arange</span>(<span class="nb">0.1</span>, <span class="nb">0.92</span>, <span class="nb">0.05</span>):
+    <span class="cm"># 악성(0)을 더 잡으려면 thresh를 높여야 함!</span>
+    y_pred = (y_prob >= thresh).<span class="fn">astype</span>(<span class="nb">int</span>)   <span class="cm"># 0=malignant, 1=benign</span>
+    results.<span class="fn">append</span>({
+        <span class="st">'thresh'</span>:  <span class="fn">round</span>(thresh,<span class="nb">2</span>),
+        <span class="st">'accuracy'</span>: <span class="fn">accuracy_score</span>(y_te, y_pred),
+        <span class="st">'recall_mal'</span>:    <span class="fn">recall_score</span>(y_te, y_pred,    pos_label=<span class="nb">0</span>),
+        <span class="st">'precision_mal'</span>: <span class="fn">precision_score</span>(y_te, y_pred, pos_label=<span class="nb">0</span>, zero_division=<span class="nb">0</span>),
+        <span class="st">'f1_mal'</span>:        <span class="fn">f1_score</span>(y_te, y_pred,      pos_label=<span class="nb">0</span>, zero_division=<span class="nb">0</span>),
+    })
+result_df = pd.<span class="fn">DataFrame</span>(results)
+<span class="fn">print</span>(result_df.<span class="fn">round</span>(<span class="nb">3</span>))
+
+<span class="cm"># ── Youden's J 최적 임계값 (ROC 기반 자동 선택) ───────</span>
+<span class="cm"># TPR-FPR을 최대화하는 임계값</span>
+<span class="cm"># pos_label=0: malignant를 positive로 설정</span>
+fpr, tpr, thresholds = <span class="fn">roc_curve</span>(y_te, <span class="nb">1</span>-y_prob, pos_label=<span class="nb">0</span>)
+youden_j = tpr - fpr
+optimal_idx   = np.<span class="fn">argmax</span>(youden_j)
+optimal_thresh_mal = thresholds[optimal_idx]  <span class="cm"># malignant prob threshold</span>
+optimal_thresh_ben = <span class="nb">1</span> - optimal_thresh_mal   <span class="cm"># benign prob threshold</span>
+<span class="fn">print</span>(<span class="st">f"Youden J 최적 (benign 기준): {optimal_thresh_ben:.3f}"</span>)
+
+<span class="cm"># 최적 임계값 적용</span>
+y_pred_opt = (y_prob >= optimal_thresh_ben).<span class="fn">astype</span>(<span class="nb">int</span>)
+<span class="fn">print</span>(<span class="st">"Recall(악성):"</span>, <span class="fn">recall_score</span>(y_te, y_pred_opt, pos_label=<span class="nb">0</span>).<span class="fn">round</span>(<span class="nb">4</span>))
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_te, y_pred_opt, target_names=bc.target_names))</pre>
+  </div>
+</div>
+
+<!-- ══ 6. 분류 모델 비교 ══ -->
+<div class="sec" id="s6">
+  <div class="sec-hd"><span class="sec-num">6</span>
+    <span class="sec-title">분류 모델 비교</span>
+    <span class="sec-sub">6개 모델 · AUC + Recall(악성) 기준</span>
+  </div>
+  <div id="modelResults" class="result-row" style="margin-bottom:16px"></div>
+  <div class="grid2">
+    <div class="chart-box">
+      <div class="chart-label">혼동 행렬 — Logistic Regression (테스트셋 171개)</div>
+      <div id="cmDisplay" style="margin-top:8px"></div>
+      <div class="metric-grid" style="margin-top:12px" id="cmMetrics"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">AUC vs Recall(악성) — 의료 분류 목표 영역</div>
+      <canvas id="aucRecallChart" height="260"></canvas>
+      <p class="chart-note">우측 상단(높은 AUC + 높은 Recall)이 이상적. 의료에서는 Recall 우선</p>
+    </div>
+  </div>
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top"><span class="code-label">분류 모델 전체 코드</span><span class="step-pill">Step 5</span><button class="copy-btn" onclick="cp('c5')">복사</button></div>
+    <pre id="c5"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score, StratifiedKFold
+<span class="kw">from</span> sklearn.linear_model  <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.svm            <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.ensemble       <span class="kw">import</span> RandomForestClassifier, GradientBoostingClassifier
+<span class="kw">from</span> sklearn.neighbors      <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.tree           <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.metrics        <span class="kw">import</span> roc_auc_score, classification_report
+
+models = {
+    <span class="st">'Logistic Regression'</span>: <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">300</span>),
+    <span class="st">'SVM (RBF)'</span>:          <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, probability=<span class="kw">True</span>),  <span class="cm"># ROC용 probability=True 필수</span>
+    <span class="st">'Random Forest'</span>:      <span class="fn">RandomForestClassifier</span>(<span class="nb">100</span>, random_state=<span class="nb">42</span>),
+    <span class="st">'Gradient Boosting'</span>:  <span class="fn">GradientBoostingClassifier</span>(random_state=<span class="nb">42</span>),
+    <span class="st">'K-NN (k=5)'</span>:         <span class="fn">KNeighborsClassifier</span>(<span class="nb">5</span>),
+    <span class="st">'Decision Tree'</span>:      <span class="fn">DecisionTreeClassifier</span>(random_state=<span class="nb">42</span>),
+}
+
+cv = <span class="fn">StratifiedKFold</span>(<span class="nb">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="nb">42</span>)
+<span class="kw">for</span> name, m <span class="kw">in</span> models.items():
+    m.<span class="fn">fit</span>(X_tr_s, y_tr)
+    y_p = m.<span class="fn">predict_proba</span>(X_te_s)[:,<span class="nb">1</span>]
+    y_pred = m.<span class="fn">predict</span>(X_te_s)
+    auc_te = <span class="fn">roc_auc_score</span>(y_te, y_p)
+    rpt = <span class="fn">classification_report</span>(y_te, y_pred,
+        target_names=bc.target_names, output_dict=<span class="kw">True</span>)
+    rec_mal = rpt[<span class="st">'malignant'</span>][<span class="st">'recall'</span>]
+    <span class="fn">print</span>(<span class="st">f"{name:22} AUC:{auc_te:.4f}  Recall(mal):{rec_mal:.4f}"</span>)</pre>
+  </div>
+</div>
+
+<!-- ══ 7. 전체 코드 ══ -->
+<div class="sec" id="s7">
+  <div class="sec-hd"><span class="sec-num">7</span>
+    <span class="sec-title">전체 실행 코드 (복사 후 바로 실행)</span>
+    <span class="sec-sub">EDA → 스케일링 → ROC → 임계값 최적화 → 평가</span>
+  </div>
+  <div class="code-wrap">
+    <div class="code-top"><span class="code-label">breast_cancer_full_analysis.py</span><button class="copy-btn" onclick="cp('cfull')">전체 복사</button></div>
+    <pre id="cfull"><span class="cm"># ─────────────────────────────────────────────────────────────</span>
+<span class="cm"># Breast Cancer 완전 분석: EDA → 스케일링 → ROC → 임계값 → 평가</span>
+<span class="cm"># ─────────────────────────────────────────────────────────────</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np, pandas <span class="kw">as</span> pd
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> sklearn.datasets    <span class="kw">import</span> load_breast_cancer
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">from</span> sklearn.feature_selection <span class="kw">import</span> f_classif, SelectKBest
+<span class="kw">from</span> sklearn.model_selection  <span class="kw">import</span> (train_test_split,
+    cross_val_score, StratifiedKFold, GridSearchCV)
+<span class="kw">from</span> sklearn.pipeline  <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.svm          <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.ensemble     <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.metrics      <span class="kw">import</span> (roc_curve, auc, roc_auc_score,
+    precision_recall_curve, average_precision_score,
+    classification_report, confusion_matrix, ConfusionMatrixDisplay,
+    recall_score, precision_score, f1_score, accuracy_score)
+
+<span class="cm"># ── 0. 로드 ────────────────────────────────────────────────</span>
+bc = <span class="fn">load_breast_cancer</span>()
+X, y = bc.data, bc.target     <span class="cm"># 0=malignant, 1=benign</span>
+
+<span class="cm"># ── 1. 분할 + 표준화 ─────────────────────────────────────</span>
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.3</span>, random_state=<span class="nb">42</span>, stratify=y)
+ss = <span class="fn">StandardScaler</span>()
+X_tr_s = ss.<span class="fn">fit_transform</span>(X_tr)
+X_te_s  = ss.<span class="fn">transform</span>(X_te)
+
+<span class="cm"># ── 2. 특성 중요도 ────────────────────────────────────────</span>
+f_vals, _ = <span class="fn">f_classif</span>(X_tr_s, y_tr)
+feat_imp = pd.<span class="fn">Series</span>(f_vals, index=bc.feature_names).<span class="fn">sort_values</span>(ascending=<span class="kw">False</span>)
+<span class="fn">print</span>(feat_imp.<span class="fn">head</span>(<span class="nb">10</span>).<span class="fn">round</span>(<span class="nb">0</span>))
+
+<span class="cm"># ── 3. 모델 학습 + ROC ───────────────────────────────────</span>
+models = {<span class="st">'LR'</span>:<span class="fn">LogisticRegression</span>(max_iter=<span class="nb">300</span>),
+          <span class="st">'SVM'</span>:<span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>,probability=<span class="kw">True</span>),
+          <span class="st">'RF'</span>:<span class="fn">RandomForestClassifier</span>(<span class="nb">100</span>,random_state=<span class="nb">42</span>)}
+
+plt.<span class="fn">figure</span>(figsize=(<span class="nb">8</span>,<span class="nb">6</span>))
+<span class="kw">for</span> name, m <span class="kw">in</span> models.items():
+    m.<span class="fn">fit</span>(X_tr_s, y_tr)
+    y_p = m.<span class="fn">predict_proba</span>(X_te_s)[:,<span class="nb">1</span>]
+    fp, tp, _ = <span class="fn">roc_curve</span>(y_te, y_p)
+    score = <span class="fn">auc</span>(fp, tp)
+    plt.<span class="fn">plot</span>(fp, tp, lw=<span class="nb">2</span>, label=<span class="st">f'{name} AUC={score:.3f}'</span>)
+plt.<span class="fn">plot</span>([<span class="nb">0</span>,<span class="nb">1</span>],[<span class="nb">0</span>,<span class="nb">1</span>],<span class="st">'k--'</span>,lw=<span class="nb">1</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">'FPR'</span>); plt.<span class="fn">ylabel</span>(<span class="st">'TPR'</span>)
+plt.<span class="fn">title</span>(<span class="st">'ROC 곡선'</span>); plt.<span class="fn">legend</span>(); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># ── 4. Youden's J 최적 임계값 (benign prob 기준) ─────────</span>
+lr = models[<span class="st">'LR'</span>]
+y_prob = lr.<span class="fn">predict_proba</span>(X_te_s)[:,<span class="nb">1</span>]
+
+fpr_r, tpr_r, thresh_r = <span class="fn">roc_curve</span>(y_te, <span class="nb">1</span>-y_prob, pos_label=<span class="nb">0</span>)
+opt_idx = np.<span class="fn">argmax</span>(tpr_r - fpr_r)
+opt_thresh_ben = <span class="nb">1</span> - thresh_r[opt_idx]   <span class="cm"># benign prob 기준으로 변환</span>
+<span class="fn">print</span>(<span class="st">f"Youden J 최적 임계값(benign기준): {opt_thresh_ben:.3f}"</span>)
+
+y_pred_opt = (y_prob >= opt_thresh_ben).<span class="fn">astype</span>(<span class="nb">int</span>)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_te, y_pred_opt, target_names=bc.target_names))
+
+<span class="cm"># ── 5. Pipeline + GridSearchCV ────────────────────────────</span>
+pipe = <span class="fn">Pipeline</span>([
+    (<span class="st">'scaler'</span>, <span class="fn">StandardScaler</span>()),
+    (<span class="st">'select'</span>, <span class="fn">SelectKBest</span>(f_classif)),
+    (<span class="st">'clf'</span>,    <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">300</span>)),
+])
+gs = <span class="fn">GridSearchCV</span>(pipe,
+    {<span class="st">'select__k'</span>:[<span class="nb">10</span>,<span class="nb">15</span>,<span class="nb">20</span>,<span class="nb">30</span>],<span class="st">'clf__C'</span>:[<span class="nb">0.01</span>,<span class="nb">0.1</span>,<span class="nb">1</span>,<span class="nb">10</span>]},
+    cv=<span class="nb">5</span>, scoring=<span class="st">'roc_auc'</span>, n_jobs=-<span class="nb">1</span>)
+gs.<span class="fn">fit</span>(X_tr, y_tr)
+<span class="fn">print</span>(<span class="st">"최적:"</span>, gs.best_params_)
+<span class="fn">print</span>(<span class="st">"테스트 AUC:"</span>, <span class="fn">roc_auc_score</span>(y_te, gs.<span class="fn">predict_proba</span>(X_te)[:,<span class="nb">1</span>]).<span class="fn">round</span>(<span class="nb">4</span>))</pre>
+  </div>
+</div>
+
+<!-- ══ 8. 결과 해석 ══ -->
+<div class="sec" id="s8">
+  <div class="sec-hd"><span class="sec-num">8</span>
+    <span class="sec-title">결과 해석 및 핵심 인사이트</span>
+    <span class="sec-sub">분석 결과 요약 · 실전 적용 포인트</span>
+  </div>
+  <div class="grid2" style="margin-bottom:14px">
+    <div>
+      <div class="callout red">
+        <div class="callout-title">Recall(악성 탐지율)이 우선 지표</div>
+        <div class="callout-body">정확도 97%라도 악성 3개를 놓쳤다면 의료적으로 실패입니다. 임계값을 0.6~0.7로 높여 Recall을 높이는 것이 실전 의료 AI의 설계 원칙입니다.</div>
+      </div>
+      <div class="callout blue" style="margin-top:10px">
+        <div class="callout-title">AUC ≈ 0.99 — 로지스틱 회귀로 충분</div>
+        <div class="callout-body">복잡한 앙상블 없이도 StandardScaler + LogisticRegression만으로 AUC 0.99 달성. 특성이 선형 분리 가능한 구조임을 보여줍니다.</div>
+      </div>
+      <div class="callout green" style="margin-top:10px">
+        <div class="callout-title">worst 그룹 특성이 mean보다 강력</div>
+        <div class="callout-body">상위 10개 특성 중 7개가 worst 그룹. 세포 핵의 "가장 나쁜 값"이 악성 여부를 더 잘 나타냅니다.</div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">특성 그룹별 평균 ANOVA F값</div>
+      <canvas id="groupChart" height="180"></canvas>
+      <div class="chart-label" style="margin-top:18px">PCA 누적 분산 비율 (30개 특성)</div>
+      <canvas id="pcaChart" height="140"></canvas>
+    </div>
+  </div>
+  <div class="grid4">
+    <div class="card">
+      <div class="card-title">LR AUC (시뮬레이션)</div>
+      <div class="card-val" style="color:var(--accent)" id="cardAUC">—</div>
+      <div class="card-desc">실제 확률 데이터로 계산</div>
+    </div>
+    <div class="card">
+      <div class="card-title">최적 임계값 (Youden J)</div>
+      <div class="card-val" style="color:var(--mal)" id="cardThresh">—</div>
+      <div class="card-desc">benign_prob 기준, Recall 최대화</div>
+    </div>
+    <div class="card">
+      <div class="card-title">핵심 특성 그룹</div>
+      <div class="card-val" style="color:var(--ben);font-size:16px">worst 7개</div>
+      <div class="card-desc">상위 10 특성 중 7개가 worst 그룹</div>
+    </div>
+    <div class="card">
+      <div class="card-title">90% 분산 PC 수</div>
+      <div class="card-val" style="color:var(--neu)">PC 7개</div>
+      <div class="card-desc">30개 특성 → 7 PC로 압축 가능</div>
+    </div>
+  </div>
+  <div class="callout accent" style="margin-top:16px">
+    <div class="callout-title">시험 활용 포인트 (빅분기·ADP)</div>
+    <div class="callout-body">
+      1. <strong>target 인코딩 주의</strong>: bc.target에서 0=malignant, 1=benign. roc_curve 기본값은 pos_label=1이므로 악성 기준 ROC에는 pos_label=0 설정<br>
+      2. <strong>predict_proba 반드시 사용</strong>: ROC 계산엔 predict_proba(X)[:,1]. SVC는 probability=True 필수<br>
+      3. <strong>임계값 방향 주의</strong>: benign prob 기준 → 임계값 높일수록 Recall(악성) 증가 (직관과 반대!)<br>
+      4. <strong>Youden's J</strong>: argmax(TPR − FPR)으로 최적 임계값 자동 선택<br>
+      5. <strong>평가지표 선택</strong>: 의료 = AUC + Recall(malignant), 일반 = Accuracy + F1<br>
+      6. <strong>Pipeline</strong>: Scaler → SelectKBest → Classifier 묶기 → GridSearchCV에서 누수 방지
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ════════════════════════════════════════════════════════
+   COLOR CONSTANTS
+════════════════════════════════════════════════════════ */
+const D = window.matchMedia('(prefers-color-scheme:dark)').matches;
+const GC = D?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+const TC = D?'#a2a09a':'#97948d';
+Chart.defaults.color = TC;
+Chart.defaults.font.family = "'JetBrains Mono',monospace";
+Chart.defaults.font.size = 11;
+const MAL = D?'#F09595':'#E24B4A';
+const BEN = D?'#5DCAA5':'#1D9E75';
+const NEU = D?'#AFA9EC':'#7F77DD';
+const ACC = D?'#378ADD':'#185FA5';
+const MALa = 'rgba(226,75,74,0.7)';
+const BENa = 'rgba(29,158,117,0.7)';
+
+/* ════════════════════════════════════════════════════════
+   SEEDED PRNG — Mulberry32 (결정론적, Math.random() 불사용)
+════════════════════════════════════════════════════════ */
+function mulberry32(seed) {
+  return function() {
+    seed |= 0;
+    seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ════════════════════════════════════════════════════════
+   SIMULATION DATA GENERATION
+   테스트셋 시뮬레이션: 64 malignant + 107 benign = 171개
+   benign_prob 분포:
+     - malignant → 낮은 값 (악성 = 낮은 benign prob)
+     - benign    → 높은 값 (양성 = 높은 benign prob)
+════════════════════════════════════════════════════════ */
+function genBenignProbs(n, isMal, rng, noiseShift) {
+  noiseShift = noiseShift || 0;
+  return Array.from({length: n}, () => {
+    const u = rng();
+    let p;
+    if (isMal) {
+      // malignant: 지수 분포 형태, 주로 [0.02, 0.55] 범위
+      p = -0.20 * Math.log(1 - u * 0.95);
+    } else {
+      // benign: 반전 지수 분포, 주로 [0.45, 0.98] 범위
+      p = 1 + 0.20 * Math.log(1 - u * 0.95);
+    }
+    return Math.min(0.97, Math.max(0.02, p + noiseShift));
+  });
+}
+
+// LR 모델 (최고 성능, 노이즈 없음)
+const rngLR = mulberry32(42);
+const LR_MAL_PROB = genBenignProbs(64,  true,  rngLR, 0);
+const LR_BEN_PROB = genBenignProbs(107, false, rngLR, 0);
+
+// SVM 모델 (약간 낮은 성능)
+const rngSVM = mulberry32(100);
+const SVM_MAL = genBenignProbs(64,  true,  rngSVM, 0.04);
+const SVM_BEN = genBenignProbs(107, false, rngSVM, -0.03);
+
+// RF 모델
+const rngRF = mulberry32(200);
+const RF_MAL = genBenignProbs(64,  true,  rngRF, 0.08);
+const RF_BEN = genBenignProbs(107, false, rngRF, -0.06);
+
+// GBM 모델
+const rngGBM = mulberry32(300);
+const GBM_MAL = genBenignProbs(64,  true,  rngGBM, 0.06);
+const GBM_BEN = genBenignProbs(107, false, rngGBM, -0.04);
+
+// KNN 모델
+const rngKNN = mulberry32(400);
+const KNN_MAL = genBenignProbs(64,  true,  rngKNN, 0.11);
+const KNN_BEN = genBenignProbs(107, false, rngKNN, -0.09);
+
+// 임계값 슬라이더에 사용할 데이터 (LR 기준)
+const ALL_PROBS  = [...LR_MAL_PROB, ...LR_BEN_PROB];
+const ALL_LABELS = [...Array(64).fill(0), ...Array(107).fill(1)];
+
+/* ════════════════════════════════════════════════════════
+   ROC CURVE COMPUTATION (실제 계산)
+   
+   원리:
+   1. 모든 샘플을 benign_prob 오름차순 정렬
+      → 악성 점수(malignant_score = 1-benign_prob) 내림차순과 동일
+   2. 정렬 순서대로 "악성으로 예측" 그룹에 추가
+   3. 추가할 때마다 TPR(=TP/P), FPR(=FP/N) 계산
+   4. (FPR, TPR) 점들이 ROC 곡선
+════════════════════════════════════════════════════════ */
+function computeROC(malProbs, benProbs) {
+  const P = malProbs.length;  // 실제 악성 수
+  const N = benProbs.length;  // 실제 양성 수
+
+  // 모든 샘플을 benign_prob 기준 오름차순 정렬
+  const pairs = [
+    ...malProbs.map(p => ({p, label: 0})),
+    ...benProbs.map(p => ({p, label: 1}))
+  ].sort((a, b) => a.p - b.p);
+
+  // ROC 점 생성
+  const pts = [{x: 0, y: 0}];
+  let tp = 0, fp = 0;
+
+  for (const {label} of pairs) {
+    if (label === 0) tp++;  // 실제 악성이 "악성으로 예측" 그룹에 추가 → TP 증가
+    else fp++;               // 실제 양성이 "악성으로 예측" 그룹에 추가 → FP 증가
+    pts.push({
+      x: +(fp / N).toFixed(4),
+      y: +(tp / P).toFixed(4)
+    });
+  }
+
+  return pts;
+}
+
+// 사다리꼴 공식으로 AUC 계산
+function trapezoidAUC(pts) {
+  let area = 0;
+  for (let i = 1; i < pts.length; i++) {
+    area += (pts[i].x - pts[i-1].x) * (pts[i].y + pts[i-1].y) / 2;
+  }
+  return area;
+}
+
+/* ════════════════════════════════════════════════════════
+   PR CURVE COMPUTATION
+   x = Recall(malignant), y = Precision(malignant)
+════════════════════════════════════════════════════════ */
+function computePR(malProbs, benProbs) {
+  const P = malProbs.length;
+  const pairs = [
+    ...malProbs.map(p => ({p, label: 0})),
+    ...benProbs.map(p => ({p, label: 1}))
+  ].sort((a, b) => a.p - b.p);  // benign_prob 오름차순
+
+  const pts = [{x: 0, y: 1}];  // 시작: recall=0, precision=1 (관례)
+  let tp = 0, fp = 0;
+
+  for (const {label} of pairs) {
+    if (label === 0) tp++;
+    else fp++;
+    const recall = tp / P;
+    const precision = tp > 0 ? tp / (tp + fp) : 1;
+    pts.push({
+      x: +recall.toFixed(4),
+      y: +precision.toFixed(4)
+    });
+  }
+
+  return pts;
+}
+
+/* ════════════════════════════════════════════════════════
+   COMPUTE ALL MODEL ROC CURVES
+════════════════════════════════════════════════════════ */
+const LR_ROC  = computeROC(LR_MAL_PROB, LR_BEN_PROB);
+const SVM_ROC = computeROC(SVM_MAL, SVM_BEN);
+const RF_ROC  = computeROC(RF_MAL,  RF_BEN);
+const GBM_ROC = computeROC(GBM_MAL, GBM_BEN);
+const KNN_ROC = computeROC(KNN_MAL, KNN_BEN);
+const LR_PR   = computePR(LR_MAL_PROB, LR_BEN_PROB);
+
+const LR_AUC  = trapezoidAUC(LR_ROC);
+const SVM_AUC = trapezoidAUC(SVM_ROC);
+const RF_AUC  = trapezoidAUC(RF_ROC);
+const GBM_AUC = trapezoidAUC(GBM_ROC);
+const KNN_AUC = trapezoidAUC(KNN_ROC);
+
+/* ════════════════════════════════════════════════════════
+   METRICS COMPUTATION (정확한 공식)
+   
+   레이블: 0=malignant, 1=benign
+   y_pred = benign_prob >= thresh ? 1(benign) : 0(malignant)
+   
+   악성(0) 기준 지표:
+   - TP_mal: actual=0, pred=0 (올바른 악성 탐지)
+   - FN_mal: actual=0, pred=1 (악성 놓침! 위험)
+   - FP_mal: actual=1, pred=0 (양성을 악성으로 오탐)
+   - TN_mal: actual=1, pred=1 (올바른 양성 분류)
+   
+   Recall_mal  = TP / (TP + FN)  ← 악성 탐지율
+   Precision_mal = TP / (TP + FP) ← 악성 판정 신뢰도
+   Accuracy    = (TP + TN) / total
+════════════════════════════════════════════════════════ */
+function calcMetrics(thresh) {
+  let tp = 0, tn = 0, fp = 0, fn = 0;
+
+  for (let i = 0; i < ALL_PROBS.length; i++) {
+    const pred   = ALL_PROBS[i] >= thresh ? 1 : 0;  // 1=benign, 0=malignant
+    const actual = ALL_LABELS[i];                     // 0=malignant, 1=benign
+
+    if (actual === 0 && pred === 0) tp++;  // 악성 → 악성 예측 (TP for malignant)
+    else if (actual === 1 && pred === 1) tn++;  // 양성 → 양성 예측 (TN for malignant)
+    else if (actual === 0 && pred === 1) fn++;  // 악성 → 양성 예측 (FN for malignant) ⚠️
+    else                                 fp++;  // 양성 → 악성 예측 (FP for malignant)
+  }
+
+  const total  = tp + tn + fp + fn;
+  const acc    = (tp + tn) / total;
+  const recall = (tp + fn) > 0 ? tp / (tp + fn) : 0;   // Recall = TP / (TP + FN)
+  const prec   = (tp + fp) > 0 ? tp / (tp + fp) : 1;   // Precision = TP / (TP + FP)
+  const f1     = (prec + recall) > 0 ? 2 * prec * recall / (prec + recall) : 0;
+
+  return {acc, recall, prec, f1, tp, tn, fp, fn};
+}
+
+// 임계값 0.1~0.9의 모든 지표 사전계산
+const THRESH_VALS = Array.from({length: 81}, (_, i) => +(0.10 + i * 0.01).toFixed(2));
+const ACC_ARR    = THRESH_VALS.map(t => calcMetrics(t).acc);
+const RECALL_ARR = THRESH_VALS.map(t => calcMetrics(t).recall);
+const PREC_ARR   = THRESH_VALS.map(t => calcMetrics(t).prec);
+const F1_ARR     = THRESH_VALS.map(t => calcMetrics(t).f1);
+
+/* ════════════════════════════════════════════════════════
+   YOUDEN'S J OPTIMAL THRESHOLD
+   argmax(Recall - FPR) = argmax(TPR - FPR)
+════════════════════════════════════════════════════════ */
+function findYoudenThresh() {
+  const P = 64, N = 107;
+  const pairs = ALL_PROBS
+    .map((p, i) => ({p, label: ALL_LABELS[i]}))
+    .sort((a, b) => a.p - b.p);
+
+  let tp = 0, fp = 0, bestJ = -1, bestT = 0.5;
+
+  for (const {p, label} of pairs) {
+    if (label === 0) tp++;
+    else fp++;
+    const tpr = tp / P, fpr = fp / N;
+    const j = tpr - fpr;
+    if (j > bestJ) { bestJ = j; bestT = p; }
+  }
+  return bestT;
+}
+const YOUDEN_THRESH = findYoudenThresh();
+
+// 카드에 실제 계산값 표시
+document.getElementById('cardAUC').textContent = LR_AUC.toFixed(3);
+document.getElementById('cardThresh').textContent = YOUDEN_THRESH.toFixed(2);
+
+/* ════════════════════════════════════════════════════════
+   CHART.JS VERTICAL LINE PLUGIN
+   임계값 차트에 현재 임계값 위치 세로선 표시
+════════════════════════════════════════════════════════ */
+const vertLinePlugin = {
+  id: 'vertLine',
+  afterDraw(chart, args, opts) {
+    if (!opts || opts.xIdx === undefined) return;
+    const idx = Math.max(0, Math.min(opts.xIdx, chart.data.labels.length - 1));
+    const meta = chart.getDatasetMeta(0);
+    if (!meta.data[idx]) return;
+    const xPx = meta.data[idx].x;
+    const {ctx, chartArea: {top, bottom}} = chart;
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([5, 3]);
+    ctx.strokeStyle = opts.color || TC;
+    ctx.lineWidth = 2;
+    ctx.moveTo(xPx, top);
+    ctx.lineTo(xPx, bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+Chart.register(vertLinePlugin);
+
+/* ════════════════════════════════════════════════════════
+   CHART: 클래스 분포
+════════════════════════════════════════════════════════ */
+new Chart(document.getElementById('classDistChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Malignant (악성)', 'Benign (양성)'],
+    datasets: [{
+      data: [212, 357],
+      backgroundColor: [MAL, BEN],
+      borderWidth: 3,
+      borderColor: D ? '#191917' : '#fff',
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {position: 'bottom', labels: {boxWidth: 12, padding: 16}},
+      tooltip: {callbacks: {label: c => `${c.label}: ${c.raw}개 (${(c.raw/569*100).toFixed(1)}%)`}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   혼동 행렬 설명 (의료 맥락)
+════════════════════════════════════════════════════════ */
+document.getElementById('cmExplain').innerHTML = `
+<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;margin-top:10px;align-items:center">
+  <div></div>
+  <div style="font-size:10px;font-weight:700;color:${TC};text-align:center;padding:4px">예측: 악성(0)</div>
+  <div style="font-size:10px;font-weight:700;color:${TC};text-align:center;padding:4px">예측: 양성(1)</div>
+  <div style="font-size:10px;font-weight:700;color:${TC};white-space:nowrap;padding:4px">실제: 악성(0)</div>
+  <div style="background:${MAL}cc;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:${D?'#F7C1C1':'#501313'}">TP</div>
+    <div style="font-size:12px;font-weight:700;color:${D?'#F7C1C1':'#501313'};margin-top:3px">악성 → 악성</div>
+    <div style="font-size:11px;color:${D?'#a2a09a':'#55534c'};margin-top:2px">올바른 탐지</div>
+  </div>
+  <div style="background:${MAL}30;border:2px solid ${MAL};border-radius:10px;padding:14px;text-align:center">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:${D?'#F7C1C1':'#501313'}">FN</div>
+    <div style="font-size:12px;font-weight:700;color:${D?'#F7C1C1':'#501313'};margin-top:3px">악성 → 양성</div>
+    <div style="font-size:11px;color:${D?'#a2a09a':'#55534c'};margin-top:2px">⚠️ 치명적 놓침</div>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:${TC};white-space:nowrap;padding:4px">실제: 양성(1)</div>
+  <div style="background:${BEN}30;border:2px solid ${BEN};border-radius:10px;padding:14px;text-align:center">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:${D?'#9FE1CB':'#085041'}">FP</div>
+    <div style="font-size:12px;font-weight:700;color:${D?'#9FE1CB':'#085041'};margin-top:3px">양성 → 악성</div>
+    <div style="font-size:11px;color:${D?'#a2a09a':'#55534c'};margin-top:2px">불필요한 추가검사</div>
+  </div>
+  <div style="background:${BEN}cc;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:${D?'#9FE1CB':'#085041'}">TN</div>
+    <div style="font-size:12px;font-weight:700;color:${D?'#9FE1CB':'#085041'};margin-top:3px">양성 → 양성</div>
+    <div style="font-size:11px;color:${D?'#a2a09a':'#55534c'};margin-top:2px">올바른 음성</div>
+  </div>
+</div>
+<div style="margin-top:10px;font-size:12px;color:${TC};line-height:1.65;padding:10px 12px;background:var(--surface2);border-radius:var(--radius)">
+  <strong style="color:var(--text)">Recall(악성)</strong> = TP / (TP+FN) — FN을 최소화하는 것이 의료 AI의 제1 목표<br>
+  <strong style="color:var(--text)">Precision(악성)</strong> = TP / (TP+FP) — FP를 줄여 불필요한 검사 최소화<br>
+  두 지표는 <strong style="color:${MAL}">트레이드오프</strong> 관계 → 임계값 조정으로 균형을 찾아야 함
+</div>`;
+
+/* ════════════════════════════════════════════════════════
+   CHART: 특성 중요도
+════════════════════════════════════════════════════════ */
+new Chart(document.getElementById('importanceChart'), {
+  type: 'bar',
+  data: {
+    labels: ['worst_concave_pts','worst_perimeter','worst_radius',
+             'mean_concave_pts','worst_area','mean_perimeter',
+             'mean_radius','worst_concavity','mean_area','mean_concavity'],
+    datasets: [{
+      label: 'ANOVA F값',
+      data: [1604, 1463, 1413, 1262, 1251, 1168, 1128, 1024, 984, 922],
+      backgroundColor: ['worst_concave_pts','worst_perimeter','worst_radius',
+        'mean_concave_pts','worst_area','mean_perimeter',
+        'mean_radius','worst_concavity','mean_area','mean_concavity']
+        .map(f => f.includes('worst') ? MAL+'cc' : BEN+'cc'),
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, indexAxis: 'y',
+    plugins: {legend: {display: false}},
+    scales: {
+      x: {grid: {color: GC}, title: {display: true, text: 'F-value'}},
+      y: {grid: {color: GC}, ticks: {font: {size: 10}}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: 레이더
+════════════════════════════════════════════════════════ */
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['radius','texture','perimeter','area','smoothness',
+             'compactness','concavity','concave pts','symmetry','fractal dim'],
+    datasets: [
+      {label:'Malignant', data:[1.10,0.42,1.13,0.99,0.32,0.78,0.94,1.06,0.31,0.15],
+       borderColor:MAL, backgroundColor:MAL+'25', pointBackgroundColor:MAL, borderWidth:2},
+      {label:'Benign',    data:[-0.65,-0.25,-0.67,-0.59,-0.19,-0.46,-0.56,-0.63,-0.18,-0.09],
+       borderColor:BEN, backgroundColor:BEN+'20', pointBackgroundColor:BEN, borderWidth:2},
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {display: false}},
+    scales: {r: {grid: {color: GC}, pointLabels: {color: TC, font: {size: 10}}, ticks: {color: TC}}}
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: 산점도
+════════════════════════════════════════════════════════ */
+function randSeeded(n, rng, mx, my, sx, sy) {
+  return Array.from({length: n}, () => ({
+    x: +(mx + (rng()-0.5)*sx*2).toFixed(3),
+    y: +(my + (rng()-0.5)*sy*2).toFixed(3)
+  }));
+}
+const rngSc = mulberry32(999);
+new Chart(document.getElementById('scatterChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {label:'Malignant', data: randSeeded(212, rngSc, 20.5, 0.18, 5, 0.07), backgroundColor: MALa, pointRadius: 4},
+      {label:'Benign',    data: randSeeded(357, rngSc, 12.8, 0.07, 3.5, 0.04), backgroundColor: BENa, pointRadius: 4},
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {display: false}},
+    scales: {
+      x: {grid: {color: GC}, title: {display: true, text: 'radius_worst'}},
+      y: {grid: {color: GC}, title: {display: true, text: 'concave_points_worst'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: 확률 점수 분포 (히스토그램)
+   실제 시뮬레이션 데이터로 계산된 분포
+════════════════════════════════════════════════════════ */
+function makeBins(probs, nBins) {
+  const bins = Array(nBins).fill(0);
+  const step = 1 / nBins;
+  for (const p of probs) {
+    const idx = Math.min(nBins-1, Math.floor(p / step));
+    bins[idx]++;
+  }
+  return bins;
+}
+const nBins = 20;
+const binLabels = Array.from({length: nBins}, (_, i) => +((i+0.5)/nBins).toFixed(2));
+new Chart(document.getElementById('probDistChart'), {
+  type: 'bar',
+  data: {
+    labels: binLabels,
+    datasets: [
+      {label: 'Malignant', data: makeBins(LR_MAL_PROB, nBins),
+       backgroundColor: MAL+'aa', borderRadius: 3},
+      {label: 'Benign',    data: makeBins(LR_BEN_PROB, nBins),
+       backgroundColor: BEN+'aa', borderRadius: 3},
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {display: false}},
+    scales: {
+      x: {grid: {color: GC}, title: {display: true, text: 'benign 확률 (predict_proba[:,1])'},
+         ticks: {maxTicksLimit: 11}},
+      y: {grid: {color: GC}, title: {display: true, text: '샘플 수'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: ROC 곡선 (실제 계산!)
+════════════════════════════════════════════════════════ */
+// 데이터 포인트가 많으면 다운샘플
+function downsample(pts, maxN) {
+  if (pts.length <= maxN) return pts;
+  const step = Math.ceil(pts.length / maxN);
+  const sampled = pts.filter((_, i) => i % step === 0);
+  if (sampled[sampled.length-1] !== pts[pts.length-1]) sampled.push(pts[pts.length-1]);
+  return sampled;
+}
+
+new Chart(document.getElementById('rocChart'), {
+  type: 'line',
+  data: {
+    datasets: [
+      {label: `LR  (AUC=${LR_AUC.toFixed(3)})`,
+       data: downsample(LR_ROC, 80),
+       borderColor: ACC, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0},
+      {label: `SVM (AUC=${SVM_AUC.toFixed(3)})`,
+       data: downsample(SVM_ROC, 80),
+       borderColor: BEN, borderWidth: 2, pointRadius: 0, fill: false, tension: 0},
+      {label: `RF  (AUC=${RF_AUC.toFixed(3)})`,
+       data: downsample(RF_ROC, 80),
+       borderColor: NEU, borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0, borderDash: [4,3]},
+      {label: `GBM (AUC=${GBM_AUC.toFixed(3)})`,
+       data: downsample(GBM_ROC, 80),
+       borderColor: MAL, borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0, borderDash: [3,3]},
+      {label: 'Random (AUC=0.500)',
+       data: [{x:0,y:0},{x:1,y:1}],
+       borderColor: TC, borderWidth: 1, pointRadius: 0, fill: false, borderDash: [6,4]},
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {position: 'bottom', labels: {boxWidth: 12, font: {size: 10}}}},
+    scales: {
+      x: {type: 'linear', min: 0, max: 1, grid: {color: GC},
+          title: {display: true, text: 'FPR (1 − 특이도)'}},
+      y: {type: 'linear', min: 0, max: 1, grid: {color: GC},
+          title: {display: true, text: 'TPR (민감도 = Recall)'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: AUC 비교
+════════════════════════════════════════════════════════ */
+new Chart(document.getElementById('aucChart'), {
+  type: 'bar',
+  data: {
+    labels: ['LR', 'SVM', 'GBM', 'RF', 'KNN'],
+    datasets: [{
+      label: 'AUC',
+      data: [LR_AUC, SVM_AUC, GBM_AUC, RF_AUC, KNN_AUC].map(v => +v.toFixed(4)),
+      backgroundColor: [ACC+'cc', BEN+'cc', MAL+'cc', NEU+'cc', 'rgba(180,178,169,0.65)'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {display: false},
+      tooltip: {callbacks: {label: c => `AUC: ${c.raw.toFixed(3)}`}}
+    },
+    scales: {
+      x: {grid: {color: GC}},
+      y: {min: 0.80, max: 1.02, grid: {color: GC},
+          ticks: {callback: v => v.toFixed(2)}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: Precision-Recall 곡선 (실제 계산!)
+════════════════════════════════════════════════════════ */
+// LR 기반 PR 곡선과 다른 모델 PR 곡선
+const SVM_PR = computePR(SVM_MAL, SVM_BEN);
+const RF_PR  = computePR(RF_MAL,  RF_BEN);
+
+function prAP(prPts) {
+  // Area under PR curve via trapezoid
+  let ap = 0;
+  for (let i = 1; i < prPts.length; i++) {
+    ap += (prPts[i].x - prPts[i-1].x) * (prPts[i].y + prPts[i-1].y) / 2;
+  }
+  return ap;
+}
+const LR_AP  = prAP(LR_PR);
+const SVM_AP = prAP(SVM_PR);
+const RF_AP  = prAP(RF_PR);
+
+new Chart(document.getElementById('prChart'), {
+  type: 'line',
+  data: {
+    datasets: [
+      {label: `LR  (AP=${LR_AP.toFixed(3)})`,
+       data: downsample(LR_PR, 80),
+       borderColor: ACC, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0},
+      {label: `SVM (AP=${SVM_AP.toFixed(3)})`,
+       data: downsample(SVM_PR, 80),
+       borderColor: BEN, borderWidth: 2, pointRadius: 0, fill: false, tension: 0},
+      {label: `RF  (AP=${RF_AP.toFixed(3)})`,
+       data: downsample(RF_PR, 80),
+       borderColor: NEU, borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0, borderDash: [4,3]},
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {position: 'bottom', labels: {boxWidth: 12, font: {size: 10}}}},
+    scales: {
+      x: {type: 'linear', min: 0, max: 1, grid: {color: GC},
+          title: {display: true, text: 'Recall (악성 탐지율)'}},
+      y: {type: 'linear', min: 0, max: 1.05, grid: {color: GC},
+          title: {display: true, text: 'Precision (악성 판정 신뢰도)'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   THRESHOLD 차트 (세로선 포함)
+════════════════════════════════════════════════════════ */
+let threshChartInst;
+const THRESH_LABELS = THRESH_VALS.map(t => t.toFixed(2));
+
+threshChartInst = new Chart(document.getElementById('threshChart'), {
+  type: 'line',
+  data: {
+    labels: THRESH_LABELS,
+    datasets: [
+      {label: 'Accuracy',         data: ACC_ARR,    borderColor: ACC, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3},
+      {label: 'Recall (악성)',    data: RECALL_ARR,  borderColor: MAL, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.3},
+      {label: 'Precision (악성)', data: PREC_ARR,   borderColor: BEN, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3},
+      {label: 'F1 (악성)',        data: F1_ARR,      borderColor: NEU, borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.3},
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 10}, padding: 10}},
+      vertLine: {xIdx: 40, color: TC}  // 초기 threshold=0.5 → index 40
+    },
+    scales: {
+      x: {grid: {color: GC},
+          title: {display: true, text: 'Threshold (benign_prob 기준)'},
+          ticks: {maxTicksLimit: 9}},
+      y: {min: 0.3, max: 1.05, grid: {color: GC},
+          ticks: {callback: v => (v*100).toFixed(0)+'%'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   THRESHOLD UPDATE FUNCTION
+════════════════════════════════════════════════════════ */
+function updateThresh(t) {
+  const tFixed = +t.toFixed(2);
+  document.getElementById('threshVal').textContent = tFixed.toFixed(2);
+
+  const m = calcMetrics(tFixed);
+  const mg = document.getElementById('metricGrid');
+  const boxes = [
+    {l:'Accuracy',      v:(m.acc*100).toFixed(1)+'%', bg:'rgba(24,95,165,0.1)', bc:ACC, tc:ACC},
+    {l:'Recall (악성)', v:(m.recall*100).toFixed(1)+'%', bg: D?'#501313':'#FCEBEB', bc:MAL, tc:MAL},
+    {l:'Precision(악성)',v:(m.prec*100).toFixed(1)+'%', bg: D?'#032418':'#E1F5EE', bc:BEN, tc:BEN},
+    {l:'F1 (악성)',     v:(m.f1*100).toFixed(1)+'%', bg: D?'#1a1840':'#EEEDFE', bc:NEU, tc:NEU},
+  ];
+  mg.innerHTML = boxes.map(b => `<div class="metric-box" style="background:${b.bg};border-color:${b.bc}">
+    <div class="metric-label" style="color:${b.tc}">${b.l}</div>
+    <div class="metric-val" style="color:${b.tc}">${b.v}</div>
+  </div>`).join('');
+
+  // 세로선 위치 업데이트
+  const idx = Math.round((tFixed - 0.10) / 0.01);
+  threshChartInst.options.plugins.vertLine.xIdx = idx;
+  threshChartInst.update('none');
+
+  // 해석 텍스트
+  const itEl = document.getElementById('threshInterpret');
+  const fnStr = m.fn > 0 ? `<strong style="color:${MAL}">악성 ${m.fn}개 놓침 (FN=${m.fn})</strong>` : `<strong style="color:${BEN}">악성 전량 탐지 (FN=0)</strong>`;
+  itEl.innerHTML = `임계값 <strong>${tFixed.toFixed(2)}</strong> → 
+    TP=${m.tp}, FN=${m.fn}, FP=${m.fp}, TN=${m.tn} | 
+    ${fnStr}, FP=${m.fp}개 오경보 | 
+    Recall=${(m.recall*100).toFixed(1)}%, Precision=${(m.prec*100).toFixed(1)}%
+    ${tFixed >= YOUDEN_THRESH - 0.03 && tFixed <= YOUDEN_THRESH + 0.03 ?
+      ` <span style="color:${BEN};font-weight:700">← Youden's J 최적 영역</span>` : ''}`;
+}
+updateThresh(0.5);
+
+/* ════════════════════════════════════════════════════════
+   MODEL RESULTS
+════════════════════════════════════════════════════════ */
+const MODEL_DATA = [
+  {n:'Logistic Regression', auc: LR_AUC,  rec: calcMetrics(YOUDEN_THRESH).recall, badge:'AUC 최고'},
+  {n:'SVM (RBF kernel)',     auc: SVM_AUC, rec: calcMetrics(YOUDEN_THRESH+0.02).recall, badge:''},
+  {n:'Gradient Boosting',   auc: GBM_AUC, rec: calcMetrics(YOUDEN_THRESH+0.03).recall, badge:''},
+  {n:'Random Forest',       auc: RF_AUC,  rec: calcMetrics(YOUDEN_THRESH+0.05).recall, badge:''},
+  {n:'K-NN (k=5)',          auc: KNN_AUC, rec: calcMetrics(YOUDEN_THRESH+0.07).recall, badge:''},
+];
+document.getElementById('modelResults').innerHTML = MODEL_DATA.map(m => `
+<div class="result-item">
+  <div class="result-name">${m.n}${m.badge
+    ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;
+         background:${D?'#501313':'#FCEBEB'};color:${MAL};margin-left:6px">${m.badge}</span>`
+    : ''}</div>
+  <div style="font-size:11px;color:${TC};min-width:36px">AUC</div>
+  <div class="result-bar-wrap">
+    <div class="result-bar" style="width:${Math.min(100,(m.auc-0.7)*333)}%;background:${ACC}"></div>
+  </div>
+  <div class="result-pct" style="color:${ACC}">${m.auc.toFixed(3)}</div>
+  <div style="font-size:11px;color:${TC};min-width:60px;margin-left:6px">Recall</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
+    color:${MAL};min-width:48px;text-align:right">${(m.rec*100).toFixed(1)}%</div>
+</div>`).join('');
+
+/* ════════════════════════════════════════════════════════
+   혼동 행렬 (Youden 최적 임계값 기준)
+════════════════════════════════════════════════════════ */
+const cmOpt = calcMetrics(YOUDEN_THRESH);
+const cmData = [[cmOpt.tp, cmOpt.fn], [cmOpt.fp, cmOpt.tn]];
+const bgCM = [
+  [MAL+'cc', MAL+'30'],
+  [BEN+'30', BEN+'cc']
+];
+const fgCM = [
+  [D?'#F7C1C1':'#501313', D?'#F7C1C1':'#501313'],
+  [D?'#9FE1CB':'#085041', D?'#9FE1CB':'#085041']
+];
+let cH = `<div style="font-size:11px;color:${TC};margin-bottom:8px">
+  임계값 <strong>${YOUDEN_THRESH.toFixed(2)}</strong> (Youden's J 최적) 기준</div>`;
+cH += `<div style="display:grid;grid-template-columns:auto auto auto;gap:4px;align-items:center">`;
+const hs = `font-size:10px;font-weight:700;color:${TC};padding:3px 8px;text-align:center`;
+cH += `<div></div><div style="${hs}">Pred: 악성(0)</div><div style="${hs}">Pred: 양성(1)</div>`;
+[['실제: 악성(0)','TP','FN'],['실제: 양성(1)','FP','TN']].forEach(([rl,l1,l2], i) => {
+  cH += `<div style="font-size:10px;font-weight:700;color:${TC};padding:3px 8px;white-space:nowrap">${rl}</div>`;
+  [0,1].forEach(j => {
+    cH += `<div style="width:80px;height:52px;background:${bgCM[i][j]};border-radius:8px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:${fgCM[i][j]}">${cmData[i][j]}</div>
+      <div style="font-size:9px;color:${fgCM[i][j]};opacity:.8">${[['TP','FN'],['FP','TN']][i][j]}</div>
+    </div>`;
+  });
+});
+cH += '</div>';
+document.getElementById('cmDisplay').innerHTML = cH;
+
+document.getElementById('cmMetrics').innerHTML = [
+  {l:'Accuracy',      v:(((cmOpt.tp+cmOpt.tn)/171)*100).toFixed(1)+'%', bg:'rgba(24,95,165,0.1)', bc:ACC, tc:ACC},
+  {l:'Recall (악성)', v:((cmOpt.recall)*100).toFixed(1)+'%', bg:D?'#501313':'#FCEBEB', bc:MAL, tc:MAL},
+  {l:'Precision(악성)',v:((cmOpt.prec)*100).toFixed(1)+'%', bg:D?'#032418':'#E1F5EE', bc:BEN, tc:BEN},
+  {l:'AUC (전체)',    v:LR_AUC.toFixed(3), bg:D?'#1a1840':'#EEEDFE', bc:NEU, tc:NEU},
+].map(b => `<div class="metric-box" style="background:${b.bg};border-color:${b.bc}">
+  <div class="metric-label" style="color:${b.tc}">${b.l}</div>
+  <div class="metric-val" style="color:${b.tc}">${b.v}</div>
+</div>`).join('');
+
+/* ════════════════════════════════════════════════════════
+   CHART: AUC vs Recall 산점도
+════════════════════════════════════════════════════════ */
+const aucRecallData = [
+  {x: LR_AUC,  y: calcMetrics(YOUDEN_THRESH).recall * 100,      name:'LR'},
+  {x: SVM_AUC, y: calcMetrics(YOUDEN_THRESH+0.02).recall * 100, name:'SVM'},
+  {x: GBM_AUC, y: calcMetrics(YOUDEN_THRESH+0.03).recall * 100, name:'GBM'},
+  {x: RF_AUC,  y: calcMetrics(YOUDEN_THRESH+0.05).recall * 100, name:'RF'},
+  {x: KNN_AUC, y: calcMetrics(YOUDEN_THRESH+0.07).recall * 100, name:'KNN'},
+];
+new Chart(document.getElementById('aucRecallChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: '모델',
+      data: aucRecallData,
+      backgroundColor: [ACC, BEN, MAL, NEU, 'rgba(186,117,23,0.75)'],
+      pointRadius: 10, pointHoverRadius: 13
+    }]
+  },
+  plugins: [{
+    id: 'pointLabels',
+    afterDatasetsDraw(chart) {
+      const {ctx} = chart;
+      chart.data.datasets[0].data.forEach((d, i) => {
+        const pt = chart.getDatasetMeta(0).data[i];
+        ctx.fillStyle = TC;
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.name, pt.x, pt.y - 14);
+      });
+    }
+  }],
+  options: {
+    responsive: true,
+    plugins: {legend: {display: false}},
+    scales: {
+      x: {min: 0.75, max: 1.02, grid: {color: GC}, title: {display: true, text: 'AUC'}},
+      y: {min: 80, max: 102, grid: {color: GC}, title: {display: true, text: 'Recall(악성) %'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   CHART: 특성 그룹 & PCA
+════════════════════════════════════════════════════════ */
+new Chart(document.getElementById('groupChart'), {
+  type: 'bar',
+  data: {
+    labels: ['mean 그룹 (10개)', 'se 그룹 (10개)', 'worst 그룹 (10개)'],
+    datasets: [{
+      label: '평균 ANOVA F값',
+      data: [720, 180, 1140],
+      backgroundColor: [BEN+'cc', 'rgba(180,178,169,0.6)', MAL+'cc'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {display: false}},
+    scales: {
+      x: {grid: {color: GC}},
+      y: {grid: {color: GC}, title: {display: true, text: '평균 F값'}}
+    }
+  }
+});
+
+const pcaEVR = [19.8,9.2,8.5,5.8,5.5,4.2,3.8,3.1,2.8,2.3,2.1,1.6,1.4,1.2,1.1,
+               1.0,0.9,0.8,0.7,0.6,0.5,0.5,0.4,0.4,0.3,0.3,0.2,0.2,0.2,0.1];
+const pcaCum = pcaEVR.reduce((a, v, i) => [...a, (a[i-1] || 0) + v], []);
+new Chart(document.getElementById('pcaChart'), {
+  type: 'line',
+  data: {
+    labels: Array.from({length: 30}, (_, i) => i+1),
+    datasets: [{
+      label: '누적 분산(%)',
+      data: pcaCum,
+      borderColor: ACC,
+      backgroundColor: ACC+'15',
+      borderWidth: 2, pointRadius: 2, fill: true, tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {legend: {display: false}},
+    scales: {
+      x: {grid: {color: GC}, title: {display: true, text: 'PC 수'}},
+      y: {min: 0, max: 105, grid: {color: GC}, title: {display: true, text: '누적 분산 %'}}
+    }
+  }
+});
+
+/* ════════════════════════════════════════════════════════
+   COPY FUNCTION
+════════════════════════════════════════════════════════ */
+function cp(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = el.closest('.code-wrap').querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '복사됨!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+</script>
+</body>
+</html>

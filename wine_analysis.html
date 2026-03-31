@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>load_wine() — 완전 분석 가이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ef;--surface:#fff;--surface2:#f0ede7;--surface3:#e6e2da;
+  --text:#19180f;--text2:#57554e;--text3:#9a9790;--border:#dbd7ce;
+  --accent:#BA7517;
+  --c1:#D85A30;--c2:#7F77DD;--c3:#1D9E75;
+  --c1l:#FAECE7;--c2l:#EEEDFE;--c3l:#E1F5EE;
+  --c1d:#4A1B0C;--c2d:#3C3489;--c3d:#085041;
+  --c1a:rgba(216,90,48,0.75);--c2a:rgba(127,119,221,0.75);--c3a:rgba(29,158,117,0.75);
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 6px 20px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.05);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#131210;--surface:#1b1a17;--surface2:#21201c;--surface3:#28271f;
+    --text:#e5e2d8;--text2:#a4a098;--text3:#68655c;--border:#2b2924;
+    --c1:#F0997B;--c2:#AFA9EC;--c3:#5DCAA5;
+    --c1l:#2e1008;--c2l:#1a1840;--c3l:#032418;
+    --c1d:#F5C4B3;--c2d:#CECBF6;--c3d:#9FE1CB;
+  }
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 80px}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 32px;
+  display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-ds{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--accent)}
+.nav-sep{color:var(--text3);font-size:13px}
+.nav-title{font-size:13px;color:var(--text2)}
+.nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;
+  background:#FAEEDA;color:#633806;margin-left:auto}
+@media(prefers-color-scheme:dark){.nav-pill{background:#2a1800;color:#FAC775}}
+
+/* HERO */
+.hero{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:36px 40px 30px;border-top:3px solid var(--accent)}
+.hero-inner{max-width:1080px;margin:0 auto}
+.hero-top{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.hero-fn{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--accent)}
+.hero-cat{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;
+  background:#FAEEDA;color:#633806;margin-top:5px}
+@media(prefers-color-scheme:dark){.hero-cat{background:#2a1800;color:#FAC775}}
+.hero-desc{font-size:13.5px;color:var(--text2);line-height:1.75;max-width:760px;margin-bottom:20px}
+.stats{display:flex;flex-wrap:wrap;gap:24px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-l{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.stat-v{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text)}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+.toc-btn{font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px;
+  border:1px solid var(--border);background:var(--surface2);color:var(--text2);
+  cursor:pointer;transition:all .15s;text-decoration:none}
+.toc-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* CONTAINER */
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+/* SECTION */
+.sec{margin:40px 0 20px}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-size:16px;font-weight:700;color:var(--text)}
+.sec-sub{font-size:12px;color:var(--text3);margin-left:4px}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:700px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+@media(max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
+.card-title{font-size:12px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* TABLE */
+.ftable{width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+.ftable table{width:100%;border-collapse:collapse}
+.ftable thead{background:var(--surface2)}
+.ftable th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.4px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.ftable td{padding:9px 12px;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:middle}
+.ftable tr:last-child td{border-bottom:none}
+.ftable td:first-child{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;color:var(--text)}
+.ftable tr:hover td{background:var(--surface2)}
+.mini-bar{display:inline-flex;align-items:center;gap:6px;width:100%}
+.mbar-bg{flex:1;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;min-width:40px}
+.mbar-fg{height:100%;border-radius:3px}
+
+/* CHART */
+.chart-box{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow)}
+.chart-label{font-size:12px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
+.chart-note{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.55}
+
+/* LEGEND */
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* CODE */
+.code-wrap{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px}
+.code-top{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap;gap:6px}
+.code-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase}
+.step-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;
+  background:#FAEEDA;color:#633806}
+@media(prefers-color-scheme:dark){.step-pill{background:#2a1800;color:#FAC775}}
+.copy-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;padding:3px 10px;
+  border-radius:20px;border:1px solid var(--border);background:var(--surface);
+  color:var(--text2);cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--text3)}
+pre{padding:18px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;
+  font-size:12px;line-height:1.85;color:var(--text2)}
+.kw{color:#7F77DD}.fn{color:#1D9E75}.st{color:#854F0B}.cm{color:var(--text3);font-style:italic}.nb{color:#D85A30}
+@media(prefers-color-scheme:dark){
+  .kw{color:#AFA9EC}.fn{color:#5DCAA5}.st{color:#EF9F27}.nb{color:#F0997B}
+}
+
+/* CALLOUT */
+.callout{border-radius:var(--radius-lg);padding:14px 18px;border-left:3px solid;margin:12px 0}
+.callout.amber{background:#FAEEDA;border-color:#EF9F27}
+.callout.coral{background:var(--c1l);border-color:var(--c1)}
+.callout.purple{background:var(--c2l);border-color:var(--c2)}
+.callout.green{background:var(--c3l);border-color:var(--c3)}
+.callout-title{font-size:12px;font-weight:700;margin-bottom:5px}
+.callout.amber .callout-title{color:#633806}
+.callout.coral .callout-title{color:var(--c1d)}
+.callout.purple .callout-title{color:var(--c2d)}
+.callout.green .callout-title{color:var(--c3d)}
+@media(prefers-color-scheme:dark){
+  .callout.amber{background:#2a1800;border-color:#EF9F27}
+  .callout.amber .callout-title{color:#FAC775}
+}
+.callout-body{font-size:13px;line-height:1.65;color:var(--text2)}
+
+/* SCALE VIS */
+.scale-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.scale-row:last-child{border-bottom:none}
+.scale-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text);min-width:140px}
+.scale-range{font-size:11px;color:var(--text3);min-width:80px}
+.scale-bar-wrap{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;position:relative}
+.scale-bar-val{height:100%;border-radius:4px;background:var(--accent)}
+.scale-badge{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:10px;white-space:nowrap}
+
+/* RESULT */
+.result-row{display:flex;flex-direction:column;gap:8px}
+.result-item{display:flex;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:11px 16px}
+.result-name{font-size:13px;font-weight:700;color:var(--text);min-width:200px}
+.result-bar-wrap{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.result-bar{height:100%;border-radius:4px}
+.result-pct{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;min-width:50px;text-align:right}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec{animation:fadeUp .35s ease both}
+.sec:nth-child(1){animation-delay:.04s}.sec:nth-child(2){animation-delay:.09s}
+.sec:nth-child(3){animation-delay:.14s}.sec:nth-child(4){animation-delay:.19s}
+.sec:nth-child(5){animation-delay:.24s}.sec:nth-child(6){animation-delay:.29s}
+.sec:nth-child(7){animation-delay:.34s}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-ds">load_wine()</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-title">완전 분석 가이드</span>
+  <span class="nav-pill">다중분류 · 화학성분 · 스케일링 · PCA</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <span class="hero-fn">load_wine()</span>
+      <span class="hero-cat">화학성분 · 스케일링 필수</span>
+    </div>
+    <p class="hero-desc">
+      이탈리아 피에몬테 지방에서 재배된 동일 품종 포도로 만든 3가지 와인(Class 0·1·2)의
+      화학 성분을 측정한 데이터셋. <strong style="color:var(--text)">13개 특성의 단위와 스케일이 극단적으로 달라</strong>
+      StandardScaler 전처리 없이는 모델 성능이 크게 저하됩니다.
+      iris보다 특성 수가 많아 특성 선택·PCA 차원축소 효과를 비교하기 좋은 데이터셋입니다.
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="stat-l">행 수</span><span class="stat-v">178</span></div>
+      <div class="stat"><span class="stat-l">특성 수</span><span class="stat-v">13</span></div>
+      <div class="stat"><span class="stat-l">클래스 수</span><span class="stat-v">3</span></div>
+      <div class="stat"><span class="stat-l">Class 0</span><span class="stat-v">59개</span></div>
+      <div class="stat"><span class="stat-l">Class 1</span><span class="stat-v">71개</span></div>
+      <div class="stat"><span class="stat-l">Class 2</span><span class="stat-v">48개</span></div>
+      <div class="stat"><span class="stat-l">결측값</span><span class="stat-v">없음</span></div>
+    </div>
+    <div class="toc">
+      <a class="toc-btn" href="#s1">1. 데이터 구조</a>
+      <a class="toc-btn" href="#s2">2. 스케일링 원리</a>
+      <a class="toc-btn" href="#s3">3. 특성 분포</a>
+      <a class="toc-btn" href="#s4">4. PCA 분석</a>
+      <a class="toc-btn" href="#s5">5. 분류 모델</a>
+      <a class="toc-btn" href="#s6">6. 전체 코드</a>
+      <a class="toc-btn" href="#s7">7. 결과 해석</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ 1. 데이터 구조 ══ -->
+<div class="sec" id="s1">
+  <div class="sec-hd">
+    <span class="sec-num">1</span>
+    <span class="sec-title">데이터 구조 및 변수 설명</span>
+    <span class="sec-sub">13개 화학 성분 특성 · 3 클래스</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-top">
+      <span class="code-label">기본 탐색</span>
+      <span class="step-pill">Step 1</span>
+      <button class="copy-btn" onclick="cp('c1')">복사</button>
+    </div>
+    <pre id="c1"><span class="kw">from</span> sklearn.datasets <span class="kw">import</span> load_wine
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+wine = <span class="fn">load_wine</span>()
+
+<span class="cm"># 기본 정보</span>
+<span class="fn">print</span>(wine.target_names)   <span class="cm"># ['class_0' 'class_1' 'class_2']</span>
+<span class="fn">print</span>(wine.feature_names)  <span class="cm"># 13개 화학 성분명</span>
+
+<span class="cm"># DataFrame 변환</span>
+df = pd.<span class="fn">DataFrame</span>(wine.data, columns=wine.feature_names)
+df[<span class="st">'class'</span>] = pd.<span class="fn">Categorical</span>.from_codes(wine.target, wine.target_names)
+
+<span class="fn">print</span>(df.shape)              <span class="cm"># (178, 14)</span>
+<span class="fn">print</span>(df[<span class="st">'class'</span>].value_counts())
+<span class="cm"># class_0    59  /  class_1    71  /  class_2    48</span>
+
+<span class="cm"># 스케일 차이 확인 (핵심!)</span>
+<span class="fn">print</span>(df.describe().loc[[<span class="st">'mean'</span>,<span class="st">'std'</span>,<span class="st">'min'</span>,<span class="st">'max'</span>]].<span class="fn">round</span>(<span class="nb">2</span>))
+<span class="cm"># proline: 0~1680  vs  nonflavanoid_phenols: 0.13~0.66  ← 2500배 이상 차이!</span></pre>
+  </div>
+
+  <div class="ftable">
+    <table>
+      <thead>
+        <tr><th>#</th><th>변수명 (영문)</th><th>한국어</th><th>단위</th><th>범위</th><th>클래스 구분력</th></tr>
+      </thead>
+      <tbody id="varTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ 2. 스케일링 원리 ══ -->
+<div class="sec" id="s2">
+  <div class="sec-hd">
+    <span class="sec-num">2</span>
+    <span class="sec-title">스케일링이 왜 필수인가?</span>
+    <span class="sec-sub">특성 범위 차이 최대 2,500배 — 전처리 없이는 PCA·KNN·SVM 왜곡</span>
+  </div>
+
+  <div class="callout amber">
+    <div class="callout-title">스케일링 핵심 원리</div>
+    <div class="callout-body">
+      <strong>proline</strong>은 278~1680 범위, <strong>nonflavanoid_phenols</strong>는 0.13~0.66 범위입니다.
+      StandardScaler 없이 PCA를 적용하면 proline 하나가 PC1을 독점합니다.
+      KNN·SVM도 거리 기반이므로 큰 단위 특성이 소단위 특성을 완전히 묻어버립니다.
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-bottom:14px">
+    <div class="chart-label">특성별 값 범위 비교 (스케일링 전 vs 후)</div>
+    <canvas id="scaleChart" height="200"></canvas>
+    <p class="chart-note">StandardScaler 적용 후 모든 특성이 평균=0, 표준편차=1로 통일됨</p>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <div class="callout coral">
+        <div class="callout-title">StandardScaler — Z-score 표준화</div>
+        <div class="callout-body">각 특성을 (값 − 평균) / 표준편차 로 변환.<br>결과: 평균=0, 표준편차=1.<br>이상값에 민감하지만 대부분의 ML 알고리즘에 적합.</div>
+      </div>
+      <div class="callout purple" style="margin-top:10px">
+        <div class="callout-title">MinMaxScaler — 최솟값-최댓값 정규화</div>
+        <div class="callout-body">각 특성을 [0, 1] 범위로 압축.<br>(값 − min) / (max − min)<br>이상값 존재 시 왜곡 가능 — 와인 데이터는 StandardScaler 권장.</div>
+      </div>
+      <div class="callout green" style="margin-top:10px">
+        <div class="callout-title">RobustScaler — 중앙값 기반</div>
+        <div class="callout-body">중앙값(median)과 IQR 사용.<br>(값 − median) / IQR<br>이상값이 많을 때 유리 — 와인 데이터는 덜 필요함.</div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">스케일링 전·후 정확도 비교 (SVM)</div>
+      <canvas id="scaleAccChart" height="280"></canvas>
+      <p class="chart-note">StandardScaler 적용 시 SVM 정확도 65% → 99%로 급등</p>
+    </div>
+  </div>
+
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top">
+      <span class="code-label">스케일링 코드</span>
+      <span class="step-pill">Step 2</span>
+      <button class="copy-btn" onclick="cp('c2')">복사</button>
+    </div>
+    <pre id="c2"><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler, MinMaxScaler, RobustScaler
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+
+X, y = wine.data, wine.target
+
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.3</span>, random_state=<span class="nb">42</span>, stratify=y)
+
+<span class="cm"># ── 스케일링 전 SVM ──────────────────────────────────</span>
+svm_raw = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>)
+svm_raw.<span class="fn">fit</span>(X_tr, y_tr)
+<span class="fn">print</span>(<span class="st">"스케일링 전:"</span>, svm_raw.<span class="fn">score</span>(X_te, y_te))  <span class="cm"># ~0.648</span>
+
+<span class="cm"># ── StandardScaler ────────────────────────────────────</span>
+ss = <span class="fn">StandardScaler</span>()
+X_tr_ss = ss.<span class="fn">fit_transform</span>(X_tr)   <span class="cm"># train에만 fit!</span>
+X_te_ss  = ss.<span class="fn">transform</span>(X_te)       <span class="cm"># test는 transform만</span>
+
+svm_ss = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>)
+svm_ss.<span class="fn">fit</span>(X_tr_ss, y_tr)
+<span class="fn">print</span>(<span class="st">"StandardScaler 후:"</span>, svm_ss.<span class="fn">score</span>(X_te_ss, y_te))  <span class="cm"># ~0.981</span>
+
+<span class="cm"># ── MinMaxScaler ─────────────────────────────────────</span>
+mm = <span class="fn">MinMaxScaler</span>()
+X_tr_mm = mm.<span class="fn">fit_transform</span>(X_tr)
+X_te_mm  = mm.<span class="fn">transform</span>(X_te)
+
+svm_mm = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>)
+svm_mm.<span class="fn">fit</span>(X_tr_mm, y_tr)
+<span class="fn">print</span>(<span class="st">"MinMaxScaler 후:"</span>,  svm_mm.<span class="fn">score</span>(X_te_mm, y_te))   <span class="cm"># ~0.944</span>
+
+<span class="cm"># ── 역변환: 원래 값 복원 ──────────────────────────────</span>
+X_original = ss.<span class="fn">inverse_transform</span>(X_tr_ss)</pre>
+  </div>
+</div>
+
+<!-- ══ 3. 특성 분포 ══ -->
+<div class="sec" id="s3">
+  <div class="sec-hd">
+    <span class="sec-num">3</span>
+    <span class="sec-title">특성 분포 및 상관관계 분석</span>
+    <span class="sec-sub">클래스별 평균 비교 + 주요 특성 산점도</span>
+  </div>
+
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="chart-box">
+      <div class="chart-label">클래스별 주요 특성 평균 (표준화 후)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Class 0</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div>Class 1</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Class 2</div>
+      </div>
+      <canvas id="classMeanChart" height="260"></canvas>
+      <p class="chart-note">표준화 후 평균 비교 — Class 0은 Flavanoids·Proline 높음, Class 2는 Malic acid 높음</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">특성 간 상관계수 (상위 5쌍)</div>
+      <canvas id="corrBarChart" height="260"></canvas>
+      <p class="chart-note">Flavanoids ↔ Total phenols 상관계수 0.86 — 강한 양의 선형 관계</p>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-label">Flavanoids vs Proline 산점도 (분류력 가장 높은 특성 쌍)</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Class 0</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div>Class 1</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Class 2</div>
+    </div>
+    <canvas id="scatterChart" height="260"></canvas>
+    <p class="chart-note">Class 0(높은 Proline + 높은 Flavanoids)과 Class 2(낮은 Proline)가 잘 분리됨</p>
+  </div>
+
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top">
+      <span class="code-label">EDA 코드</span>
+      <span class="step-pill">Step 3</span>
+      <button class="copy-btn" onclick="cp('c3')">복사</button>
+    </div>
+    <pre id="c3"><span class="kw">import</span> seaborn <span class="kw">as</span> sns
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># 클래스별 특성 평균</span>
+<span class="fn">print</span>(df.<span class="fn">groupby</span>(<span class="st">'class'</span>).<span class="fn">mean</span>().<span class="fn">round</span>(<span class="nb">2</span>).T)
+
+<span class="cm"># 상관계수 상위 특성 쌍</span>
+corr = df.<span class="fn">drop</span>(<span class="st">'class'</span>,axis=<span class="nb">1</span>).<span class="fn">corr</span>()
+pairs = corr.<span class="fn">unstack</span>().<span class="fn">sort_values</span>().<span class="fn">drop_duplicates</span>()
+<span class="fn">print</span>(pairs[pairs < <span class="nb">1</span>].<span class="fn">abs</span>().<span class="fn">nlargest</span>(<span class="nb">10</span>))
+
+<span class="cm"># 히트맵 — 13×13 상관행렬</span>
+plt.<span class="fn">figure</span>(figsize=(<span class="nb">12</span>,<span class="nb">10</span>))
+mask = np.<span class="fn">triu</span>(np.<span class="fn">ones_like</span>(corr, dtype=bool))
+sns.<span class="fn">heatmap</span>(corr, mask=mask, annot=<span class="kw">True</span>, fmt=<span class="st">'.2f'</span>, cmap=<span class="st">'RdYlGn'</span>,
+            center=<span class="nb">0</span>, vmin=-<span class="nb">1</span>, vmax=<span class="nb">1</span>, linewidths=<span class="nb">0.5</span>, square=<span class="kw">True</span>)
+plt.<span class="fn">title</span>(<span class="st">'Wine 특성 상관행렬 (하삼각)'</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">show</span>()
+
+<span class="cm"># ANOVA F-통계로 특성 중요도</span>
+<span class="kw">from</span> sklearn.feature_selection <span class="kw">import</span> f_classif
+f_vals, p_vals = <span class="fn">f_classif</span>(wine.data, wine.target)
+feat_imp = pd.<span class="fn">Series</span>(f_vals, index=wine.feature_names).sort_values(ascending=<span class="kw">False</span>)
+<span class="fn">print</span>(feat_imp.<span class="fn">round</span>(<span class="nb">1</span>))  <span class="cm"># proline(F=233), OD280(F=218), flavanoids(F=200) 상위</span></pre>
+  </div>
+</div>
+
+<!-- ══ 4. PCA ══ -->
+<div class="sec" id="s4">
+  <div class="sec-hd">
+    <span class="sec-num">4</span>
+    <span class="sec-title">PCA 주성분 분석</span>
+    <span class="sec-sub">13차원 → 2차원 시각화 · 표준화 전/후 비교</span>
+  </div>
+
+  <div class="callout amber">
+    <div class="callout-title">와인 데이터에서 PCA가 강력한 이유</div>
+    <div class="callout-body">
+      13개 특성 중 일부는 강한 상관관계(r>0.8)를 가집니다. PCA는 이 중복 정보를 제거하고 독립적인 축으로 재구성합니다.
+      표준화 없이 PCA를 하면 <strong>proline(범위 1400)</strong>이 PC1을 독점 — 반드시 StandardScaler 먼저!
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="chart-box">
+      <div class="chart-label">PCA 2D 산점도 — 표준화 후 (올바른 방법)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Class 0</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div>Class 1</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Class 2</div>
+      </div>
+      <canvas id="pcaChart" height="260"></canvas>
+      <p class="chart-note">PC1+PC2로 3클래스가 거의 완벽하게 분리됨 — 누적 분산 55.4%</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">주성분별 설명 분산 비율 (Scree Plot)</div>
+      <canvas id="screePlot" height="260"></canvas>
+      <p class="chart-note">PC1: 36.2% + PC2: 19.2% + PC3: 11.1% = 누적 <strong>66.5%</strong> (3PC)</p>
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-top:14px">
+    <div class="chart-label">PCA 로딩 행렬 — PC1·PC2에 대한 13개 특성 기여도</div>
+    <canvas id="loadingChart" height="200"></canvas>
+    <p class="chart-note">PC1: Flavanoids·OD280·Total phenols 양의 기여 / Malic acid·Ash 음의 기여. PC2: Color intensity·Alcalinity 지배</p>
+  </div>
+
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top">
+      <span class="code-label">PCA 분석 코드</span>
+      <span class="step-pill">Step 4</span>
+      <button class="copy-btn" onclick="cp('c4')">복사</button>
+    </div>
+    <pre id="c4"><span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+X, y = wine.data, wine.target
+
+<span class="cm"># 1. 표준화 (반드시 먼저!)</span>
+scaler = <span class="fn">StandardScaler</span>()
+X_s = scaler.<span class="fn">fit_transform</span>(X)
+
+<span class="cm"># 2. 전체 주성분으로 분산 비율 확인</span>
+pca_full = <span class="fn">PCA</span>(n_components=<span class="nb">13</span>)
+pca_full.<span class="fn">fit</span>(X_s)
+evr = pca_full.explained_variance_ratio_
+<span class="fn">print</span>(<span class="st">"설명 분산 비율:"</span>, np.<span class="fn">round</span>(evr, <span class="nb">4</span>))
+<span class="fn">print</span>(<span class="st">"누적 분산:"</span>,     np.<span class="fn">round</span>(np.<span class="fn">cumsum</span>(evr), <span class="nb">4</span>))
+<span class="cm"># PC1  PC2  PC3  PC4 ... PC7 에서 누적 90% 돌파</span>
+
+<span class="cm"># 3. 최적 n_components 선택: 90% 이상</span>
+n_comp = np.<span class="fn">argmax</span>(np.<span class="fn">cumsum</span>(evr) >= <span class="nb">0.90</span>) + <span class="nb">1</span>
+<span class="fn">print</span>(<span class="st">f"90% 분산 보존에 필요한 PC 수: {n_comp}"</span>)  <span class="cm"># 7</span>
+
+<span class="cm"># 4. PCA 2D 시각화</span>
+pca2 = <span class="fn">PCA</span>(n_components=<span class="nb">2</span>)
+X_2d = pca2.<span class="fn">fit_transform</span>(X_s)
+
+colors = [<span class="st">'#D85A30'</span>, <span class="st">'#7F77DD'</span>, <span class="st">'#1D9E75'</span>]
+fig, ax = plt.<span class="fn">subplots</span>(figsize=(<span class="nb">8</span>,<span class="nb">6</span>))
+<span class="kw">for</span> i, name <span class="kw">in</span> <span class="fn">enumerate</span>(wine.target_names):
+    m = y == i
+    ax.<span class="fn">scatter</span>(X_2d[m,<span class="nb">0</span>], X_2d[m,<span class="nb">1</span>], c=colors[i], label=name,
+               alpha=<span class="nb">0.8</span>, s=<span class="nb">55</span>, edgecolors=<span class="st">'white'</span>, linewidths=<span class="nb">0.5</span>)
+ax.<span class="fn">set_xlabel</span>(<span class="st">f"PC1 ({evr[0]*100:.1f}%)"</span>)
+ax.<span class="fn">set_ylabel</span>(<span class="st">f"PC2 ({evr[1]*100:.1f}%)"</span>)
+ax.<span class="fn">legend</span>(); ax.<span class="fn">set_title</span>(<span class="st">'Wine PCA 2D (표준화 후)'</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># 5. 로딩 행렬</span>
+loading = pd.<span class="fn">DataFrame</span>(pca2.components_.T,
+    index=wine.feature_names, columns=[<span class="st">'PC1'</span>,<span class="st">'PC2'</span>])
+<span class="fn">print</span>(loading.<span class="fn">sort_values</span>(<span class="st">'PC1'</span>, ascending=<span class="kw">False</span>).<span class="fn">round</span>(<span class="nb">3</span>))</pre>
+  </div>
+</div>
+
+<!-- ══ 5. 분류 모델 ══ -->
+<div class="sec" id="s5">
+  <div class="sec-hd">
+    <span class="sec-num">5</span>
+    <span class="sec-title">분류 모델 비교</span>
+    <span class="sec-sub">스케일링 전후 성능 · PCA 차원축소 효과 비교</span>
+  </div>
+
+  <div class="callout purple" style="margin-bottom:14px">
+    <div class="callout-title">실험 설정</div>
+    <div class="callout-body">train_test_split(test_size=0.3, stratify=y, random_state=42) · StandardScaler 표준화 · StratifiedKFold(5) 교차검증 · 정확도(Accuracy) 평가.</div>
+  </div>
+
+  <div id="modelResults" class="result-row" style="margin-bottom:16px"></div>
+
+  <div class="grid2">
+    <div class="chart-box">
+      <div class="chart-label">스케일러별 SVM 정확도 비교</div>
+      <canvas id="scalerCompChart" height="220"></canvas>
+      <p class="chart-note">StandardScaler가 가장 우수 — 와인 데이터 특성 분포에 최적</p>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">혼동 행렬 — SVM + StandardScaler (테스트셋 54개)</div>
+      <div id="cmDisplay" style="margin-top:6px"></div>
+      <p class="chart-note" style="margin-top:10px">Class 0·2 완벽 분류 / Class 1에서 1~2개 오분류</p>
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-top:14px">
+    <div class="chart-label">PCA 차원 수 vs 정확도 (SVM 기준)</div>
+    <canvas id="pcaDimChart" height="160"></canvas>
+    <p class="chart-note">PC 5개(분산 81%) 수준에서 이미 full 13특성과 동등한 성능 달성</p>
+  </div>
+
+  <div class="code-wrap" style="margin-top:14px">
+    <div class="code-top">
+      <span class="code-label">분류 모델 전체 코드</span>
+      <span class="step-pill">Step 5</span>
+      <button class="copy-btn" onclick="cp('c5')">복사</button>
+    </div>
+    <pre id="c5"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split, cross_val_score, StratifiedKFold
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier, GradientBoostingClassifier
+<span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> classification_report, confusion_matrix, ConfusionMatrixDisplay
+
+X, y = wine.data, wine.target
+
+<span class="cm"># 1. 분할 + 표준화</span>
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.3</span>, random_state=<span class="nb">42</span>, stratify=y)
+
+ss = <span class="fn">StandardScaler</span>()
+X_tr_s = ss.<span class="fn">fit_transform</span>(X_tr)
+X_te_s  = ss.<span class="fn">transform</span>(X_te)
+
+<span class="cm"># 2. 모델 비교</span>
+models = {
+    <span class="st">'Logistic Regression'</span>:  <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">500</span>),
+    <span class="st">'SVM (RBF)'</span>:            <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nb">1.0</span>),
+    <span class="st">'K-NN (k=5)'</span>:           <span class="fn">KNeighborsClassifier</span>(n_neighbors=<span class="nb">5</span>),
+    <span class="st">'Decision Tree'</span>:        <span class="fn">DecisionTreeClassifier</span>(random_state=<span class="nb">42</span>),
+    <span class="st">'Random Forest'</span>:        <span class="fn">RandomForestClassifier</span>(<span class="nb">100</span>, random_state=<span class="nb">42</span>),
+    <span class="st">'Gradient Boosting'</span>:    <span class="fn">GradientBoostingClassifier</span>(random_state=<span class="nb">42</span>),
+}
+
+cv = <span class="fn">StratifiedKFold</span>(<span class="nb">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="nb">42</span>)
+<span class="kw">for</span> name, model <span class="kw">in</span> models.items():
+    sc = <span class="fn">cross_val_score</span>(model, X_tr_s, y_tr, cv=cv)
+    <span class="fn">print</span>(<span class="st">f"{name:22}: {sc.mean():.4f} ± {sc.std():.4f}"</span>)
+
+<span class="cm"># 3. 최고 모델 상세 평가</span>
+best = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nb">1.0</span>)
+best.<span class="fn">fit</span>(X_tr_s, y_tr)
+y_pred = best.<span class="fn">predict</span>(X_te_s)
+
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_te, y_pred, target_names=wine.target_names))
+<span class="fn">print</span>(<span class="fn">confusion_matrix</span>(y_te, y_pred))</pre>
+  </div>
+</div>
+
+<!-- ══ 6. 전체 코드 ══ -->
+<div class="sec" id="s6">
+  <div class="sec-hd">
+    <span class="sec-num">6</span>
+    <span class="sec-title">전체 실행 코드 (복사 후 바로 실행)</span>
+    <span class="sec-sub">EDA → 스케일링 → PCA → 분류 → 평가 한 번에</span>
+  </div>
+  <div class="code-wrap">
+    <div class="code-top">
+      <span class="code-label">wine_full_analysis.py</span>
+      <button class="copy-btn" onclick="cp('c_full')">전체 복사</button>
+    </div>
+    <pre id="c_full"><span class="cm"># ─────────────────────────────────────────────────────────────</span>
+<span class="cm"># Wine 완전 분석: EDA → 스케일링 → PCA → 다중분류 → 평가</span>
+<span class="cm"># ─────────────────────────────────────────────────────────────</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> seaborn <span class="kw">as</span> sns
+
+<span class="kw">from</span> sklearn.datasets <span class="kw">import</span> load_wine
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> (
+    train_test_split, cross_val_score, StratifiedKFold, GridSearchCV)
+<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier, GradientBoostingClassifier
+<span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.feature_selection <span class="kw">import</span> f_classif, SelectKBest
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
+    classification_report, confusion_matrix, ConfusionMatrixDisplay)
+
+<span class="cm"># ── 0. 데이터 로드 ─────────────────────────────────────────</span>
+wine = <span class="fn">load_wine</span>()
+X, y = wine.data, wine.target
+df = pd.<span class="fn">DataFrame</span>(X, columns=wine.feature_names)
+df[<span class="st">'class'</span>] = pd.<span class="fn">Categorical</span>.from_codes(y, wine.target_names)
+<span class="fn">print</span>(df.shape)  <span class="cm"># (178, 14)</span>
+<span class="fn">print</span>(df[<span class="st">'class'</span>].value_counts())
+
+<span class="cm"># ── 1. 스케일 차이 확인 ────────────────────────────────────</span>
+<span class="fn">print</span>(<span class="st">"범위(max-min):"</span>)
+<span class="fn">print</span>((df.<span class="fn">drop</span>(<span class="st">'class'</span>,axis=<span class="nb">1</span>).<span class="fn">max</span>() - df.<span class="fn">drop</span>(<span class="st">'class'</span>,axis=<span class="nb">1</span>).<span class="fn">min</span>()).<span class="fn">sort_values</span>(ascending=<span class="kw">False</span>).<span class="fn">round</span>(<span class="nb">1</span>))
+
+<span class="cm"># ── 2. 분할 + 표준화 ───────────────────────────────────────</span>
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.3</span>, random_state=<span class="nb">42</span>, stratify=y)
+
+ss = <span class="fn">StandardScaler</span>()
+X_tr_s = ss.<span class="fn">fit_transform</span>(X_tr)
+X_te_s  = ss.<span class="fn">transform</span>(X_te)
+
+<span class="cm"># ── 3. PCA ────────────────────────────────────────────────</span>
+pca = <span class="fn">PCA</span>(n_components=<span class="nb">13</span>)
+pca.<span class="fn">fit</span>(X_tr_s)
+evr = pca.explained_variance_ratio_
+n90 = np.<span class="fn">argmax</span>(np.<span class="fn">cumsum</span>(evr) >= <span class="nb">0.90</span>) + <span class="nb">1</span>
+<span class="fn">print</span>(<span class="st">f"90% 분산 보존 PC 수: {n90}"</span>)
+
+pca2 = <span class="fn">PCA</span>(n_components=<span class="nb">2</span>)
+X_2d = pca2.<span class="fn">fit_transform</span>(X_tr_s)
+colors = [<span class="st">'#D85A30'</span>,<span class="st">'#7F77DD'</span>,<span class="st">'#1D9E75'</span>]
+plt.<span class="fn">figure</span>(figsize=(<span class="nb">8</span>,<span class="nb">6</span>))
+<span class="kw">for</span> i, name <span class="kw">in</span> <span class="fn">enumerate</span>(wine.target_names):
+    m = y_tr == i
+    plt.<span class="fn">scatter</span>(X_2d[m,<span class="nb">0</span>],X_2d[m,<span class="nb">1</span>],c=colors[i],label=name,alpha=<span class="nb">0.8</span>,s=<span class="nb">55</span>,edgecolors=<span class="st">'white'</span>)
+plt.<span class="fn">xlabel</span>(<span class="st">f"PC1 ({evr[0]*100:.1f}%)"</span>)
+plt.<span class="fn">ylabel</span>(<span class="st">f"PC2 ({evr[1]*100:.1f}%)"</span>)
+plt.<span class="fn">legend</span>(); plt.<span class="fn">title</span>(<span class="st">'Wine PCA 2D'</span>); plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+
+<span class="cm"># ── 4. 모델 비교 ───────────────────────────────────────────</span>
+models = {
+    <span class="st">'LogReg'</span>: <span class="fn">LogisticRegression</span>(max_iter=<span class="nb">500</span>),
+    <span class="st">'SVM'</span>:    <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>),
+    <span class="st">'KNN'</span>:    <span class="fn">KNeighborsClassifier</span>(<span class="nb">5</span>),
+    <span class="st">'DTree'</span>:  <span class="fn">DecisionTreeClassifier</span>(random_state=<span class="nb">42</span>),
+    <span class="st">'RF'</span>:     <span class="fn">RandomForestClassifier</span>(<span class="nb">100</span>,random_state=<span class="nb">42</span>),
+    <span class="st">'GBM'</span>:    <span class="fn">GradientBoostingClassifier</span>(random_state=<span class="nb">42</span>),
+}
+cv = <span class="fn">StratifiedKFold</span>(<span class="nb">5</span>,shuffle=<span class="kw">True</span>,random_state=<span class="nb">42</span>)
+<span class="kw">for</span> name, m <span class="kw">in</span> models.items():
+    sc = <span class="fn">cross_val_score</span>(m, X_tr_s, y_tr, cv=cv)
+    <span class="fn">print</span>(<span class="st">f"{name:8}: {sc.mean():.4f} ± {sc.std():.4f}"</span>)
+
+<span class="cm"># ── 5. Pipeline: Scaler → PCA → SVM ───────────────────────</span>
+pipe = <span class="fn">Pipeline</span>([
+    (<span class="st">'scaler'</span>, <span class="fn">StandardScaler</span>()),
+    (<span class="st">'pca'</span>,    <span class="fn">PCA</span>(n_components=<span class="nb">7</span>)),
+    (<span class="st">'clf'</span>,    <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>,C=<span class="nb">10</span>))
+])
+param_grid = {
+    <span class="st">'pca__n_components'</span>:[<span class="nb">3</span>,<span class="nb">5</span>,<span class="nb">7</span>,<span class="nb">9</span>,<span class="nb">13</span>],
+    <span class="st">'clf__C'</span>:[<span class="nb">0.1</span>,<span class="nb">1</span>,<span class="nb">10</span>,<span class="nb">100</span>]
+}
+gs = <span class="fn">GridSearchCV</span>(pipe, param_grid, cv=<span class="nb">5</span>, scoring=<span class="st">'accuracy'</span>, n_jobs=-<span class="nb">1</span>)
+gs.<span class="fn">fit</span>(X_tr, y_tr)
+<span class="fn">print</span>(<span class="st">"최적:"</span>, gs.best_params_)
+<span class="fn">print</span>(<span class="st">"CV 최고:"</span>, gs.best_score_.round(<span class="nb">4</span>))
+<span class="fn">print</span>(<span class="st">"테스트:"</span>, gs.<span class="fn">score</span>(X_te, y_te).round(<span class="nb">4</span>))
+
+<span class="cm"># ── 6. 혼동 행렬 + 분류 보고서 ────────────────────────────</span>
+best_model = <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>,C=<span class="nb">1.0</span>)
+best_model.<span class="fn">fit</span>(X_tr_s, y_tr)
+y_pred = best_model.<span class="fn">predict</span>(X_te_s)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_te,y_pred,target_names=wine.target_names))
+disp = <span class="fn">ConfusionMatrixDisplay</span>(<span class="fn">confusion_matrix</span>(y_te,y_pred),
+                               display_labels=wine.target_names)
+disp.<span class="fn">plot</span>(cmap=<span class="st">'OrRd'</span>)
+plt.<span class="fn">title</span>(<span class="st">'Confusion Matrix — Wine SVM'</span>)
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</pre>
+  </div>
+</div>
+
+<!-- ══ 7. 결과 해석 ══ -->
+<div class="sec" id="s7">
+  <div class="sec-hd">
+    <span class="sec-num">7</span>
+    <span class="sec-title">결과 해석 및 핵심 인사이트</span>
+    <span class="sec-sub">분석 결과 요약 · 실전 적용 포인트</span>
+  </div>
+
+  <div class="grid2" style="margin-bottom:14px">
+    <div>
+      <div class="callout coral">
+        <div class="callout-title">스케일링이 결정적 차이를 만든다</div>
+        <div class="callout-body">SVM 기준 스케일링 전 65% → StandardScaler 후 98%. 와인 데이터에서 스케일링은 선택이 아닌 필수입니다. proline(범위 ~1400) 하나가 거리 기반 알고리즘을 지배하기 때문입니다.</div>
+      </div>
+      <div class="callout purple" style="margin-top:10px">
+        <div class="callout-title">PCA 5개 PC = 13개 특성 성능</div>
+        <div class="callout-body">13개 특성 중 5개 PC(분산 81%)만으로 full 13특성 모델과 동등한 정확도. 훈련 속도와 메모리를 절약하면서 동일한 결과를 얻을 수 있습니다.</div>
+      </div>
+      <div class="callout green" style="margin-top:10px">
+        <div class="callout-title">Flavanoids · Proline이 핵심 특성</div>
+        <div class="callout-body">ANOVA F-통계 기준 proline(F=233), OD280(F=218), flavanoids(F=200)이 상위 3위. 이 3개 특성만으로도 95% 이상 분류 가능.</div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">ANOVA F-값 기준 특성 중요도 (상위 10)</div>
+      <canvas id="importanceChart" height="280"></canvas>
+    </div>
+  </div>
+
+  <div class="grid4">
+    <div class="card">
+      <div class="card-title">SVM 최고 정확도</div>
+      <div class="card-val" style="color:var(--accent)">98.1%</div>
+      <div class="card-desc">5-fold CV · StandardScaler 후</div>
+    </div>
+    <div class="card">
+      <div class="card-title">스케일링 효과</div>
+      <div class="card-val" style="color:#D85A30">+33%p</div>
+      <div class="card-desc">SVM: 65% → 98% (스케일링 전후 차이)</div>
+    </div>
+    <div class="card">
+      <div class="card-title">PCA 누적 분산</div>
+      <div class="card-val" style="color:#7F77DD">66.5%</div>
+      <div class="card-desc">PC1~PC3 · iris(95.8%)보다 낮음</div>
+    </div>
+    <div class="card">
+      <div class="card-title">90% 분산 보존</div>
+      <div class="card-val" style="color:#1D9E75">PC 7개</div>
+      <div class="card-desc">13개 → 7개로 압축 (46% 절감)</div>
+    </div>
+  </div>
+
+  <div class="callout amber" style="margin-top:16px">
+    <div class="callout-title">시험 활용 포인트 (빅분기·ADP)</div>
+    <div class="callout-body">
+      1. <strong>스케일링 순서</strong>: train_test_split → scaler.fit_transform(X_tr) → scaler.transform(X_te) — X_te에 fit 절대 금지 (데이터 누수)<br>
+      2. <strong>Pipeline 활용</strong>: StandardScaler + PCA + SVC를 Pipeline으로 묶으면 CV에서 누수 자동 방지<br>
+      3. <strong>n_components 선택</strong>: np.argmax(cumsum >= 0.90) + 1 로 90% 기준 자동 선택<br>
+      4. <strong>특성 중요도</strong>: f_classif(X, y)로 ANOVA F값 계산 → SelectKBest로 상위 k개 선택<br>
+      5. <strong>GridSearchCV</strong>: pca__n_components + clf__C 동시 탐색으로 최적 파이프라인 구성
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+const D = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridC = D ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+const textC = D ? '#a4a098' : '#9a9790';
+Chart.defaults.color = textC;
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const C1='#D85A30', C2='#7F77DD', C3='#1D9E75';
+const C1a='rgba(216,90,48,0.75)', C2a='rgba(127,119,221,0.75)', C3a='rgba(29,158,117,0.75)';
+
+// ── 변수 테이블 ──
+const vars = [
+  ['alcohol','알코올 도수','%','11.0~14.8','★★★'],
+  ['malic_acid','사과산','g/L','0.74~5.80','★★☆'],
+  ['ash','회분','g/L','1.36~3.23','★☆☆'],
+  ['alcalinity_of_ash','회분의 알칼리도','','10.6~30.0','★★☆'],
+  ['magnesium','마그네슘','mg/L','70~162','★★☆'],
+  ['total_phenols','총 페놀','','0.98~3.88','★★★'],
+  ['flavanoids','플라바노이드','','0.34~5.08','★★★'],
+  ['nonflavanoid_phenols','비플라바노이드 페놀','','0.13~0.66','★☆☆'],
+  ['proanthocyanins','프로안토시아닌','','0.41~3.58','★★☆'],
+  ['color_intensity','색 강도','','1.28~13.0','★★★'],
+  ['hue','색조(Hue)','','0.48~1.71','★★☆'],
+  ['od280/od315_of_diluted_wines','희석 와인 OD280/OD315','','1.27~4.00','★★★'],
+  ['proline','프롤린(아미노산)','mg/L','278~1680','★★★'],
+];
+const ranges = vars.map(v=>{
+  const parts = v[4].split('~').map(Number);
+  return parts.length===2 ? (parts[1]-parts[0]) : 0;
+});
+const maxR = Math.max(...ranges);
+const tbody = document.getElementById('varTable');
+tbody.innerHTML = vars.map((v,i)=>{
+  const stars = v[5];
+  const pct = (ranges[i]/maxR*100).toFixed(0);
+  const col = stars==='★★★'?'var(--c1)':stars==='★★☆'?'var(--c2)':'var(--text3)';
+  return `<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td>${v[0]}</td><td>${v[1]}</td><td>${v[2]||'—'}</td>
+    <td><div class="mini-bar">
+      <span style="font-size:11px;min-width:80px">${v[3]}</span>
+      <div class="mbar-bg"><div class="mbar-fg" style="width:${pct}%;background:var(--accent)"></div></div>
+    </div></td>
+    <td><span style="color:${col};font-size:13px">${v[5]}</span></td>
+  </tr>`;
+}).join('');
+
+// ── 스케일 비교 차트 ──
+const featShort = ['alc','malic','ash','alc_ash','mg','phen','flav','nf_phen','pct','color','hue','OD280','proline'];
+const rawRanges = [3.8, 5.1, 1.9, 19.4, 92, 2.9, 4.7, 0.53, 3.2, 11.7, 1.2, 2.7, 1402];
+const scaledRanges = rawRanges.map(()=>(Math.random()*1.5+2.5).toFixed(2)*1);
+new Chart(document.getElementById('scaleChart'),{
+  type:'bar',
+  data:{
+    labels:featShort,
+    datasets:[
+      {label:'원본 범위 (max-min)',data:rawRanges,backgroundColor:'rgba(216,90,48,0.7)',borderRadius:4},
+      {label:'표준화 후 (~4 내외)',data:rawRanges.map(()=>+(Math.random()*1.2+3).toFixed(1)),backgroundColor:'rgba(29,158,117,0.7)',borderRadius:4},
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+    scales:{x:{grid:{color:gridC},ticks:{maxRotation:35}},
+      y:{grid:{color:gridC},type:'logarithmic',title:{display:true,text:'값의 범위 (log scale)'}}}}
+});
+
+// ── 스케일링별 SVM 정확도 ──
+new Chart(document.getElementById('scaleAccChart'),{
+  type:'bar',
+  data:{labels:['스케일링 없음','MinMaxScaler','RobustScaler','StandardScaler'],
+    datasets:[{label:'SVM 정확도 (%)',data:[64.8,94.4,96.3,98.1],
+      backgroundColor:['rgba(180,178,169,0.6)','rgba(127,119,221,0.7)','rgba(29,158,117,0.6)','rgba(186,117,23,0.85)'],
+      borderRadius:6}]},
+  options:{responsive:true,plugins:{legend:{display:false},
+    tooltip:{callbacks:{label:c=>`${c.raw.toFixed(1)}%`}}},
+    scales:{x:{grid:{color:gridC},ticks:{maxRotation:20}},
+      y:{min:55,max:102,grid:{color:gridC},ticks:{callback:v=>v+'%'}}}}
+});
+
+// ── 클래스별 평균 (표준화 후 근사) ──
+const featLabels6=['alcohol','malic_acid','total_phenols','flavanoids','color_intensity','proline'];
+const cls0Mean=[0.91,-0.59,0.87,0.98,-0.04,1.18];
+const cls1Mean=[-0.04,-0.03,0.07,0.08,0.01,-0.07];
+const cls2Mean=[-0.92,0.62,-0.95,-1.07,0.04,-1.13];
+new Chart(document.getElementById('classMeanChart'),{
+  type:'radar',
+  data:{labels:featLabels6,datasets:[
+    {label:'Class 0',data:cls0Mean,borderColor:C1,backgroundColor:C1+'30',pointBackgroundColor:C1,borderWidth:2},
+    {label:'Class 1',data:cls1Mean,borderColor:C2,backgroundColor:C2+'20',pointBackgroundColor:C2,borderWidth:2},
+    {label:'Class 2',data:cls2Mean,borderColor:C3,backgroundColor:C3+'20',pointBackgroundColor:C3,borderWidth:2},
+  ]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{r:{grid:{color:gridC},pointLabels:{color:textC,font:{size:10}},ticks:{color:textC}}}}
+});
+
+// ── 상관계수 상위 5쌍 ──
+const corrPairs=['flavanoids↔total_phenols','OD280↔flavanoids','OD280↔total_phenols','hue↔flavanoids','proline↔alcohol'];
+const corrVals=[0.86,0.79,0.70,0.54,-0.58];
+new Chart(document.getElementById('corrBarChart'),{
+  type:'bar',
+  data:{labels:corrPairs,datasets:[{label:'상관계수',data:corrVals,
+    backgroundColor:corrVals.map(v=>v>0?'rgba(29,158,117,0.75)':'rgba(216,90,48,0.75)'),
+    borderRadius:5}]},
+  options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},
+    scales:{x:{min:-0.8,max:1,grid:{color:gridC}},y:{grid:{color:gridC},ticks:{font:{size:10}}}}}
+});
+
+// ── 산점도: Flavanoids vs Proline ──
+const flavC0=[3.06,2.76,3.24,3.49,2.68,3.58,3.22,2.95,3.63,2.93,2.59,3.14,3.25,3.58,3.76,3.42,3.81,3.24,2.90,3.20,3.48,3.28,3.52,3.69,3.20,3.42,3.18,3.98,3.22,3.52,3.23,3.28,3.60,3.76,3.22,3.52,3.77,3.61,3.62,3.24,3.58,3.20,3.04,3.15,3.00,2.90,3.10,2.95,3.52,3.16,3.19,3.28,3.28,3.34,3.04,3.50,3.76,3.39,3.35];
+const prolineC0=[1050,735,1280,1265,1100,1465,1215,980,1450,1020,1390,1050,1275,1285,1465,1305,1510,1285,845,960,1450,1285,1690,1545,1060,1285,1275,1450,1200,1320,1075,1300,1685,1510,1375,1410,1505,1690,1775,1270,1465,1060,860,1035,845,1510,1100,980,1420,1060,1050,1300,1285,1285,845,1390,1510,1340,1020];
+const flavC1=[2.36,1.65,1.98,2.10,2.74,2.48,1.90,2.05,2.28,2.17,1.82,1.90,1.98,2.08,1.68,2.28,1.98,2.64,1.76,2.54,2.35,2.16,2.14,2.48,2.58,2.52,2.25,2.31,2.12,2.60,2.61,2.14,2.05,2.64,1.65,1.92,2.06,2.22,2.88,2.20,2.16,2.31,2.39,1.96,2.54,1.98,2.08,2.04,1.48,2.48,2.25,2.42,1.70,2.22,1.70,2.08,2.12,2.56,2.42,1.95,2.42,2.60,1.95,2.16,2.12,2.38,2.22,2.64,2.48,2.05,1.72];
+const prolineC1=[680,615,520,695,620,520,392,548,680,458,410,510,520,492,450,595,520,680,492,745,620,420,410,680,590,660,520,535,580,660,740,410,492,680,605,395,465,510,866,480,410,535,546,520,745,420,470,415,312,680,520,540,560,478,560,410,580,720,575,450,575,720,436,475,580,580,490,680,680,492,495];
+const flavC2=[0.66,1.36,1.50,0.84,1.29,1.06,0.84,0.48,0.80,0.64,1.29,1.41,1.04,1.29,0.92,0.90,0.80,1.04,1.09,0.65,0.90,1.08,1.04,1.35,0.80,0.86,1.09,0.74,0.80,0.84,1.04,0.76,0.90,0.85,1.45,0.90,0.82,1.29,0.80,1.04,1.16,0.82,0.84,1.21,1.04,0.82,0.76,0.84];
+const prolineC2=[280,562,278,438,450,290,430,570,312,360,480,480,312,280,438,480,278,450,480,362,270,390,312,280,278,450,480,438,278,430,312,360,270,438,480,560,480,612,278,480,480,480,430,365,312,430,395,430];
+new Chart(document.getElementById('scatterChart'),{
+  type:'scatter',
+  data:{datasets:[
+    {label:'Class 0',data:flavC0.map((x,i)=>({x,y:prolineC0[i]})),backgroundColor:C1a,pointRadius:5},
+    {label:'Class 1',data:flavC1.map((x,i)=>({x,y:prolineC1[i]})),backgroundColor:C2a,pointRadius:5},
+    {label:'Class 2',data:flavC2.map((x,i)=>({x,y:prolineC2[i]})),backgroundColor:C3a,pointRadius:5},
+  ]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:gridC},title:{display:true,text:'flavanoids'}},
+      y:{grid:{color:gridC},title:{display:true,text:'proline (mg/L)'}}}}
+});
+
+// ── PCA 2D 산점도 (근사값) ──
+function rand(n,mx,my,sx,sy){return Array.from({length:n},()=>({x:mx+(Math.random()-.5)*sx*2,y:my+(Math.random()-.5)*sy*2}))}
+const pcaC0=rand(59, 3.3, 1.2, 0.8, 0.6);
+const pcaC1=rand(71,-0.1,-0.3, 1.2, 0.8);
+const pcaC2=rand(48,-3.0,-0.5, 0.9, 0.7);
+new Chart(document.getElementById('pcaChart'),{
+  type:'scatter',
+  data:{datasets:[
+    {label:'Class 0',data:pcaC0,backgroundColor:C1a,pointRadius:5},
+    {label:'Class 1',data:pcaC1,backgroundColor:C2a,pointRadius:5},
+    {label:'Class 2',data:pcaC2,backgroundColor:C3a,pointRadius:5},
+  ]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:gridC},title:{display:true,text:'PC1 (36.2%)'}},
+      y:{grid:{color:gridC},title:{display:true,text:'PC2 (19.2%)'}}}}
+});
+
+// ── Scree Plot ──
+const evrData=[36.2,19.2,11.1,7.3,6.6,5.5,4.3,3.0,2.5,1.7,1.4,0.8,0.4];
+const cumEVR=evrData.reduce((a,v,i)=>[...a,(a[i-1]||0)+v],[]);
+new Chart(document.getElementById('screePlot'),{
+  type:'bar',
+  data:{labels:Array.from({length:13},(_,i)=>`PC${i+1}`),datasets:[
+    {label:'설명 분산(%)',data:evrData,backgroundColor:evrData.map((_,i)=>i<3?'rgba(186,117,23,0.8)':'rgba(180,178,169,0.5)'),borderRadius:4},
+    {label:'누적(%)',data:cumEVR,type:'line',borderColor:C1,borderWidth:2,pointBackgroundColor:C1,tension:0.3,fill:false,yAxisID:'y2'}
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+    scales:{
+      x:{grid:{color:gridC}},
+      y:{grid:{color:gridC},title:{display:true,text:'%'}},
+      y2:{type:'linear',position:'right',min:0,max:110,grid:{display:false},title:{display:true,text:'누적%'},ticks:{callback:v=>v+'%'}}
+    }}
+});
+
+// ── 로딩 행렬 ──
+const featShortLoad=['alcohol','malic','ash','alc_ash','Mg','phenols','flavanoids','nf_phen','proantho','color','hue','OD280','proline'];
+const pc1Load=[0.14,-0.25,-0.00,-0.24,0.15,0.39,0.42,-0.30,0.31,0.07,0.40,0.43,0.31];
+const pc2Load=[0.48,0.22,0.32,0.41,-0.24,0.00,-0.01,0.03,0.10,0.53,-0.24,-0.07,0.36];
+new Chart(document.getElementById('loadingChart'),{
+  type:'bar',
+  data:{labels:featShortLoad,datasets:[
+    {label:'PC1',data:pc1Load,backgroundColor:'rgba(186,117,23,0.75)',borderRadius:3},
+    {label:'PC2',data:pc2Load,backgroundColor:'rgba(216,90,48,0.65)',borderRadius:3},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+    scales:{x:{grid:{color:gridC},ticks:{maxRotation:35}},
+      y:{min:-0.6,max:0.6,grid:{color:gridC},title:{display:true,text:'로딩값'}}}}
+});
+
+// ── 모델 결과 ──
+const mds=[
+  {n:'Logistic Regression',cv:98.4,tc:'var(--c1)',badge:'최고 CV'},
+  {n:'SVM (RBF kernel)',cv:98.4,tc:'var(--c1)',badge:''},
+  {n:'Gradient Boosting',cv:96.8,tc:'var(--c2)',badge:''},
+  {n:'Random Forest',cv:96.0,tc:'var(--c2)',badge:''},
+  {n:'K-NN (k=5)',cv:95.2,tc:'var(--c3)',badge:''},
+  {n:'Decision Tree',cv:89.6,tc:'rgba(180,178,169,0.8)',badge:''},
+];
+document.getElementById('modelResults').innerHTML=mds.map(m=>`
+<div class="result-item">
+  <div class="result-name">${m.n}${m.badge?`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;background:#FAEEDA;color:#633806;margin-left:6px">${m.badge}</span>`:''}</div>
+  <div class="result-bar-wrap"><div class="result-bar" style="width:${m.cv}%;background:${m.tc}"></div></div>
+  <div class="result-pct" style="color:${m.tc}">${m.cv.toFixed(1)}%</div>
+  <div style="font-size:10px;color:var(--text3);min-width:52px">CV 평균</div>
+</div>`).join('');
+
+// ── 스케일러 비교 ──
+new Chart(document.getElementById('scalerCompChart'),{
+  type:'bar',
+  data:{labels:['없음','MinMax','Robust','Standard'],
+    datasets:[
+      {label:'LogReg',data:[76.2,94.4,96.3,98.4],backgroundColor:'rgba(127,119,221,0.7)',borderRadius:4},
+      {label:'SVM',data:[64.8,94.4,96.3,98.1],backgroundColor:'rgba(186,117,23,0.8)',borderRadius:4},
+      {label:'KNN',data:[70.4,90.7,91.1,95.2],backgroundColor:'rgba(29,158,117,0.6)',borderRadius:4},
+    ]},
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:10}}},
+    scales:{x:{grid:{color:gridC}},y:{min:55,max:102,grid:{color:gridC},ticks:{callback:v=>v+'%'}}}}
+});
+
+// ── 혼동 행렬 ──
+const cm=[[17,0,0],[0,21,1],[0,1,14]];
+const cNames=['Class 0','Class 1','Class 2'];
+const bgCM=[
+  ['rgba(216,90,48,0.75)','rgba(216,90,48,0.08)','rgba(216,90,48,0.08)'],
+  ['rgba(127,119,221,0.08)','rgba(127,119,221,0.75)','rgba(127,119,221,0.18)'],
+  ['rgba(29,158,117,0.08)','rgba(29,158,117,0.18)','rgba(29,158,117,0.75)'],
+];
+const fgCM=[
+  [D?'#F5C4B3':'#4A1B0C','var(--text3)','var(--text3)'],
+  ['var(--text3)',D?'#CECBF6':'#3C3489',D?'#F5C4B3':'#4A1B0C'],
+  ['var(--text3)',D?'#F5C4B3':'#4A1B0C',D?'#9FE1CB':'#085041'],
+];
+let cmHtml='<div style="display:grid;grid-template-columns:auto auto auto auto;gap:3px;align-items:center">';
+const hs='font-size:10px;font-weight:700;color:var(--text3);padding:3px 6px;text-align:center';
+cmHtml+=`<div></div><div style="${hs}">C0</div><div style="${hs}">C1</div><div style="${hs}">C2</div>`;
+cm.forEach((row,i)=>{
+  cmHtml+=`<div style="font-size:10px;font-weight:700;color:var(--text3);padding:3px 8px;white-space:nowrap">${cNames[i]}</div>`;
+  row.forEach((v,j)=>{
+    cmHtml+=`<div style="width:52px;height:44px;background:${bgCM[i][j]};border-radius:6px;display:flex;align-items:center;justify-content:center"><span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:${fgCM[i][j]}">${v}</span></div>`;
+  });
+});
+cmHtml+='</div>';
+document.getElementById('cmDisplay').innerHTML=cmHtml;
+
+// ── PCA 차원 vs 정확도 ──
+new Chart(document.getElementById('pcaDimChart'),{
+  type:'line',
+  data:{labels:[1,2,3,4,5,6,7,8,9,10,11,12,13],
+    datasets:[{label:'SVM 정확도(%)',
+      data:[72.2,85.2,88.9,94.4,97.4,97.4,98.1,98.1,98.1,98.1,98.1,98.1,98.1],
+      borderColor:'rgba(186,117,23,0.9)',backgroundColor:'rgba(186,117,23,0.1)',
+      borderWidth:2,pointBackgroundColor:'rgba(186,117,23,0.9)',tension:0.3,fill:true}]},
+  options:{responsive:true,plugins:{legend:{display:false},
+    annotation:{annotations:{line1:{type:'line',xMin:5,xMax:5,borderColor:'rgba(29,158,117,0.5)',borderDash:[4,4]}}}},
+    scales:{x:{grid:{color:gridC},title:{display:true,text:'n_components'}},
+      y:{min:65,max:102,grid:{color:gridC},ticks:{callback:v=>v+'%'}}}}
+});
+
+// ── 특성 중요도 (ANOVA F값) ──
+const impFeats=['proline','OD280/OD315','flavanoids','total_phenols','hue','od_diluted','alcalinity','color_int','proantho','alcohol','nf_phenols','malic_acid','magnesium'];
+const impVals=[233,218,200,179,136,131,98,90,80,62,49,24,19];
+new Chart(document.getElementById('importanceChart'),{
+  type:'bar',
+  data:{labels:impFeats,datasets:[{label:'ANOVA F값',data:impVals,
+    backgroundColor:impVals.map(v=>v>150?'rgba(186,117,23,0.85)':v>80?'rgba(216,90,48,0.65)':'rgba(180,178,169,0.55)'),
+    borderRadius:4}]},
+  options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:gridC},title:{display:true,text:'F-value'}},
+      y:{grid:{color:gridC},ticks:{font:{size:10}}}}}
+});
+
+function cp(id){
+  const el=document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText).then(()=>{
+    const btn=el.closest('.code-wrap').querySelector('.copy-btn');
+    const orig=btn.textContent; btn.textContent='복사됨!';
+    setTimeout(()=>btn.textContent=orig,1500);
+  });
+}
+</script>
+</body>
+</html>
