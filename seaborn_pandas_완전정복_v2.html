@@ -1,0 +1,3608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seaborn 데이터셋 × Pandas 완전정복 v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+:root{
+  --bg:#f8f9fb;
+  --white:#ffffff;
+  --border:#e2e6ef;
+  --border2:#cbd2e0;
+  --dark:#0f172a;
+  --dark2:#1e293b;
+  --dark3:#334155;
+  --gray:#64748b;
+  --gray2:#94a3b8;
+
+  --sn:#0f766e;
+  --sn-light:#f0fdfa;
+  --sn-mid:#ccfbf1;
+  --sn-dark:#134e4a;
+  --pd:#1a56db;
+  --pd-light:#eff6ff;
+  --pd-mid:#dbeafe;
+
+  --cls:#7c3aed; --cls-bg:#faf5ff; --cls-bd:#ddd6fe;
+  --reg:#16a34a; --reg-bg:#f0fdf4; --reg-bd:#bbf7d0;
+  --ts:#c2600a;  --ts-bg:#fff7ed;  --ts-bd:#fed7aa;
+  --cl:#0ea5e9;  --cl-bg:#f0f9ff;  --cl-bd:#bae6fd;
+  --stat:#dc2626;--stat-bg:#fef2f2;--stat-bd:#fecaca;
+  --viz:#db2777; --viz-bg:#fdf2f8; --viz-bd:#fbcfe8;
+  --corr:#1a56db;--corr-bg:#eff6ff;--corr-bd:#bfdbfe;
+}
+
+body{
+  background:var(--bg);
+  color:var(--dark);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:14px;
+  line-height:1.7;
+}
+
+/* HEADER */
+.site-header{
+  position:sticky;top:0;z-index:200;
+  background:var(--white);
+  border-bottom:2px solid var(--border);
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.header-inner{
+  max-width:1380px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:56px;gap:16px;
+}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:17px;white-space:nowrap}
+.logo-sn{color:var(--sn)}
+.logo-sep{color:var(--gray2);font-weight:300;margin:0 2px}
+.logo-pd{color:var(--pd)}
+.toc-nav{display:flex;gap:4px;flex-wrap:wrap;overflow:hidden;max-height:36px}
+.toc-btn{
+  padding:4px 11px;border-radius:20px;
+  font-size:11px;font-weight:600;
+  border:1px solid var(--border2);
+  background:var(--white);color:var(--gray);
+  cursor:pointer;text-decoration:none;
+  transition:all .15s;white-space:nowrap;
+}
+.toc-btn:hover{background:var(--sn);color:#fff;border-color:var(--sn)}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,var(--sn-dark) 0%,#0f766e 40%,#0369a1 100%);
+  padding:52px 28px 44px;text-align:center;
+}
+.hero h1{
+  font-size:clamp(28px,4vw,52px);
+  font-weight:900;letter-spacing:-1.5px;
+  color:#fff;margin-bottom:12px;
+}
+.hero h1 em{color:#99f6e4;font-style:normal}
+.hero-sub{font-size:15px;color:#ccfbf1;max-width:600px;margin:0 auto 24px}
+.hero-chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.chip{
+  padding:5px 16px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  border:1.5px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.15);color:#fff;
+}
+
+/* LAYOUT */
+.main{
+  max-width:1380px;margin:0 auto;
+  display:grid;grid-template-columns:220px 1fr;
+  gap:32px;padding:32px 28px 80px;align-items:start;
+}
+@media(max-width:900px){
+  .main{grid-template-columns:1fr;padding:20px 16px}
+  .sidebar{display:none}
+}
+
+/* SIDEBAR */
+.sidebar{
+  position:sticky;top:72px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;padding:18px 0;
+  max-height:calc(100vh - 90px);overflow-y:auto;
+}
+.sidebar-title{
+  font-size:10px;font-weight:800;
+  color:var(--gray2);letter-spacing:1.2px;text-transform:uppercase;
+  padding:0 18px 10px;border-bottom:1px solid var(--border);margin-bottom:8px;
+}
+.sb-link{
+  display:block;padding:6px 18px;
+  font-size:12px;color:var(--dark3);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  font-family:'Fira Code',monospace;
+  transition:all .15s;
+}
+.sb-link:hover{color:var(--sn);border-left-color:var(--sn);background:var(--sn-light)}
+.sb-link.active{color:var(--sn);border-left-color:var(--sn);font-weight:700;background:var(--sn-light)}
+
+/* SECTION */
+.section{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:24px;overflow:hidden;
+}
+.section-head{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 24px;border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.sec-num{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;flex-shrink:0;
+}
+.sec-name{font-size:16px;font-weight:800;font-family:'Fira Code',monospace}
+.sec-badge{
+  font-size:10px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;padding:2px 10px;
+  border-radius:12px;border:1px solid;margin-left:8px;
+}
+
+/* category colors */
+.cat-cls .sec-num{background:var(--cls-bg);color:var(--cls)}
+.cat-cls .sec-badge{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.cat-reg .sec-num{background:var(--reg-bg);color:var(--reg)}
+.cat-reg .sec-badge{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.cat-ts .sec-num{background:var(--ts-bg);color:var(--ts)}
+.cat-ts .sec-badge{background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)}
+.cat-cl .sec-num{background:var(--cl-bg);color:var(--cl)}
+.cat-cl .sec-badge{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.cat-stat .sec-num{background:var(--stat-bg);color:var(--stat)}
+.cat-stat .sec-badge{background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)}
+.cat-viz .sec-num{background:var(--viz-bg);color:var(--viz)}
+.cat-viz .sec-badge{background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)}
+.cat-corr .sec-num{background:var(--corr-bg);color:var(--corr)}
+.cat-corr .sec-badge{background:var(--corr-bg);color:var(--corr);border-color:var(--corr-bd)}
+
+/* TABS */
+.tab-bar{
+  display:flex;gap:4px;padding:12px 16px 0;
+  border-bottom:1px solid var(--border);
+  background:var(--white);
+}
+.tab-btn{
+  padding:7px 16px;border-radius:8px 8px 0 0;
+  font-size:12px;font-weight:600;
+  border:1px solid transparent;
+  background:none;color:var(--gray);
+  cursor:pointer;transition:all .15s;
+}
+.tab-btn.active{
+  background:var(--white);
+  border-color:var(--border);border-bottom-color:var(--white);
+  color:var(--sn);
+  margin-bottom:-1px;
+}
+.tab-btn:hover:not(.active){color:var(--dark);background:var(--bg)}
+.tab-content{padding:20px 24px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* OVERVIEW */
+.ds-desc{color:var(--gray);margin-bottom:14px;font-size:13px}
+.meta-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.meta-chip{
+  padding:3px 12px;border-radius:12px;
+  font-size:11px;font-weight:600;
+  background:var(--bg);border:1px solid var(--border2);
+  color:var(--dark3);
+}
+.meta-chip.cat-cls{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.meta-chip.cat-reg{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.meta-chip.cat-ts{background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)}
+.meta-chip.cat-cl{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.meta-chip.cat-stat{background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)}
+.meta-chip.cat-viz{background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)}
+.meta-chip.cat-corr{background:var(--corr-bg);color:var(--corr);border-color:var(--corr-bd)}
+
+/* COLUMN TABLE */
+.col-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.col-table th{
+  background:var(--bg);padding:8px 12px;
+  text-align:left;border:1px solid var(--border);
+  font-size:11px;font-weight:700;color:var(--gray);
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.col-table td{padding:7px 12px;border:1px solid var(--border);color:var(--dark2)}
+.col-table td code{
+  font-family:'Fira Code',monospace;font-size:12px;
+  background:var(--pd-light);color:var(--pd);
+  padding:1px 5px;border-radius:4px;
+}
+.type-cell{font-family:'Fira Code',monospace;font-size:12px;color:var(--sn)}
+.col-table tr:nth-child(even) td{background:#fafbfc}
+
+/* PRINCIPLES */
+.principles-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.principles-grid{grid-template-columns:1fr}}
+.principle-item{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.pr-key{
+  font-size:11px;font-weight:800;color:var(--sn);
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.pr-val{font-size:12px;color:var(--dark2);line-height:1.5}
+
+/* SUB EXAMPLE */
+.examples-container{display:flex;flex-direction:column;gap:28px}
+.sub-example{
+  border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;
+}
+.sub-ex-header{
+  padding:10px 16px;background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.sub-ex-badge{
+  display:inline-block;
+  font-size:11px;font-weight:700;
+  padding:3px 12px;border-radius:12px;
+  border:1.5px solid;
+}
+.badge-cls{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.badge-reg{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.badge-ts{background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)}
+.badge-cl{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.badge-stat{background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)}
+.badge-viz{background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)}
+.badge-corr{background:var(--corr-bg);color:var(--corr);border-color:var(--corr-bd)}
+.badge-eda{background:#fefce8;color:#854d0e;border-color:#fde047}
+.badge-ml{background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd}
+
+.sub-example .steps{padding:12px 16px 0}
+
+/* ═══════════════════════════════════════
+   CODE BLOCK — PRISM.JS GITHUB LIGHT
+═══════════════════════════════════════ */
+.code-block{
+  border:1px solid #d0d7de;
+  border-radius:8px;
+  overflow:hidden;
+  margin:0;
+  font-size:12.5px;
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#eef0f2;
+  border-bottom:1px solid #d0d7de;
+  padding:7px 14px;
+}
+.code-lang{
+  font-family:'Fira Code',monospace;
+  font-size:10px;font-weight:600;
+  color:#57606a;letter-spacing:.8px;text-transform:uppercase;
+}
+.code-copy{
+  font-size:10px;font-weight:600;color:#57606a;
+  background:#fff;border:1px solid #d0d7de;
+  border-radius:4px;padding:2px 8px;cursor:pointer;
+  transition:all .15s;
+}
+.code-copy:hover{color:var(--sn);border-color:var(--sn)}
+
+/* Override Prism default theme to match GitHub Light */
+pre.code{
+  margin:0 !important;
+  padding:14px 16px !important;
+  background:#f6f8fa !important;
+  border-radius:0 !important;
+  border:none !important;
+  overflow-x:auto;
+  line-height:1.85 !important;
+}
+pre.code code{
+  font-family:'Fira Code',monospace !important;
+  font-size:12.5px !important;
+  background:none !important;
+  color:#24292f !important;
+  text-shadow:none !important;
+  padding:0 !important;
+}
+
+/* GitHub Light syntax token colors */
+pre.code .token.comment,
+pre.code .token.prolog,
+pre.code .token.doctype,
+pre.code .token.cdata {color:#6e7781;font-style:italic}
+
+pre.code .token.keyword,
+pre.code .token.selector,
+pre.code .token.important,
+pre.code .token.atrule {color:#cf222e;font-weight:600}
+
+pre.code .token.string,
+pre.code .token.attr-value,
+pre.code .token.char {color:#0a3069}
+
+pre.code .token.number,
+pre.code .token.boolean {color:#0550ae}
+
+pre.code .token.function {color:#8250df}
+
+pre.code .token.class-name,
+pre.code .token.builtin {color:#953800}
+
+pre.code .token.operator,
+pre.code .token.entity,
+pre.code .token.url {color:#cf222e}
+
+pre.code .token.regex,
+pre.code .token.important {color:#116329}
+
+pre.code .token.punctuation {color:#24292f}
+
+pre.code .token.decorator {color:#116329;font-style:italic}
+
+/* RESULT BOX */
+.result-box{
+  background:#f0fdf4;
+  border:1px solid #bbf7d0;
+  border-left:4px solid var(--sn);
+  border-radius:0 8px 8px 0;
+  padding:14px 16px;
+  margin:12px 16px 0;
+}
+.result-box h5{
+  font-size:11px;font-weight:700;
+  color:var(--sn);letter-spacing:.5px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.result-box ul{padding-left:16px;margin-top:4px}
+.result-box li{
+  font-size:13px;color:var(--dark2);
+  line-height:1.65;margin-bottom:4px;
+}
+
+/* TIP BOX */
+.tip-box{
+  background:#fffbeb;border:1px solid #fde68a;
+  border-radius:8px;padding:10px 16px;
+  margin:8px 16px 16px;font-size:12px;color:#92400e;
+}
+.tip-box strong{color:#78350f}
+
+/* STEPS */
+.steps{
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding:10px 16px;
+}
+.step{
+  display:flex;align-items:center;gap:6px;
+  background:var(--sn-light);border:1px solid var(--sn-mid);
+  border-radius:20px;padding:3px 12px;
+  font-size:11px;font-weight:700;color:var(--sn-dark);
+}
+.step-num{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--sn);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;flex-shrink:0;
+}
+
+/* SEPARATOR */
+.cat-separator{
+  display:flex;align-items:center;gap:12px;
+  padding:8px 0 20px;
+}
+.cat-sep-line{flex:1;height:1px;background:var(--border)}
+.cat-sep-label{
+  font-size:12px;font-weight:800;
+  color:var(--gray);letter-spacing:.5px;white-space:nowrap;
+}
+.cat-sep-cls{color:var(--cls)}
+.cat-sep-reg{color:var(--reg)}
+.cat-sep-ts{color:var(--ts)}
+.cat-sep-cl{color:var(--cl)}
+.cat-sep-stat{color:var(--stat)}
+.cat-sep-viz{color:var(--viz)}
+.cat-sep-corr{color:var(--corr)}
+
+/* OVERVIEW GRID */
+.overview-section{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:14px;padding:20px 24px;margin-bottom:24px;
+}
+.overview-title{
+  font-size:13px;font-weight:800;color:var(--dark);
+  margin-bottom:16px;
+}
+.overview-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:10px;
+}
+.ov-card{
+  padding:12px;border-radius:10px;border:1.5px solid;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  text-decoration:none;
+}
+.ov-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.ov-card-name{font-family:'Fira Code',monospace;font-weight:700;font-size:13px;margin-bottom:3px}
+.ov-card-meta{font-size:10px;color:var(--gray);margin-bottom:4px}
+.ov-card-desc{font-size:11px;line-height:1.4}
+.ov-card.cls{background:var(--cls-bg);border-color:var(--cls-bd);color:var(--cls)}
+.ov-card.reg{background:var(--reg-bg);border-color:var(--reg-bd);color:var(--reg)}
+.ov-card.ts{background:var(--ts-bg);border-color:var(--ts-bd);color:var(--ts)}
+.ov-card.cl{background:var(--cl-bg);border-color:var(--cl-bd);color:var(--cl)}
+.ov-card.stat{background:var(--stat-bg);border-color:var(--stat-bd);color:var(--stat)}
+.ov-card.viz{background:var(--viz-bg);border-color:var(--viz-bd);color:var(--viz)}
+.ov-card.corr{background:var(--corr-bg);border-color:var(--corr-bd);color:var(--corr)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-sn">seaborn</span>
+      <span class="logo-sep">×</span>
+      <span class="logo-pd">pandas</span>
+      <span style="color:var(--gray2);font-size:12px;font-weight:400;margin-left:6px">완전정복 v2</span>
+    </div>
+    <nav class="toc-nav">
+      <a class="toc-btn" href="#overview-section">전체보기</a>
+      <a class="toc-btn" href="#iris">분류</a>
+      <a class="toc-btn" href="#tips">회귀</a>
+      <a class="toc-btn" href="#flights">시계열</a>
+      <a class="toc-btn" href="#geyser">클러스터링</a>
+      <a class="toc-btn" href="#attention">통계검정</a>
+      <a class="toc-btn" href="#anscombe">시각화</a>
+      <a class="toc-btn" href="#brain_networks">상관</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>seaborn <em>×</em> pandas<br>데이터셋 완전정복</h1>
+  <p class="hero-sub">21개 내장 데이터셋 · 분류별 다중 분석 예제 · 라이트 코드 테마</p>
+  <div class="hero-chips">
+    <span class="chip">분류 4종</span>
+    <span class="chip">회귀 4종</span>
+    <span class="chip">시계열 5종</span>
+    <span class="chip">클러스터링 2종</span>
+    <span class="chip">통계검정 3종</span>
+    <span class="chip">시각화·기타 3종</span>
+  </div>
+</div>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sidebar-title">데이터셋 목록</div>
+    <a class="sb-link" href="#iris">#01 iris</a>
+<a class="sb-link" href="#titanic">#02 titanic</a>
+<a class="sb-link" href="#penguins">#03 penguins</a>
+<a class="sb-link" href="#tips">#04 tips</a>
+<a class="sb-link" href="#diamonds">#05 diamonds</a>
+<a class="sb-link" href="#mpg">#06 mpg</a>
+<a class="sb-link" href="#flights">#07 flights</a>
+<a class="sb-link" href="#dowjones">#08 dowjones</a>
+<a class="sb-link" href="#geyser">#09 geyser</a>
+<a class="sb-link" href="#attention">#10 attention</a>
+<a class="sb-link" href="#car_crashes">#11 car_crashes</a>
+<a class="sb-link" href="#anscombe">#12 anscombe</a>
+<a class="sb-link" href="#taxis">#13 taxis</a>
+<a class="sb-link" href="#planets">#14 planets</a>
+<a class="sb-link" href="#exercise">#15 exercise</a>
+<a class="sb-link" href="#seaice">#16 seaice</a>
+<a class="sb-link" href="#fmri">#17 fmri</a>
+<a class="sb-link" href="#healthexp">#18 healthexp</a>
+<a class="sb-link" href="#gammas">#19 gammas</a>
+<a class="sb-link" href="#glue">#20 glue</a>
+<a class="sb-link" href="#brain_networks">#21 brain_networks</a>
+  </aside>
+  <main class="content" id="overview-section">
+
+    <div class="overview-section">
+      <div class="overview-title">📦 전체 데이터셋 (21개)</div>
+      <div class="overview-grid">
+        <a class="ov-card cls" href="#iris">
+  <div class="ov-card-name">sns.iris</div>
+  <div class="ov-card-meta">150행 · 분류</div>
+  <div class="ov-card-desc">붓꽃 3종(setosa/versicolor/virginica)의 꽃받침·꽃잎 치수. 다중분...</div>
+</a>
+<a class="ov-card cls" href="#titanic">
+  <div class="ov-card-name">sns.titanic</div>
+  <div class="ov-card-meta">891행 · 분류</div>
+  <div class="ov-card-desc">타이타닉 승객 생존 여부. 결측치 처리·이진 분류·피처 엔지니어링 연습의 표준 데이터셋....</div>
+</a>
+<a class="ov-card cls" href="#penguins">
+  <div class="ov-card-name">sns.penguins</div>
+  <div class="ov-card-meta">344행 · 분류</div>
+  <div class="ov-card-desc">남극 펭귄 3종(Adelie/Chinstrap/Gentoo)의 부리·지느러미 측정치. ir...</div>
+</a>
+<a class="ov-card reg" href="#tips">
+  <div class="ov-card-name">sns.tips</div>
+  <div class="ov-card-meta">244행 · 회귀</div>
+  <div class="ov-card-desc">레스토랑 식사 팁 데이터. 요일·시간·흡연여부 등 범주형 변수와 팁 간의 회귀 분석....</div>
+</a>
+<a class="ov-card reg" href="#diamonds">
+  <div class="ov-card-name">sns.diamonds</div>
+  <div class="ov-card-meta">53940행 · 회귀</div>
+  <div class="ov-card-desc">다이아몬드 4C(carat/cut/color/clarity)와 가격. 순서형 인코딩·로그 ...</div>
+</a>
+<a class="ov-card reg" href="#mpg">
+  <div class="ov-card-name">sns.mpg</div>
+  <div class="ov-card-meta">398행 · 회귀</div>
+  <div class="ov-card-desc">1970~1982년 자동차 연비(mpg). 문자형 결측치 처리·다중공선성·연도별 추세 분석...</div>
+</a>
+<a class="ov-card ts" href="#flights">
+  <div class="ov-card-name">sns.flights</div>
+  <div class="ov-card-meta">144행 · 시계열</div>
+  <div class="ov-card-desc">1949~1960년 월별 국제 항공 탑승자 수. 계절성 분해·이동평균·ARIMA 예측의 표...</div>
+</a>
+<a class="ov-card ts" href="#dowjones">
+  <div class="ov-card-name">sns.dowjones</div>
+  <div class="ov-card-meta">666행 · 시계열</div>
+  <div class="ov-card-desc">1914~1968년 월별 다우존스 산업평균지수. 날짜 인덱스·resample·수익률·자기상...</div>
+</a>
+<a class="ov-card cl" href="#geyser">
+  <div class="ov-card-name">sns.geyser</div>
+  <div class="ov-card-meta">272행 · 클러스터링</div>
+  <div class="ov-card-desc">옐로스톤 올드페이스풀 간헐천 분출 시간·대기시간. 이중 모드 군집화의 교과서적 데이터셋....</div>
+</a>
+<a class="ov-card stat" href="#attention">
+  <div class="ov-card-name">sns.attention</div>
+  <div class="ov-card-meta">60행 · 통계검정</div>
+  <div class="ov-card-desc">주의력 실험 점수 데이터. 일원·이원 ANOVA, 독립표본 t검정, 효과 크기 분석....</div>
+</a>
+<a class="ov-card stat" href="#car_crashes">
+  <div class="ov-card-name">sns.car_crashes</div>
+  <div class="ov-card-meta">51행 · 통계검정</div>
+  <div class="ov-card-desc">미국 주별 교통사고 통계. 상관분석·다중회귀·지역별 비교·이상치 탐색....</div>
+</a>
+<a class="ov-card viz" href="#anscombe">
+  <div class="ov-card-name">sns.anscombe</div>
+  <div class="ov-card-meta">44행 · 시각화</div>
+  <div class="ov-card-desc">Anscombe의 4중주. 통계는 동일하지만 형태가 다른 4그룹 — EDA의 필요성을 보여...</div>
+</a>
+<a class="ov-card viz" href="#taxis">
+  <div class="ov-card-name">sns.taxis</div>
+  <div class="ov-card-meta">6433행 · 시각화</div>
+  <div class="ov-card-desc">NYC 택시 탑승 데이터. datetime 처리·탑승시간 계산·요금 회귀·비모수 검정....</div>
+</a>
+<a class="ov-card cl" href="#planets">
+  <div class="ov-card-name">sns.planets</div>
+  <div class="ov-card-meta">1035행 · 클러스터링</div>
+  <div class="ov-card-desc">외계 행성 발견 데이터. 고결측 처리·로그 변환·탐색 방법별 계층 분석....</div>
+</a>
+<a class="ov-card stat" href="#exercise">
+  <div class="ov-card-name">sns.exercise</div>
+  <div class="ov-card-meta">90행 · 통계검정</div>
+  <div class="ov-card-desc">운동 종류별 시간에 따른 맥박 변화. 이원 ANOVA·교호작용·혼합 효과 모델....</div>
+</a>
+<a class="ov-card ts" href="#seaice">
+  <div class="ov-card-name">sns.seaice</div>
+  <div class="ov-card-meta">13175행 · 시계열</div>
+  <div class="ov-card-desc">북극 해빙 면적 일별 관측 데이터. 기후변화 추세·계절성·기간별 비교 분석....</div>
+</a>
+<a class="ov-card ts" href="#fmri">
+  <div class="ov-card-name">sns.fmri</div>
+  <div class="ov-card-meta">1064행 · 시계열</div>
+  <div class="ov-card-desc">fMRI 뇌 활성 신호 데이터. 다중 키 groupby·시점별 t검정·다중 비교 보정....</div>
+</a>
+<a class="ov-card reg" href="#healthexp">
+  <div class="ov-card-name">sns.healthexp</div>
+  <div class="ov-card-meta">274행 · 회귀</div>
+  <div class="ov-card-desc">국가별 의료비 지출과 기대수명. 패널 데이터 분석·고정 효과 회귀·국가별 효율성 비교....</div>
+</a>
+<a class="ov-card ts" href="#gammas">
+  <div class="ov-card-name">sns.gammas</div>
+  <div class="ov-card-meta">1200행 · 시계열</div>
+  <div class="ov-card-desc">감마 분포 시뮬레이션 데이터. 분포 적합·KDE 시각화·그룹별 분포 비교....</div>
+</a>
+<a class="ov-card cls" href="#glue">
+  <div class="ov-card-name">sns.glue</div>
+  <div class="ov-card-meta">44행 · 분류</div>
+  <div class="ov-card-desc">NLP 모델 GLUE 벤치마크 성능. 피벗 테이블·모델 비교·태스크별 순위 분석....</div>
+</a>
+<a class="ov-card corr" href="#brain_networks">
+  <div class="ov-card-name">sns.brain_networks</div>
+  <div class="ov-card-meta">n/a행 · 상관/네트워크</div>
+  <div class="ov-card-desc">뇌 기능적 연결성 네트워크 데이터. 멀티레벨 헤더·상관 행렬·계층적 군집화....</div>
+</a>
+      </div>
+    </div>
+
+    <div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-cls">🏷️ 분류 Classification</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-cls" id="iris">
+<div class="section-head">
+  <div class="sec-num">01</div>
+  <div class="sec-info">
+    <span class="sec-name">iris</span>
+    <span class="sec-badge">분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'iris','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'iris','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'iris','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-iris-overview">
+<div class="overview-inner">
+<p class="ds-desc">붓꽃 3종(setosa/versicolor/virginica)의 꽃받침·꽃잎 치수. 다중분류 벤치마크 데이터셋.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 150</span>
+  <span class="meta-chip">열 5</span>
+  <span class="meta-chip cat-cls">분류</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>sepal_length</code></td><td class="type-cell">float</td><td>꽃받침 길이(cm)</td></tr><tr><td><code>sepal_width</code></td><td class="type-cell">float</td><td>꽃받침 너비(cm)</td></tr><tr><td><code>petal_length</code></td><td class="type-cell">float</td><td>꽃잎 길이(cm)</td></tr><tr><td><code>petal_width</code></td><td class="type-cell">float</td><td>꽃잎 너비(cm)</td></tr><tr><td><code>species</code></td><td class="type-cell">str</td><td>종명 (setosa/versicolor/virginica)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-iris-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">다중분류</span><span class="pr-val">3개 이상 클래스 예측 — 로지스틱(소프트맥스), RF, SVM, KNN</span></div><div class="principle-item"><span class="pr-key">차원축소</span><span class="pr-val">PCA로 4D → 2D; 분산 기여율로 성분 수 결정</span></div><div class="principle-item"><span class="pr-key">비지도군집</span><span class="pr-val">KMeans·GMM으로 레이블 없이 종 구분 가능성 탐색</span></div><div class="principle-item"><span class="pr-key">피처 중요도</span><span class="pr-val">RF feature_importances_ — 꽃잎 변수가 핵심</span></div></div>
+</div>
+<div class="tab-pane" id="tab-iris-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">로지스틱 회귀 (다항)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>데이터 로드·분리</span><span class="step"><span class="step-num">2</span>표준화 + 모델 학습</span><span class="step"><span class="step-num">3</span>정확도·분류 리포트</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
+
+df = sns.load_dataset(&#x27;iris&#x27;)
+X = df[[&#x27;sepal_length&#x27;,&#x27;sepal_width&#x27;,&#x27;petal_length&#x27;,&#x27;petal_width&#x27;]]
+y = LabelEncoder().fit_transform(df[&#x27;species&#x27;])
+
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+sc = StandardScaler()
+X_tr = sc.fit_transform(X_tr)
+X_te = sc.transform(X_te)
+
+model = LogisticRegression(multi_class=&#x27;multinomial&#x27;, max_iter=200)
+model.fit(X_tr, y_tr)
+y_pred = model.predict(X_te)
+
+print(f&#x27;정확도: {accuracy_score(y_te, y_pred):.4f}&#x27;)
+print(classification_report(y_te, y_pred,
+      target_names=[&#x27;setosa&#x27;,&#x27;versicolor&#x27;,&#x27;virginica&#x27;]))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>정확도 ~97% — setosa는 완벽하게 분리되며, versicolor↔virginica 혼동이 소량 발생</li><li>다항 로지스틱은 소프트맥스 함수로 클래스 확률을 동시에 추정</li><li>petal_length · petal_width 계수가 가장 크므로 꽃잎 변수가 핵심 피처</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 표준화 없이 학습하면 sepal_width 스케일이 다른 변수보다 크게 영향을 줄 수 있다</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">KNN 분류 + 최적 K 탐색</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>K 범위 설정</span><span class="step"><span class="step-num">2</span>교차검증 점수 계산</span><span class="step"><span class="step-num">3</span>최적 K 예측</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+df = sns.load_dataset(&#x27;iris&#x27;)
+X = df.drop(&#x27;species&#x27;, axis=1)
+y = df[&#x27;species&#x27;]
+
+k_scores = {}
+for k in range(1, 21):
+    knn = KNeighborsClassifier(n_neighbors=k)
+    scores = cross_val_score(knn, X, y, cv=5, scoring=&#x27;accuracy&#x27;)
+    k_scores[k] = scores.mean()
+
+best_k = max(k_scores, key=k_scores.get)
+print(f&#x27;최적 K: {best_k}, CV 정확도: {k_scores[best_k]:.4f}&#x27;)
+
+# 최종 모델
+knn_best = KNeighborsClassifier(n_neighbors=best_k)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+knn_best.fit(X_tr, y_tr)
+print(f&#x27;테스트 정확도: {knn_best.score(X_te, y_te):.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>K=5~7 근방에서 CV 정확도가 최고치(~96%)를 기록</li><li>K=1이면 훈련 정확도 100% → 과적합 위험, K가 커질수록 경계 부드러워짐</li><li>iris는 선형 분리 가능한 구조라 KNN도 높은 성능을 보임</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> cross_val_score는 stratify 자동 적용되어 클래스 불균형에도 안전</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">Random Forest + 피처 중요도</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>RF 학습</span><span class="step"><span class="step-num">2</span>OOB 오차 확인</span><span class="step"><span class="step-num">3</span>피처 중요도 시각화</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.ensemble import RandomForestClassifier
+import pandas as pd
+
+df = sns.load_dataset(&#x27;iris&#x27;)
+X = df.drop(&#x27;species&#x27;, axis=1)
+y = df[&#x27;species&#x27;]
+
+rf = RandomForestClassifier(n_estimators=100, oob_score=True, random_state=42)
+rf.fit(X, y)
+
+print(f&#x27;OOB 정확도: {rf.oob_score_:.4f}&#x27;)
+
+# 피처 중요도
+imp = pd.Series(rf.feature_importances_, index=X.columns)
+imp_sorted = imp.sort_values(ascending=False)
+print(imp_sorted.to_string())
+# 결과: petal_length &gt; petal_width &gt; sepal_length &gt; sepal_width</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>OOB 정확도 ~96% — 별도 검증 세트 없이 학습 중 자동 교차검증</li><li>petal_length(~46%), petal_width(~42%)가 전체 중요도의 ~88% 차지</li><li>sepal_width는 중요도가 가장 낮아 제거해도 성능 손실이 거의 없음</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> n_estimators=100 이상에서 OOB 오차가 수렴하므로 100~200 범위가 실용적</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">SVM (RBF 커널) + GridSearch</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>파라미터 그리드 설정</span><span class="step"><span class="step-num">2</span>GridSearchCV 학습</span><span class="step"><span class="step-num">3</span>최적 파라미터 출력</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+df = sns.load_dataset(&#x27;iris&#x27;)
+X = df.drop(&#x27;species&#x27;, axis=1)
+y = df[&#x27;species&#x27;]
+
+pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;svm&#x27;, SVC())])
+param_grid = {
+    &#x27;svm__C&#x27;: [0.1, 1, 10, 100],
+    &#x27;svm__gamma&#x27;: [&#x27;scale&#x27;, 0.01, 0.1, 1]
+}
+gs = GridSearchCV(pipe, param_grid, cv=5, scoring=&#x27;accuracy&#x27;, n_jobs=-1)
+gs.fit(X, y)
+
+print(f&#x27;최적 파라미터: {gs.best_params_}&#x27;)
+print(f&#x27;최적 CV 정확도: {gs.best_score_:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>C=10, gamma='scale' 근방에서 CV 정확도 ~98% 달성</li><li>C가 클수록 훈련 오차 최소화 (과적합 위험), gamma가 클수록 결정 경계 복잡</li><li>Pipeline 사용으로 데이터 누출(data leakage) 없이 스케일러 포함 그리드서치 수행</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> Pipeline.GridSearchCV 조합은 실무에서 필수 패턴 — 별도 스케일링 누출 방지</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">PCA 차원 축소 + 2D 시각화</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>표준화</span><span class="step"><span class="step-num">2</span>PCA 2성분 추출</span><span class="step"><span class="step-num">3</span>분산 기여율 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+df = sns.load_dataset(&#x27;iris&#x27;)
+X = df.drop(&#x27;species&#x27;, axis=1)
+y = df[&#x27;species&#x27;]
+
+sc = StandardScaler()
+X_sc = sc.fit_transform(X)
+
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_sc)
+
+print(&#x27;분산 기여율:&#x27;, pca.explained_variance_ratio_.round(4))
+print(f&#x27;누적 기여율: {pca.explained_variance_ratio_.sum():.4f}&#x27;)
+
+# 로딩 행렬 (어떤 피처가 PC에 기여?)
+loadings = pd.DataFrame(pca.components_.T,
+    index=X.columns, columns=[&#x27;PC1&#x27;,&#x27;PC2&#x27;])
+print(loadings.round(3))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>PC1(~73%) + PC2(~23%) = 누적 ~96% — 4차원을 2차원으로 거의 손실 없이 압축</li><li>PC1은 petal 변수 하중이 높아 '꽃 크기 축', PC2는 sepal_width가 지배적</li><li>2D 산점도에서 setosa가 완전 분리, versicolor·virginica 일부 겹침 확인</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> n_components=None으로 설정하면 누적 기여율 그래프(Scree Plot)로 최적 성분 수 결정 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">KMeans 군집화 + 실루엣 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>최적 K 탐색 (Elbow)</span><span class="step"><span class="step-num">2</span>실루엣 점수 계산</span><span class="step"><span class="step-num">3</span>군집 vs 실제 레이블 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+df = sns.load_dataset(&#x27;iris&#x27;)
+X = df.drop(&#x27;species&#x27;, axis=1)
+
+sc = StandardScaler()
+X_sc = sc.fit_transform(X)
+
+# 엘보우 + 실루엣
+for k in [2, 3, 4, 5]:
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    labels = km.fit_predict(X_sc)
+    sil = silhouette_score(X_sc, labels)
+    print(f&#x27;K={k}  inertia={km.inertia_:.1f}  silhouette={sil:.4f}&#x27;)
+
+# 최적 K=3 (종 수와 일치)
+km3 = KMeans(n_clusters=3, n_init=10, random_state=42)
+df[&#x27;cluster&#x27;] = km3.fit_predict(X_sc)
+print(pd.crosstab(df[&#x27;species&#x27;], df[&#x27;cluster&#x27;]))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>K=3에서 실루엣 점수 최고(~0.55) — 실제 종 수와 일치</li><li>crosstab 결과: setosa 군집은 100% 순수, versicolor·virginica 소수 혼합</li><li>비지도학습임에도 실제 레이블 없이 3개 클래스를 거의 완벽히 복원</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 표준화 없이 KMeans 적용 시 스케일이 큰 sepal_length에 군집이 치우침</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="titanic">
+<div class="section-head">
+  <div class="sec-num">02</div>
+  <div class="sec-info">
+    <span class="sec-name">titanic</span>
+    <span class="sec-badge">분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'titanic','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'titanic','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'titanic','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-titanic-overview">
+<div class="overview-inner">
+<p class="ds-desc">타이타닉 승객 생존 여부. 결측치 처리·이진 분류·피처 엔지니어링 연습의 표준 데이터셋.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 891</span>
+  <span class="meta-chip">열 15</span>
+  <span class="meta-chip cat-cls">분류</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>survived</code></td><td class="type-cell">int</td><td>생존(1)/사망(0)</td></tr><tr><td><code>pclass</code></td><td class="type-cell">int</td><td>객실 등급 (1/2/3)</td></tr><tr><td><code>sex</code></td><td class="type-cell">str</td><td>성별</td></tr><tr><td><code>age</code></td><td class="type-cell">float</td><td>나이 (177개 결측)</td></tr><tr><td><code>sibsp</code></td><td class="type-cell">int</td><td>형제자매/배우자 수</td></tr><tr><td><code>parch</code></td><td class="type-cell">int</td><td>부모/자녀 수</td></tr><tr><td><code>fare</code></td><td class="type-cell">float</td><td>요금</td></tr><tr><td><code>embarked</code></td><td class="type-cell">str</td><td>승선항 (S/C/Q)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-titanic-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">결측치 처리</span><span class="pr-val">groupby median imputation, 범주화</span></div><div class="principle-item"><span class="pr-key">이진 분류</span><span class="pr-val">로지스틱 회귀, Random Forest, SVM</span></div><div class="principle-item"><span class="pr-key">피처 엔지니어링</span><span class="pr-val">family_size, title 추출, age_group 구간화</span></div><div class="principle-item"><span class="pr-key">모델 평가</span><span class="pr-val">ROC-AUC, 혼동 행렬, F1-score</span></div></div>
+</div>
+<div class="tab-pane" id="tab-titanic-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">결측치 처리 + 피처 엔지니어링</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>결측 현황 파악</span><span class="step"><span class="step-num">2</span>imputation 전략</span><span class="step"><span class="step-num">3</span>파생변수 생성</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;titanic&#x27;)
+
+# 결측 현황
+print(df.isnull().sum()[df.isnull().sum() &gt; 0])
+
+# age: 성별·객실등급별 중앙값으로 채우기
+df[&#x27;age&#x27;] = df.groupby([&#x27;sex&#x27;,&#x27;pclass&#x27;])[&#x27;age&#x27;].transform(
+    lambda x: x.fillna(x.median()))
+
+# deck: 결측 비율 77% → &#x27;Unknown&#x27; 범주로
+df[&#x27;deck&#x27;] = df[&#x27;deck&#x27;].fillna(&#x27;Unknown&#x27;)
+
+# embarked: 2개 결측 → 최빈값
+df[&#x27;embarked&#x27;] = df[&#x27;embarked&#x27;].fillna(df[&#x27;embarked&#x27;].mode()[0])
+
+# 파생변수
+df[&#x27;family_size&#x27;] = df[&#x27;sibsp&#x27;] + df[&#x27;parch&#x27;] + 1
+df[&#x27;is_alone&#x27;] = (df[&#x27;family_size&#x27;] == 1).astype(int)
+df[&#x27;title&#x27;] = df[&#x27;name&#x27;].str.extract(r&#x27;, ([A-Za-z]+)\.&#x27;)
+
+print(df[[&#x27;age&#x27;,&#x27;family_size&#x27;,&#x27;is_alone&#x27;,&#x27;title&#x27;]].head())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>age 결측(177개)을 성별·객실등급 그룹 중앙값으로 채워 분포 왜곡 최소화</li><li>family_size: 1이면 단독 탑승 → 생존율 차이 큰 파생변수</li><li>title(Mr/Mrs/Miss/Master): 나이·성별 대리 변수로 분류 성능 향상</li><li>deck 결측 77%는 정보가 거의 없으므로 Unknown 범주화가 삭제보다 낫다</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 결측치 처리 전략은 데이터의 MCAR/MAR/MNAR 여부에 따라 달라진다</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">이진 분류 (Logistic + RandomForest)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>피처 선택·인코딩</span><span class="step"><span class="step-num">2</span>두 모델 학습</span><span class="step"><span class="step-num">3</span>정확도·F1 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score, f1_score
+import pandas as pd, seaborn as sns
+
+df = sns.load_dataset(&#x27;titanic&#x27;).copy()
+df[&#x27;age&#x27;] = df.groupby([&#x27;sex&#x27;,&#x27;pclass&#x27;])[&#x27;age&#x27;].transform(lambda x: x.fillna(x.median()))
+df[&#x27;embarked&#x27;] = df[&#x27;embarked&#x27;].fillna(&#x27;S&#x27;)
+df[&#x27;sex_enc&#x27;] = LabelEncoder().fit_transform(df[&#x27;sex&#x27;])
+df[&#x27;emb_enc&#x27;] = LabelEncoder().fit_transform(df[&#x27;embarked&#x27;])
+df[&#x27;family_size&#x27;] = df[&#x27;sibsp&#x27;] + df[&#x27;parch&#x27;] + 1
+
+feat = [&#x27;pclass&#x27;,&#x27;sex_enc&#x27;,&#x27;age&#x27;,&#x27;fare&#x27;,&#x27;family_size&#x27;,&#x27;emb_enc&#x27;]
+X = df[feat].fillna(df[feat].median())
+y = df[&#x27;survived&#x27;]
+
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2,
+    stratify=y, random_state=42)
+
+for name, model in [(&#x27;Logistic&#x27;, LogisticRegression(max_iter=500)),
+                    (&#x27;RandomForest&#x27;, RandomForestClassifier(n_estimators=100, random_state=42))]:
+    model.fit(X_tr, y_tr)
+    yp = model.predict(X_te)
+    print(f&#x27;{name}: acc={accuracy_score(y_te,yp):.3f}  f1={f1_score(y_te,yp):.3f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>RandomForest: acc≈0.82, F1≈0.77 / Logistic: acc≈0.80, F1≈0.74</li><li>stratify=y로 훈련/테스트 세트의 생존율 비율을 동일하게 유지</li><li>fare는 우측 편포가 심하므로 log1p 변환 시 Logistic 성능이 소폭 향상됨</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> fillna(median)는 test 세트에도 train median 값을 사용해야 데이터 누출이 없다</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">ROC-AUC + 혼동 행렬</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>확률 예측</span><span class="step"><span class="step-num">2</span>ROC 커브 계산</span><span class="step"><span class="step-num">3</span>혼동 행렬 시각화</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score, confusion_matrix, roc_curve
+import pandas as pd, seaborn as sns
+
+df = sns.load_dataset(&#x27;titanic&#x27;).copy()
+df[&#x27;age&#x27;] = df.groupby([&#x27;sex&#x27;,&#x27;pclass&#x27;])[&#x27;age&#x27;].transform(lambda x: x.fillna(x.median()))
+df[&#x27;sex_enc&#x27;] = (df[&#x27;sex&#x27;] == &#x27;male&#x27;).astype(int)
+df[&#x27;family_size&#x27;] = df[&#x27;sibsp&#x27;] + df[&#x27;parch&#x27;] + 1
+feat = [&#x27;pclass&#x27;,&#x27;sex_enc&#x27;,&#x27;age&#x27;,&#x27;fare&#x27;,&#x27;family_size&#x27;]
+X = df[feat].fillna(df[feat].median())
+y = df[&#x27;survived&#x27;]
+
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_tr, y_tr)
+
+proba = rf.predict_proba(X_te)[:,1]
+print(f&#x27;ROC-AUC: {roc_auc_score(y_te, proba):.4f}&#x27;)
+
+cm = confusion_matrix(y_te, rf.predict(X_te))
+print(&#x27;혼동 행렬:&#x27;)
+print(pd.DataFrame(cm, index=[&#x27;실제 사망&#x27;,&#x27;실제 생존&#x27;],
+                       columns=[&#x27;예측 사망&#x27;,&#x27;예측 생존&#x27;]))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>ROC-AUC ≈ 0.87 — 무작위(0.5)보다 훨씬 높은 판별력</li><li>혼동 행렬: 사망자 재현율(Recall) ≈ 90%, 생존자 정밀도(Precision) ≈ 80%</li><li>AUC는 임계값 독립적 성능 지표 — 불균형 클래스에서 accuracy보다 신뢰성이 높다</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> predict_proba[:,1]은 양성(생존) 클래스 확률; 임계값 조정으로 재현율↑ 정밀도↓ 트레이드오프</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">피벗 테이블 생존율 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>성별·등급별 생존율</span><span class="step"><span class="step-num">2</span>나이 구간 생성</span><span class="step"><span class="step-num">3</span>다중 인덱스 피벗</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;titanic&#x27;)
+df[&#x27;age&#x27;] = df.groupby([&#x27;sex&#x27;,&#x27;pclass&#x27;])[&#x27;age&#x27;].transform(lambda x: x.fillna(x.median()))
+df[&#x27;age_group&#x27;] = pd.cut(df[&#x27;age&#x27;],
+    bins=[0,12,18,35,60,100],
+    labels=[&#x27;아동&#x27;,&#x27;청소년&#x27;,&#x27;청년&#x27;,&#x27;중년&#x27;,&#x27;노년&#x27;])
+
+# 성별 × 객실등급 생존율
+pivot1 = df.pivot_table(&#x27;survived&#x27;, index=&#x27;sex&#x27;, columns=&#x27;pclass&#x27;, aggfunc=&#x27;mean&#x27;)
+print(pivot1.round(3))
+
+# 나이 구간 × 성별 생존율
+pivot2 = df.pivot_table(&#x27;survived&#x27;, index=&#x27;age_group&#x27;, columns=&#x27;sex&#x27;, aggfunc=&#x27;mean&#x27;)
+print(pivot2.round(3))
+
+# 가족 규모별 생존율
+df[&#x27;family_size&#x27;] = df[&#x27;sibsp&#x27;] + df[&#x27;parch&#x27;] + 1
+print(df.groupby(&#x27;family_size&#x27;)[&#x27;survived&#x27;].agg([&#x27;mean&#x27;,&#x27;count&#x27;]))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>1등석 여성 생존율 97% vs 3등석 남성 생존율 15% — 극명한 차이</li><li>아동(12세 이하)은 성별 무관 생존율이 상대적으로 높음 (Women & Children First)</li><li>가족 규모 2~4명이 단독 탑승보다 생존율 높음, 5명 이상이면 오히려 낮아짐</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> pivot_table의 aggfunc='mean'은 0/1 이진값에 자동으로 비율 계산이 됨</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="penguins">
+<div class="section-head">
+  <div class="sec-num">03</div>
+  <div class="sec-info">
+    <span class="sec-name">penguins</span>
+    <span class="sec-badge">분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'penguins','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'penguins','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'penguins','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-penguins-overview">
+<div class="overview-inner">
+<p class="ds-desc">남극 펭귄 3종(Adelie/Chinstrap/Gentoo)의 부리·지느러미 측정치. iris의 현대적 대체 데이터셋.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 344</span>
+  <span class="meta-chip">열 7</span>
+  <span class="meta-chip cat-cls">분류</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>species</code></td><td class="type-cell">str</td><td>종 (Adelie/Chinstrap/Gentoo)</td></tr><tr><td><code>island</code></td><td class="type-cell">str</td><td>서식 섬 (Biscoe/Dream/Torgersen)</td></tr><tr><td><code>bill_length_mm</code></td><td class="type-cell">float</td><td>부리 길이(mm)</td></tr><tr><td><code>bill_depth_mm</code></td><td class="type-cell">float</td><td>부리 깊이(mm)</td></tr><tr><td><code>flipper_length_mm</code></td><td class="type-cell">float</td><td>지느러미 길이(mm)</td></tr><tr><td><code>body_mass_g</code></td><td class="type-cell">float</td><td>체중(g)</td></tr><tr><td><code>sex</code></td><td class="type-cell">str</td><td>성별 (male/female)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-penguins-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">결측치 처리</span><span class="pr-val">dropna() — sex/bill 결측 11행 제거</span></div><div class="principle-item"><span class="pr-key">다중 분류</span><span class="pr-val">Decision Tree, Random Forest, LDA</span></div><div class="principle-item"><span class="pr-key">카이제곱 검정</span><span class="pr-val">종 × 섬 독립성 검정</span></div><div class="principle-item"><span class="pr-key">차원 축소</span><span class="pr-val">LDA — 클래스 판별 최적화</span></div></div>
+</div>
+<div class="tab-pane" id="tab-penguins-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">결측치 처리 + 기술 통계</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>결측 확인</span><span class="step"><span class="step-num">2</span>적절한 제거·대체</span><span class="step"><span class="step-num">3</span>기술통계 출력</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;penguins&#x27;)
+print(&#x27;결측 현황:&#x27;)
+print(df.isnull().sum())
+
+# sex 결측(11개): 비율이 작으므로 행 제거
+# bill 결측(2개): 동반 결측이라 행 제거
+df_clean = df.dropna()
+print(f&#x27;\n제거 전: {len(df)} → 제거 후: {len(df_clean)}&#x27;)
+
+# 종별 기술통계
+stats = df_clean.groupby(&#x27;species&#x27;)[[&#x27;bill_length_mm&#x27;,&#x27;bill_depth_mm&#x27;,
+    &#x27;flipper_length_mm&#x27;,&#x27;body_mass_g&#x27;]].agg([&#x27;mean&#x27;,&#x27;std&#x27;])
+print(stats.round(2))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>sex 결측 11개 + bill_* 결측 2개 → 총 11행 제거 (전체의 3.2%)</li><li>Gentoo: body_mass 평균 5076g — Chinstrap(3733g)·Adelie(3701g)보다 훨씬 큰 종</li><li>Chinstrap은 bill_length가 길고 bill_depth가 얕아 명확한 특성 분리 가능</li><li>종별 표준편차가 작아 군집 분리가 용이한 데이터셋임을 확인</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> dropna()는 결측 비율이 낮을 때만 사용; 높다면 imputation 또는 다중대체법 필요</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">다중 분류 (Decision Tree + RF)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>결측 제거·인코딩</span><span class="step"><span class="step-num">2</span>DT / RF 비교</span><span class="step"><span class="step-num">3</span>교차검증</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.preprocessing import LabelEncoder
+import seaborn as sns
+
+df = sns.load_dataset(&#x27;penguins&#x27;).dropna()
+df[&#x27;sex_enc&#x27;] = LabelEncoder().fit_transform(df[&#x27;sex&#x27;])
+df[&#x27;island_enc&#x27;] = LabelEncoder().fit_transform(df[&#x27;island&#x27;])
+
+feat = [&#x27;bill_length_mm&#x27;,&#x27;bill_depth_mm&#x27;,&#x27;flipper_length_mm&#x27;,
+        &#x27;body_mass_g&#x27;,&#x27;sex_enc&#x27;,&#x27;island_enc&#x27;]
+X = df[feat]
+y = df[&#x27;species&#x27;]
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+for name, model in [
+    (&#x27;Decision Tree&#x27;, DecisionTreeClassifier(max_depth=5, random_state=42)),
+    (&#x27;Random Forest&#x27;, RandomForestClassifier(n_estimators=100, random_state=42))]:
+    scores = cross_val_score(model, X, y, cv=cv, scoring=&#x27;accuracy&#x27;)
+    print(f&#x27;{name}: mean={scores.mean():.4f}  std={scores.std():.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>RF CV 정확도 ≈ 0.99, DT ≈ 0.97 — 펭귄 3종은 피처 분리가 명확해 고성능</li><li>StratifiedKFold로 각 fold에서 종 비율을 유지하여 신뢰성 있는 교차검증</li><li>island 정보는 Gentoo(Biscoe)와 다른 종 구분에 강력한 추가 변수</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> max_depth 제한 없는 DT는 훈련 정확도 100% → 과적합; cross_val_score로 일반화 능력 평가</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">카이제곱 검정 (종 × 섬)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>교차표 생성</span><span class="step"><span class="step-num">2</span>카이제곱 검정 실시</span><span class="step"><span class="step-num">3</span>기대 빈도 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+df = sns.load_dataset(&#x27;penguins&#x27;).dropna()
+
+# 종 × 섬 교차표
+ct = pd.crosstab(df[&#x27;species&#x27;], df[&#x27;island&#x27;])
+print(ct)
+
+chi2, p, dof, expected = chi2_contingency(ct)
+print(f&#x27;\nchi2={chi2:.4f}, dof={dof}, p-value={p:.6f}&#x27;)
+print(f&#x27;유의수준 0.05 기준: {&quot;귀무가설 기각&quot; if p &lt; 0.05 else &quot;귀무가설 채택&quot;}&#x27;)
+
+# 기대 빈도 확인 (5 미만이면 검정 신뢰도 저하)
+exp_df = pd.DataFrame(expected, index=ct.index, columns=ct.columns)
+print(&#x27;\n기대 빈도:&#x27;)
+print(exp_df.round(1))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>p < 0.001 → 종과 섬의 분포가 독립적이지 않음 (통계적으로 유의)</li><li>Gentoo는 Biscoe 섬에만, Chinstrap은 Dream 섬에 집중 → 서식지 특이성</li><li>기대 빈도가 5 미만인 셀이 있으면 Fisher's exact test 사용을 권장</li><li>chi2 자유도 = (행-1)×(열-1) = 2×2 = 4</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 카이제곱 검정은 연속형이 아닌 범주형 변수 간 독립성 검정에 사용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">LDA 선형판별분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>LDA 학습</span><span class="step"><span class="step-num">2</span>판별 함수 시각화</span><span class="step"><span class="step-num">3</span>사영된 분포 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.preprocessing import LabelEncoder
+import seaborn as sns, pandas as pd
+
+df = sns.load_dataset(&#x27;penguins&#x27;).dropna()
+df[&#x27;sex_enc&#x27;] = LabelEncoder().fit_transform(df[&#x27;sex&#x27;])
+feat = [&#x27;bill_length_mm&#x27;,&#x27;bill_depth_mm&#x27;,&#x27;flipper_length_mm&#x27;,&#x27;body_mass_g&#x27;]
+X = df[feat]
+y = df[&#x27;species&#x27;]
+
+lda = LDA(n_components=2)
+X_lda = lda.fit_transform(X, y)
+
+print(f&#x27;설명 분산 비율: {lda.explained_variance_ratio_.round(4)}&#x27;)
+result = pd.DataFrame(X_lda, columns=[&#x27;LD1&#x27;,&#x27;LD2&#x27;])
+result[&#x27;species&#x27;] = y.values
+
+# 종별 LD1 평균
+print(result.groupby(&#x27;species&#x27;)[[&#x27;LD1&#x27;,&#x27;LD2&#x27;]].mean().round(3))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>LD1이 전체 판별 분산의 ~96% 설명 — 1차원만으로도 3종 분류 가능</li><li>LDA는 클래스 내 분산 최소화, 클래스 간 분산 최대화 원리로 PCA보다 분류에 최적화</li><li>LD1 축에서 Gentoo↔(Adelie·Chinstrap) 분리, LD2 축에서 Adelie↔Chinstrap 분리</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> LDA는 클래스 레이블을 사용하는 지도학습 차원축소; PCA는 비지도 방식</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="glue">
+<div class="section-head">
+  <div class="sec-num">20</div>
+  <div class="sec-info">
+    <span class="sec-name">glue</span>
+    <span class="sec-badge">분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'glue','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'glue','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'glue','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-glue-overview">
+<div class="overview-inner">
+<p class="ds-desc">NLP 모델 GLUE 벤치마크 성능. 피벗 테이블·모델 비교·태스크별 순위 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 44</span>
+  <span class="meta-chip">열 3</span>
+  <span class="meta-chip cat-cls">분류</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>Model</code></td><td class="type-cell">str</td><td>NLP 모델명</td></tr><tr><td><code>Task</code></td><td class="type-cell">str</td><td>GLUE 태스크명</td></tr><tr><td><code>Score</code></td><td class="type-cell">float</td><td>성능 점수 (0~1)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-glue-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">피벗 비교</span><span class="pr-val">pivot_table 모델 × 태스크 매트릭스</span></div><div class="principle-item"><span class="pr-key">순위 분석</span><span class="pr-val">rank() — 태스크별 순위 → 평균</span></div><div class="principle-item"><span class="pr-key">벤치마크</span><span class="pr-val">GLUE 9개 태스크 통합 평가</span></div><div class="principle-item"><span class="pr-key">시각화</span><span class="pr-val">heatmap — 모델 × 태스크 히트맵</span></div></div>
+</div>
+<div class="tab-pane" id="tab-glue-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">언어 모델 GLUE 벤치마크 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>모델별 피벗</span><span class="step"><span class="step-num">2</span>태스크별 성능</span><span class="step"><span class="step-num">3</span>순위 분석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;glue&#x27;)
+
+# 모델별 평균 성능
+model_avg = df.groupby(&#x27;Model&#x27;)[&#x27;Score&#x27;].mean().sort_values(ascending=False)
+print(&#x27;모델별 평균 점수:&#x27;)
+print(model_avg.round(3))
+
+# 태스크별 피벗 (모델 × 태스크)
+pivot = df.pivot_table(&#x27;Score&#x27;, index=&#x27;Model&#x27;, columns=&#x27;Task&#x27;, aggfunc=&#x27;mean&#x27;)
+print(&#x27;\n모델 × 태스크 성능 매트릭스:&#x27;)
+print(pivot.round(2))
+
+# 모델별 순위 (태스크별 rank 평균)
+ranks = pivot.rank(ascending=False)
+print(&#x27;\n평균 순위:&#x27;)
+print(ranks.mean(axis=1).sort_values().round(2))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>최신 대형 언어 모델일수록 GLUE 태스크 평균 점수가 높음</li><li>태스크별로 모델 상대 순위가 달라짐 — 모델의 강점 태스크가 다름</li><li>pivot_table로 모델 × 태스크 성능 매트릭스 생성 → 히트맵 시각화에 최적</li><li>rank(ascending=False)로 각 태스크에서 성능 순위를 계산하여 종합 비교</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> GLUE(General Language Understanding Evaluation): NLI, QA, 감성 분석 등 9개 태스크</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-reg">📈 회귀 Regression</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-reg" id="tips">
+<div class="section-head">
+  <div class="sec-num">04</div>
+  <div class="sec-info">
+    <span class="sec-name">tips</span>
+    <span class="sec-badge">회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'tips','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'tips','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'tips','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-tips-overview">
+<div class="overview-inner">
+<p class="ds-desc">레스토랑 식사 팁 데이터. 요일·시간·흡연여부 등 범주형 변수와 팁 간의 회귀 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 244</span>
+  <span class="meta-chip">열 7</span>
+  <span class="meta-chip cat-reg">회귀</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>total_bill</code></td><td class="type-cell">float</td><td>총 식사 금액($)</td></tr><tr><td><code>tip</code></td><td class="type-cell">float</td><td>팁($)</td></tr><tr><td><code>sex</code></td><td class="type-cell">str</td><td>지불자 성별</td></tr><tr><td><code>smoker</code></td><td class="type-cell">str</td><td>흡연 여부</td></tr><tr><td><code>day</code></td><td class="type-cell">str</td><td>요일 (Thur/Fri/Sat/Sun)</td></tr><tr><td><code>time</code></td><td class="type-cell">str</td><td>식사 시간 (Lunch/Dinner)</td></tr><tr><td><code>size</code></td><td class="type-cell">int</td><td>일행 수</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-tips-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">파생변수</span><span class="pr-val">tip_rate = tip/total_bill</span></div><div class="principle-item"><span class="pr-key">단순 회귀</span><span class="pr-val">total_bill → tip 선형 모델</span></div><div class="principle-item"><span class="pr-key">다중 회귀</span><span class="pr-val">더미 인코딩 + VIF 다중공선성</span></div><div class="principle-item"><span class="pr-key">ANOVA</span><span class="pr-val">요일별 팁 차이 검정 + Tukey HSD</span></div></div>
+</div>
+<div class="tab-pane" id="tab-tips-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">탐색적 분석 + 파생변수</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>팁 비율 계산</span><span class="step"><span class="step-num">2</span>그룹별 기술통계</span><span class="step"><span class="step-num">3</span>상관 분석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;tips&#x27;)
+df[&#x27;tip_rate&#x27;] = df[&#x27;tip&#x27;] / df[&#x27;total_bill&#x27;]
+
+# 요일·시간대별 팁 비율 피벗
+pivot = df.pivot_table(&#x27;tip_rate&#x27;, index=&#x27;day&#x27;, columns=&#x27;time&#x27;, aggfunc=&#x27;mean&#x27;)
+print(pivot.round(4))
+
+# 흡연 여부별 통계
+print(df.groupby(&#x27;smoker&#x27;)[&#x27;tip_rate&#x27;].agg([&#x27;mean&#x27;,&#x27;std&#x27;,&#x27;count&#x27;]).round(4))
+
+# 수치 변수 상관
+print(df[[&#x27;total_bill&#x27;,&#x27;tip&#x27;,&#x27;size&#x27;,&#x27;tip_rate&#x27;]].corr().round(3))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>점심이 저녁보다 tip_rate가 소폭 높은 경향 (식사 금액이 낮아 비율이 올라감)</li><li>흡연자(smoker=Yes)가 비흡연자보다 팁 비율 변동성(std)이 더 높음</li><li>total_bill ↔ tip 상관 0.68 — 강한 양의 선형 관계</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> tip_rate = tip/total_bill 파생변수가 원본 tip보다 식사 규모 효과를 제거한 순수 팁 성향</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">단순 선형 회귀</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>OLS 모델 학습</span><span class="step"><span class="step-num">2</span>R² · RMSE 확인</span><span class="step"><span class="step-num">3</span>잔차 정규성</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error
+import scipy.stats as stats
+import seaborn as sns
+import numpy as np
+
+df = sns.load_dataset(&#x27;tips&#x27;)
+X = df[[&#x27;total_bill&#x27;]]
+y = df[&#x27;tip&#x27;]
+
+model = LinearRegression()
+model.fit(X, y)
+y_pred = model.predict(X)
+
+r2 = r2_score(y, y_pred)
+rmse = np.sqrt(mean_squared_error(y, y_pred))
+print(f&#x27;절편: {model.intercept_:.4f}&#x27;)
+print(f&#x27;기울기: {model.coef_[0]:.4f}&#x27;)
+print(f&#x27;R²: {r2:.4f}  RMSE: {rmse:.4f}&#x27;)
+
+# 잔차 정규성 검정 (Shapiro-Wilk)
+residuals = y - y_pred
+stat, p = stats.shapiro(residuals)
+print(f&#x27;Shapiro-Wilk: stat={stat:.4f}, p={p:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>R² ≈ 0.457 — total_bill만으로 팁 분산의 45.7% 설명</li><li>기울기 ≈ 0.105: 식사 금액 $1 증가 → 팁 $0.105 증가</li><li>Shapiro-Wilk p < 0.05 → 잔차가 정규분포가 아님 → 비선형 변환 또는 로버스트 회귀 고려</li><li>RMSE ≈ 1.02 — 실제 팁과 예측 팁의 평균 오차가 약 $1.02</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> R²가 낮을 때 단순회귀만으로는 설명력 부족; 다중회귀나 비선형 모델 탐색 필요</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">다중 선형 회귀 + 원-핫 인코딩</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>범주형 더미 변환</span><span class="step"><span class="step-num">2</span>다중회귀 학습</span><span class="step"><span class="step-num">3</span>VIF 다중공선성 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+df = sns.load_dataset(&#x27;tips&#x27;)
+df[&#x27;tip_rate&#x27;] = df[&#x27;tip&#x27;] / df[&#x27;total_bill&#x27;]
+
+# 범주형 더미 변환
+df_enc = pd.get_dummies(df, columns=[&#x27;sex&#x27;,&#x27;smoker&#x27;,&#x27;day&#x27;,&#x27;time&#x27;], drop_first=True)
+df_enc = df_enc.drop([&#x27;tip&#x27;], axis=1)
+
+feat = [c for c in df_enc.columns if c != &#x27;tip_rate&#x27;]
+X = df_enc[feat].astype(float)
+y = df[&#x27;tip_rate&#x27;]
+
+model = LinearRegression().fit(X, y)
+print(f&#x27;R²: {r2_score(y, model.predict(X)):.4f}&#x27;)
+
+# VIF
+vif = pd.DataFrame()
+vif[&#x27;feature&#x27;] = feat
+vif[&#x27;VIF&#x27;] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+print(vif.sort_values(&#x27;VIF&#x27;, ascending=False).head())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>다중회귀 R² ≈ 0.07 — tip_rate는 수치 변수로 설명이 어렵고 개인 성향 영향이 큼</li><li>VIF가 10 이상인 변수가 있으면 다중공선성 문제 → 변수 제거 또는 Ridge/Lasso 사용</li><li>day/time 더미 변수들은 통계적으로 유의하지 않은 경우가 많음</li><li>drop_first=True로 더미 변수 함정(Dummy Variable Trap) 방지</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> statsmodels의 variance_inflation_factor는 다중회귀 진단의 핵심 도구</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">ANOVA — 요일별 팁 차이 검정</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>Levene 등분산 검정</span><span class="step"><span class="step-num">2</span>일원 ANOVA</span><span class="step"><span class="step-num">3</span>사후검정 (Tukey HSD)</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+from scipy.stats import f_oneway, levene
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+import pandas as pd
+
+df = sns.load_dataset(&#x27;tips&#x27;)
+groups = [df[df[&#x27;day&#x27;]==d][&#x27;tip&#x27;].values for d in [&#x27;Thur&#x27;,&#x27;Fri&#x27;,&#x27;Sat&#x27;,&#x27;Sun&#x27;]]
+
+# 등분산 검정
+stat_l, p_l = levene(*groups)
+print(f&#x27;Levene: stat={stat_l:.4f}, p={p_l:.4f}&#x27;)
+
+# 일원 ANOVA
+f_stat, p_val = f_oneway(*groups)
+print(f&#x27;ANOVA: F={f_stat:.4f}, p={p_val:.4f}&#x27;)
+
+# 사후검정 (p &lt; 0.05일 때 어느 그룹이 다른지 확인)
+tukey = pairwise_tukeyhsd(df[&#x27;tip&#x27;], df[&#x27;day&#x27;])
+print(tukey)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>ANOVA p > 0.05 → 요일별 평균 팁 차이는 통계적으로 유의하지 않음</li><li>토요일 샘플이 가장 많아 변동성이 크고, 금요일은 샘플이 적어 검정력이 낮음</li><li>Levene 검정으로 등분산 가정 확인; 위반 시 Welch ANOVA(f_oneway 대신 pingouin.welch_anova) 사용</li><li>Tukey HSD는 ANOVA 귀무가설 기각 시에만 의미 있음 — p > 0.05면 모든 쌍이 유의하지 않음</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> ANOVA는 3개 이상 그룹 비교; 2그룹이면 독립표본 t검정을 사용하면 충분</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-reg" id="diamonds">
+<div class="section-head">
+  <div class="sec-num">05</div>
+  <div class="sec-info">
+    <span class="sec-name">diamonds</span>
+    <span class="sec-badge">회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'diamonds','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'diamonds','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'diamonds','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-diamonds-overview">
+<div class="overview-inner">
+<p class="ds-desc">다이아몬드 4C(carat/cut/color/clarity)와 가격. 순서형 인코딩·로그 변환·정규화 회귀 연습.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 53940</span>
+  <span class="meta-chip">열 10</span>
+  <span class="meta-chip cat-reg">회귀</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>carat</code></td><td class="type-cell">float</td><td>중량(캐럿)</td></tr><tr><td><code>cut</code></td><td class="type-cell">str</td><td>컷 품질 (Fair~Ideal)</td></tr><tr><td><code>color</code></td><td class="type-cell">str</td><td>색상 등급 (D~J)</td></tr><tr><td><code>clarity</code></td><td class="type-cell">str</td><td>투명도 (I1~IF)</td></tr><tr><td><code>depth</code></td><td class="type-cell">float</td><td>깊이 비율(%)</td></tr><tr><td><code>table</code></td><td class="type-cell">float</td><td>테이블 너비 비율(%)</td></tr><tr><td><code>price</code></td><td class="type-cell">int</td><td>가격($)</td></tr><tr><td><code>x/y/z</code></td><td class="type-cell">float</td><td>길이/너비/깊이(mm)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-diamonds-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">순서형 인코딩</span><span class="pr-val">pd.Categorical(ordered=True).codes</span></div><div class="principle-item"><span class="pr-key">로그 변환 회귀</span><span class="pr-val">log1p(price) ~ log1p(carat) — 탄력성 해석</span></div><div class="principle-item"><span class="pr-key">다중공선성</span><span class="pr-val">x·y·z·carat 상관 → VIF → Ridge/Lasso</span></div><div class="principle-item"><span class="pr-key">정규화 회귀</span><span class="pr-val">Ridge/Lasso — alpha 튜닝 + 표준화 필수</span></div></div>
+</div>
+<div class="tab-pane" id="tab-diamonds-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">순서형 인코딩 + 기술통계</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>순서형 변수 정의</span><span class="step"><span class="step-num">2</span>카테고리 코드 변환</span><span class="step"><span class="step-num">3</span>등급별 가격 분포</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;diamonds&#x27;)
+
+# 순서형 변수 인코딩
+cut_order = [&#x27;Fair&#x27;,&#x27;Good&#x27;,&#x27;Very Good&#x27;,&#x27;Premium&#x27;,&#x27;Ideal&#x27;]
+color_order = list(&#x27;DEFGHIJ&#x27;)
+clarity_order = [&#x27;I1&#x27;,&#x27;SI2&#x27;,&#x27;SI1&#x27;,&#x27;VS2&#x27;,&#x27;VS1&#x27;,&#x27;VVS2&#x27;,&#x27;VVS1&#x27;,&#x27;IF&#x27;]
+
+df[&#x27;cut_enc&#x27;] = pd.Categorical(df[&#x27;cut&#x27;], categories=cut_order, ordered=True).codes
+df[&#x27;color_enc&#x27;] = pd.Categorical(df[&#x27;color&#x27;], categories=color_order, ordered=True).codes
+df[&#x27;clarity_enc&#x27;] = pd.Categorical(df[&#x27;clarity&#x27;], categories=clarity_order, ordered=True).codes
+
+# 등급별 가격 중앙값
+print(df.groupby(&#x27;cut&#x27;)[&#x27;price&#x27;].agg([&#x27;median&#x27;,&#x27;mean&#x27;,&#x27;count&#x27;]).sort_values(&#x27;median&#x27;, ascending=False))
+print(df.groupby(&#x27;color&#x27;)[&#x27;price&#x27;].median().sort_values(ascending=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>역설적으로 Ideal(최고 등급)보다 Premium·Good이 가격 중앙값이 높음 → carat이 더 중요한 변수</li><li>color D(가장 무색)가 반드시 가장 비싸지 않음 — 크기와 투명도 영향이 더 큼</li><li>pd.Categorical(ordered=True).codes로 순서 정보를 숫자로 보존하며 인코딩</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 다이아몬드 가격은 cut·color·clarity보다 carat(중량)이 압도적으로 강한 예측 변수</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">로그 변환 회귀</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>우측 편포 확인</span><span class="step"><span class="step-num">2</span>log1p 변환</span><span class="step"><span class="step-num">3</span>변환 전후 R² 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+df = sns.load_dataset(&#x27;diamonds&#x27;)
+
+X_raw = df[[&#x27;carat&#x27;]].values
+y_raw = df[&#x27;price&#x27;].values
+
+# 변환 전
+m1 = LinearRegression().fit(X_raw, y_raw)
+r2_raw = r2_score(y_raw, m1.predict(X_raw))
+
+# log 변환 후
+X_log = np.log1p(X_raw)
+y_log = np.log1p(y_raw)
+m2 = LinearRegression().fit(X_log, y_log)
+r2_log = r2_score(y_log, m2.predict(X_log))
+
+print(f&#x27;R² (변환 전): {r2_raw:.4f}&#x27;)
+print(f&#x27;R² (log 변환 후): {r2_log:.4f}&#x27;)
+print(f&#x27;기울기 (log 공간): {m2.coef_[0]:.4f}&#x27;)
+print(&#x27;해석: carat 1% 증가 → price 약 {:.1f}% 증가&#x27;.format(m2.coef_[0]))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>변환 전 R² ≈ 0.849, 로그 변환 후 R² ≈ 0.933 — 변환으로 설명력 8.4%p 향상</li><li>log-log 모델에서 기울기 ≈ 1.68 → carat 1% 증가 시 price ~1.68% 증가 (탄력성 해석)</li><li>price와 carat 모두 우측 편포 → 로그 변환으로 정규성 근사, 잔차 분산 안정화</li><li>log1p(x)는 x=0일 때도 안전 (log(0)은 -∞)</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 가격/면적/수량 등 우편포 변수는 로그 변환이 선형 회귀의 기본 전처리</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">다중 회귀 (4C 변수 포함)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>4C 인코딩</span><span class="step"><span class="step-num">2</span>다중회귀 학습</span><span class="step"><span class="step-num">3</span>계수 해석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+df = sns.load_dataset(&#x27;diamonds&#x27;)
+cut_order = [&#x27;Fair&#x27;,&#x27;Good&#x27;,&#x27;Very Good&#x27;,&#x27;Premium&#x27;,&#x27;Ideal&#x27;]
+clarity_order = [&#x27;I1&#x27;,&#x27;SI2&#x27;,&#x27;SI1&#x27;,&#x27;VS2&#x27;,&#x27;VS1&#x27;,&#x27;VVS2&#x27;,&#x27;VVS1&#x27;,&#x27;IF&#x27;]
+color_order = list(&#x27;DEFGHIJ&#x27;)
+
+df[&#x27;cut_enc&#x27;] = pd.Categorical(df[&#x27;cut&#x27;], categories=cut_order, ordered=True).codes
+df[&#x27;color_enc&#x27;] = pd.Categorical(df[&#x27;color&#x27;], categories=color_order, ordered=True).codes
+df[&#x27;clarity_enc&#x27;] = pd.Categorical(df[&#x27;clarity&#x27;], categories=clarity_order, ordered=True).codes
+
+feat = [&#x27;carat&#x27;,&#x27;cut_enc&#x27;,&#x27;color_enc&#x27;,&#x27;clarity_enc&#x27;,&#x27;depth&#x27;,&#x27;table&#x27;,&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;]
+X = df[feat]
+y = np.log1p(df[&#x27;price&#x27;])
+
+model = LinearRegression().fit(X, y)
+print(f&#x27;R²: {r2_score(y, model.predict(X)):.4f}&#x27;)
+
+coef = pd.Series(model.coef_, index=feat).sort_values()
+print(coef.round(4))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>R² ≈ 0.978 — 9개 변수로 로그 변환 가격 분산의 97.8% 설명</li><li>carat 계수가 압도적으로 큼 → 중량이 가격 결정의 최대 요인</li><li>z(깊이) 계수가 음수인 경우: x·y·z 간 다중공선성 존재 → Ridge 회귀 권장</li><li>clarity_enc 계수 > color_enc 계수 → 투명도 등급이 색상보다 가격에 더 큰 영향</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> x·y·z는 carat과 강한 상관이 있어 VIF > 10 가능 — 제거하거나 Ridge/Lasso 적용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">Ridge / Lasso 정규화 회귀</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>다중공선성 대응</span><span class="step"><span class="step-num">2</span>Ridge·Lasso 비교</span><span class="step"><span class="step-num">3</span>알파 튜닝</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import Ridge, Lasso
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
+
+df = sns.load_dataset(&#x27;diamonds&#x27;)
+cut_order = [&#x27;Fair&#x27;,&#x27;Good&#x27;,&#x27;Very Good&#x27;,&#x27;Premium&#x27;,&#x27;Ideal&#x27;]
+clarity_order = [&#x27;I1&#x27;,&#x27;SI2&#x27;,&#x27;SI1&#x27;,&#x27;VS2&#x27;,&#x27;VS1&#x27;,&#x27;VVS2&#x27;,&#x27;VVS1&#x27;,&#x27;IF&#x27;]
+color_order = list(&#x27;DEFGHIJ&#x27;)
+for col, order in [(&#x27;cut&#x27;,cut_order),(&#x27;color&#x27;,color_order),(&#x27;clarity&#x27;,clarity_order)]:
+    df[col+&#x27;_enc&#x27;] = pd.Categorical(df[col], categories=order, ordered=True).codes
+
+feat = [&#x27;carat&#x27;,&#x27;cut_enc&#x27;,&#x27;color_enc&#x27;,&#x27;clarity_enc&#x27;,&#x27;depth&#x27;,&#x27;table&#x27;,&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;]
+X = StandardScaler().fit_transform(df[feat])
+y = np.log1p(df[&#x27;price&#x27;])
+
+for alpha in [0.01, 0.1, 1, 10]:
+    r_cv = cross_val_score(Ridge(alpha=alpha), X, y, cv=5, scoring=&#x27;r2&#x27;).mean()
+    l_cv = cross_val_score(Lasso(alpha=alpha/100), X, y, cv=5, scoring=&#x27;r2&#x27;).mean()
+    print(f&#x27;alpha={alpha:5}: Ridge R²={r_cv:.4f}  Lasso R²={l_cv:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>Ridge alpha=0.1~1 구간에서 CV R² ≈ 0.977로 OLS와 거의 동일하나 안정적</li><li>Lasso는 alpha가 커질수록 계수를 0으로 수축 → 변수 선택 효과 (x·y·z 계수 0이 됨)</li><li>표준화(StandardScaler) 후 정규화 회귀를 적용해야 계수 스케일이 공정하게 페널티 적용</li><li>diamonds처럼 x·y·z 다중공선성이 강한 경우 Ridge가 OLS보다 일반화 성능이 높음</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> Ridge는 모든 변수를 유지하며 수축, Lasso는 일부 변수를 완전히 제거 — 목적에 따라 선택</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-reg" id="mpg">
+<div class="section-head">
+  <div class="sec-num">06</div>
+  <div class="sec-info">
+    <span class="sec-name">mpg</span>
+    <span class="sec-badge">회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'mpg','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'mpg','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'mpg','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-mpg-overview">
+<div class="overview-inner">
+<p class="ds-desc">1970~1982년 자동차 연비(mpg). 문자형 결측치 처리·다중공선성·연도별 추세 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 398</span>
+  <span class="meta-chip">열 9</span>
+  <span class="meta-chip cat-reg">회귀</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>mpg</code></td><td class="type-cell">float</td><td>연비(miles per gallon)</td></tr><tr><td><code>cylinders</code></td><td class="type-cell">int</td><td>실린더 수</td></tr><tr><td><code>displacement</code></td><td class="type-cell">float</td><td>배기량(cc)</td></tr><tr><td><code>horsepower</code></td><td class="type-cell">str→float</td><td>마력 (문자열 결측 포함)</td></tr><tr><td><code>weight</code></td><td class="type-cell">float</td><td>무게(파운드)</td></tr><tr><td><code>acceleration</code></td><td class="type-cell">float</td><td>가속도(0→60mph 초)</td></tr><tr><td><code>model_year</code></td><td class="type-cell">int</td><td>출시연도 (70~82)</td></tr><tr><td><code>origin</code></td><td class="type-cell">int</td><td>원산지 (1=미국,2=유럽,3=일본)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-mpg-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">결측 정제</span><span class="pr-val">pd.to_numeric(errors="coerce") + fillna</span></div><div class="principle-item"><span class="pr-key">다중공선성</span><span class="pr-val">VIF — displacement·cylinders·weight 상관</span></div><div class="principle-item"><span class="pr-key">시계열 추세</span><span class="pr-val">linregress — 연도별 연비 향상 통계검정</span></div><div class="principle-item"><span class="pr-key">그룹 비교</span><span class="pr-val">groupby 실린더별 연비·마력·무게 비교</span></div></div>
+</div>
+<div class="tab-pane" id="tab-mpg-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">결측치 처리 + 데이터 정제</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>결측 확인</span><span class="step"><span class="step-num">2</span>pd.to_numeric 변환</span><span class="step"><span class="step-num">3</span>이상치 탐색</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+
+df = sns.load_dataset(&#x27;mpg&#x27;)
+print(df.dtypes)
+print(df.isnull().sum())
+
+# horsepower: 문자열 &#x27;?&#x27; 포함 → 수치 변환
+df[&#x27;horsepower&#x27;] = pd.to_numeric(df[&#x27;horsepower&#x27;], errors=&#x27;coerce&#x27;)
+print(f&#x27;horsepower 결측: {df[&quot;horsepower&quot;].isnull().sum()}개&#x27;)
+
+# 결측 6개 → 중앙값으로 대체
+df[&#x27;horsepower&#x27;] = df[&#x27;horsepower&#x27;].fillna(df[&#x27;horsepower&#x27;].median())
+
+# IQR 기반 이상치 탐색
+for col in [&#x27;mpg&#x27;,&#x27;horsepower&#x27;,&#x27;weight&#x27;,&#x27;displacement&#x27;]:
+    Q1, Q3 = df[col].quantile([0.25, 0.75])
+    IQR = Q3 - Q1
+    out = df[(df[col] &lt; Q1-1.5*IQR) | (df[col] &gt; Q3+1.5*IQR)]
+    print(f&#x27;{col}: 이상치 {len(out)}개&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>horsepower 컬럼은 '?' 문자로 저장된 결측이 6개 — errors='coerce'로 NaN 변환 후 처리</li><li>displacement(배기량) 분포는 우측 편포 — 이상치보다 자연스러운 분포 차이</li><li>mpg 이상치(연비 극단값)는 실제 연비 좋은 소형차일 수 있으므로 맥락 확인 필요</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> errors='coerce'는 변환 불가 값을 NaN으로 처리하는 pandas의 핵심 옵션</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">다중 회귀 + VIF 다중공선성</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>피처 선택</span><span class="step"><span class="step-num">2</span>VIF 계산</span><span class="step"><span class="step-num">3</span>다중회귀 R²</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+df = sns.load_dataset(&#x27;mpg&#x27;)
+df[&#x27;horsepower&#x27;] = pd.to_numeric(df[&#x27;horsepower&#x27;], errors=&#x27;coerce&#x27;).fillna(
+    df[&#x27;horsepower&#x27;].pipe(pd.to_numeric, errors=&#x27;coerce&#x27;).median())
+
+feat = [&#x27;cylinders&#x27;,&#x27;displacement&#x27;,&#x27;horsepower&#x27;,&#x27;weight&#x27;,&#x27;acceleration&#x27;]
+X = df[feat].dropna()
+y = df.loc[X.index, &#x27;mpg&#x27;]
+
+# VIF 계산
+vif = pd.DataFrame({&#x27;feature&#x27;: feat,
+    &#x27;VIF&#x27;: [variance_inflation_factor(X.values, i) for i in range(len(feat))]})
+print(vif.sort_values(&#x27;VIF&#x27;, ascending=False))
+
+model = LinearRegression().fit(X, y)
+print(f&#x27;R²: {r2_score(y, model.predict(X)):.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>displacement·cylinders·weight VIF > 10 → 심각한 다중공선성</li><li>R² ≈ 0.71이지만 다중공선성으로 인해 개별 계수 해석 불가 — Ridge/Lasso 권장</li><li>VIF > 10 변수 중 하나를 제거하거나 PCA로 직교 성분 추출 후 회귀 적용</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> displacement = cylinders × (배기량/실린더) 관계로 선형 종속에 가까운 다중공선성</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">연도별 연비 추세 + 차종 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>연도 정리</span><span class="step"><span class="step-num">2</span>차종별 그룹</span><span class="step"><span class="step-num">3</span>추세 시각화 준비</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+
+df = sns.load_dataset(&#x27;mpg&#x27;)
+df[&#x27;horsepower&#x27;] = pd.to_numeric(df[&#x27;horsepower&#x27;], errors=&#x27;coerce&#x27;).fillna(
+    df.groupby(&#x27;cylinders&#x27;)[&#x27;horsepower&#x27;].transform(&#x27;median&#x27;))
+
+# 연도별 평균 연비
+yearly = df.groupby(&#x27;model_year&#x27;)[&#x27;mpg&#x27;].agg([&#x27;mean&#x27;,&#x27;std&#x27;,&#x27;count&#x27;])
+print(yearly.round(2))
+
+# 실린더별 연비 (출력 vs 연비 트레이드오프)
+print(df.groupby(&#x27;cylinders&#x27;)[[&#x27;mpg&#x27;,&#x27;horsepower&#x27;,&#x27;weight&#x27;]].mean().round(2))
+
+# 연도별 선형 추세
+from scipy.stats import linregress
+slope, intercept, r, p, se = linregress(df[&#x27;model_year&#x27;], df[&#x27;mpg&#x27;])
+print(f&#x27;연도별 추세: 매년 +{slope:.3f} mpg, R={r:.3f}, p={p:.6f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>1970~1982년 사이 평균 연비 17→31 mpg — 오일쇼크(1973/1979) 이후 급격히 상승</li><li>4기통이 8기통 대비 연비 2배, 무게 1.6톤 vs 1.0톤 — 배기량·무게·연비의 삼각관계</li><li>연도와 mpg의 선형 추세: slope > 0, p < 0.001 — 연비 개선이 통계적으로 유의</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> model_year가 70~82로 저장됨 (1970~1982년) — 시각화 시 70+1900으로 보정 필요</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-reg" id="healthexp">
+<div class="section-head">
+  <div class="sec-num">18</div>
+  <div class="sec-info">
+    <span class="sec-name">healthexp</span>
+    <span class="sec-badge">회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'healthexp','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'healthexp','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'healthexp','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-healthexp-overview">
+<div class="overview-inner">
+<p class="ds-desc">국가별 의료비 지출과 기대수명. 패널 데이터 분석·고정 효과 회귀·국가별 효율성 비교.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 274</span>
+  <span class="meta-chip">열 4</span>
+  <span class="meta-chip cat-reg">회귀</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>Country</code></td><td class="type-cell">str</td><td>국가명</td></tr><tr><td><code>Year</code></td><td class="type-cell">int</td><td>연도</td></tr><tr><td><code>Spending_USD</code></td><td class="type-cell">float</td><td>1인당 의료비($)</td></tr><tr><td><code>Life_Expectancy</code></td><td class="type-cell">float</td><td>기대수명(세)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-healthexp-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">패널 데이터</span><span class="pr-val">국가 × 연도 구조 — 고정/랜덤 효과</span></div><div class="principle-item"><span class="pr-key">국가 더미</span><span class="pr-val">get_dummies → 국가 고정 효과 회귀</span></div><div class="principle-item"><span class="pr-key">효율성 비교</span><span class="pr-val">slope — 지출 1달러당 기대수명 증가</span></div><div class="principle-item"><span class="pr-key">생태학적 오류</span><span class="pr-val">집계 데이터에서 개인 수준 추론 주의</span></div></div>
+</div>
+<div class="tab-pane" id="tab-healthexp-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">국가별 의료지출·기대수명 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>피벗 생성</span><span class="step"><span class="step-num">2</span>연도별 추이</span><span class="step"><span class="step-num">3</span>산점도 준비</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import linregress
+
+df = sns.load_dataset(&#x27;healthexp&#x27;)
+
+# 국가별 최신 연도 데이터
+latest = df[df[&#x27;Year&#x27;] == df[&#x27;Year&#x27;].max()]
+print(latest[[&#x27;Country&#x27;,&#x27;Spending_USD&#x27;,&#x27;Life_Expectancy&#x27;]].sort_values(&#x27;Spending_USD&#x27;, ascending=False))
+
+# 국가별 선형 추세 (지출 vs 기대수명)
+for country, grp in df.groupby(&#x27;Country&#x27;):
+    slope, _, r, p, _ = linregress(grp[&#x27;Spending_USD&#x27;], grp[&#x27;Life_Expectancy&#x27;])
+    print(f&#x27;{country:15}: slope={slope:.6f}, R={r:.3f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>미국이 의료 지출이 압도적으로 높지만 기대수명은 다른 선진국보다 낮음</li><li>slope(의료비 1달러 증가당 기대수명 증가)가 국가별로 크게 다름 — 의료 효율성 차이</li><li>R이 낮은 국가는 지출-수명 관계가 비선형 또는 다른 요인이 더 중요함을 시사</li><li>연도가 늘어날수록 대부분 국가의 지출과 기대수명이 동시에 증가하는 상관 존재</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 집계된 국가 수준 데이터는 개인 수준 인과관계를 직접 추론할 수 없음 (생태학적 오류)</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">회귀 + 국가 더미 변수</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>국가 더미 인코딩</span><span class="step"><span class="step-num">2</span>고정 효과 회귀</span><span class="step"><span class="step-num">3</span>공통 기울기 vs 국가별</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+df = sns.load_dataset(&#x27;healthexp&#x27;)
+
+# 국가 더미 인코딩
+df_enc = pd.get_dummies(df, columns=[&#x27;Country&#x27;], drop_first=True)
+feat_base = [&#x27;Spending_USD&#x27;]
+feat_full = [c for c in df_enc.columns if c != &#x27;Life_Expectancy&#x27; and c != &#x27;Year&#x27;]
+
+X_base = df_enc[feat_base]
+X_full = df_enc[feat_full]
+y = df_enc[&#x27;Life_Expectancy&#x27;]
+
+for name, X in [(&#x27;Spending Only&#x27;, X_base), (&#x27;+ Country FE&#x27;, X_full)]:
+    model = LinearRegression().fit(X, y)
+    print(f&#x27;{name}: R²={r2_score(y, model.predict(X)):.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>국가 더미(고정 효과) 추가 시 R²가 크게 향상 → 국가별 기대수명 기저 차이가 큼</li><li>국가 더미는 '국가 간 고정 차이'를 흡수 — 지출의 순수한 within-country 효과 추정</li><li>panel 데이터(국가 × 연도)에서는 국가 고정 효과 + 연도 고정 효과를 동시에 고려</li><li>고정 효과 모델은 관측되지 않은 국가 수준 변수를 통제하는 실용적 방법</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 패널 데이터 분석에서는 statsmodels의 PanelOLS나 linearmodels 라이브러리 사용 권장</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-ts">📅 시계열 Time Series</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-ts" id="flights">
+<div class="section-head">
+  <div class="sec-num">07</div>
+  <div class="sec-info">
+    <span class="sec-name">flights</span>
+    <span class="sec-badge">시계열</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'flights','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'flights','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'flights','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-flights-overview">
+<div class="overview-inner">
+<p class="ds-desc">1949~1960년 월별 국제 항공 탑승자 수. 계절성 분해·이동평균·ARIMA 예측의 표준 데이터셋.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 144</span>
+  <span class="meta-chip">열 3</span>
+  <span class="meta-chip cat-ts">시계열</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>year</code></td><td class="type-cell">int</td><td>연도 (1949~1960)</td></tr><tr><td><code>month</code></td><td class="type-cell">str</td><td>월명 (Jan~Dec)</td></tr><tr><td><code>passengers</code></td><td class="type-cell">int</td><td>탑승자 수(천 명)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-flights-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">피벗 시각화</span><span class="pr-val">pivot_table → heatmap</span></div><div class="principle-item"><span class="pr-key">이동평균</span><span class="pr-val">rolling(12) 계절성 평활화</span></div><div class="principle-item"><span class="pr-key">계절성 분해</span><span class="pr-val">seasonal_decompose — additive/multiplicative</span></div><div class="principle-item"><span class="pr-key">ARIMA 예측</span><span class="pr-val">ADF 정상성 검정 + SARIMA</span></div></div>
+</div>
+<div class="tab-pane" id="tab-flights-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">피벗 테이블 (연도 × 월)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>피벗 생성</span><span class="step"><span class="step-num">2</span>히트맵용 정렬</span><span class="step"><span class="step-num">3</span>pct_change 증감율</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;flights&#x27;)
+
+# 연도 × 월 피벗
+pivot = df.pivot_table(&#x27;passengers&#x27;, index=&#x27;year&#x27;, columns=&#x27;month&#x27;)
+print(pivot)
+
+# 연간 총 탑승자 증감율
+annual = df.groupby(&#x27;year&#x27;)[&#x27;passengers&#x27;].sum()
+growth = annual.pct_change() * 100
+print(&#x27;\n연간 성장률(%):&#x27;)
+print(growth.round(2))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>1949→1960년 항공 탑승자 5.8배 증가 (미국 상업항공 황금기)</li><li>매년 7~8월이 최대 성수기, 11~12월이 비수기 — 강한 계절성 패턴</li><li>연간 성장률 평균 ~10% — 일부 연도는 15%를 초과하는 급성장</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> pivot_table 결과는 시각화(seaborn heatmap)에 바로 활용 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">이동평균 + 계절성 분해</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>날짜 인덱스 생성</span><span class="step"><span class="step-num">2</span>rolling 이동평균</span><span class="step"><span class="step-num">3</span>계절성 분해</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+df = sns.load_dataset(&#x27;flights&#x27;)
+df[&#x27;date&#x27;] = pd.to_datetime(df[[&#x27;year&#x27;,&#x27;month&#x27;]].assign(day=1))
+ts = df.set_index(&#x27;date&#x27;)[&#x27;passengers&#x27;]
+
+# 12개월 이동평균 (계절성 제거)
+ts_ma = ts.rolling(12, center=True).mean()
+print(&#x27;이동평균 마지막 5개:&#x27;)
+print(ts_ma.tail())
+
+# 계절성 분해 (additive)
+result = seasonal_decompose(ts, model=&#x27;additive&#x27;, period=12)
+print(&#x27;\n계절 성분 (월별 평균):&#x27;)
+seasonal_mean = result.seasonal.groupby(result.seasonal.index.month).mean()
+print(seasonal_mean.round(1))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>rolling(12) 이동평균이 원 시계열의 계절 파동을 부드럽게 평균화</li><li>seasonal_decompose: trend(상승추세) + seasonal(매년 반복 파동) + residual(불규칙)</li><li>7월 계절 성분이 가장 높고 11월이 가장 낮음 — 계절 성분으로 월별 보정 가능</li><li>additive 모델: 시계열 = 추세 + 계절 + 잔차 (분산이 일정할 때 적합)</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> multiplicative 모델은 분산이 수준에 비례해 커질 때 사용 (이 데이터는 분산이 증가함)</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">ARIMA 시계열 예측</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>정상성 확인 (ADF)</span><span class="step"><span class="step-num">2</span>ARIMA 파라미터</span><span class="step"><span class="step-num">3</span>1년 예측</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.stattools import adfuller
+
+df = sns.load_dataset(&#x27;flights&#x27;)
+df[&#x27;date&#x27;] = pd.to_datetime(df[[&#x27;year&#x27;,&#x27;month&#x27;]].assign(day=1))
+ts = df.set_index(&#x27;date&#x27;)[&#x27;passengers&#x27;]
+
+# ADF 정상성 검정
+adf_result = adfuller(ts)
+print(f&#x27;ADF statistic: {adf_result[0]:.4f}&#x27;)
+print(f&#x27;p-value: {adf_result[1]:.4f}&#x27;)
+print(&#x27;비정상 시계열 (p &gt; 0.05)&#x27; if adf_result[1] &gt; 0.05 else &#x27;정상 시계열&#x27;)
+
+# log 변환 + ARIMA(1,1,1)×(0,1,1,12) — 간단 예시
+import numpy as np
+log_ts = np.log(ts)
+model = ARIMA(log_ts, order=(1,1,1), seasonal_order=(0,1,1,12))
+result = model.fit()
+print(result.summary().tables[0])</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>ADF p > 0.05 → 비정상 시계열 (추세+계절성 존재) → d=1, D=1 차분 필요</li><li>SARIMA(1,1,1)(0,1,1,12): 비계절 ARIMA + 계절 MA(1) 12개월 주기</li><li>log 변환으로 분산 안정화 후 ARIMA 적용 → 예측 후 exp() 역변환</li><li>seasonal_order=(P,D,Q,s)에서 s=12는 월별 데이터의 연간 계절성 주기</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> forecast.conf_int()로 예측 구간(신뢰 구간) 추출 가능</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-ts" id="dowjones">
+<div class="section-head">
+  <div class="sec-num">08</div>
+  <div class="sec-info">
+    <span class="sec-name">dowjones</span>
+    <span class="sec-badge">시계열</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'dowjones','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'dowjones','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'dowjones','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-dowjones-overview">
+<div class="overview-inner">
+<p class="ds-desc">1914~1968년 월별 다우존스 산업평균지수. 날짜 인덱스·resample·수익률·자기상관 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 666</span>
+  <span class="meta-chip">열 2</span>
+  <span class="meta-chip cat-ts">시계열</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>Date</code></td><td class="type-cell">str→datetime</td><td>날짜 (월별)</td></tr><tr><td><code>Price</code></td><td class="type-cell">float</td><td>다우존스 지수</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-dowjones-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">날짜 처리</span><span class="pr-val">to_datetime + set_index + resample</span></div><div class="principle-item"><span class="pr-key">이동평균</span><span class="pr-val">rolling SMA — 골든크로스 신호</span></div><div class="principle-item"><span class="pr-key">수익률</span><span class="pr-val">pct_change() + 양/음 수익률 비율</span></div><div class="principle-item"><span class="pr-key">자기상관</span><span class="pr-val">ACF/PACF + ADF 정상성 검정</span></div></div>
+</div>
+<div class="tab-pane" id="tab-dowjones-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">날짜 인덱스 + 연간 리샘플</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>to_datetime 변환</span><span class="step"><span class="step-num">2</span>set_index</span><span class="step"><span class="step-num">3</span>resample('YE') 연간 집계</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;dowjones&#x27;)
+df[&#x27;Date&#x27;] = pd.to_datetime(df[&#x27;Date&#x27;])
+df = df.set_index(&#x27;Date&#x27;).sort_index()
+
+# 연간 마지막 값 (연말 주가)
+annual_last = df.resample(&#x27;YE&#x27;).last()
+print(annual_last.head(10))
+
+# 연간 평균 + 최대 + 최소
+annual_stats = df.resample(&#x27;YE&#x27;).agg({&#x27;Price&#x27;: [&#x27;mean&#x27;,&#x27;max&#x27;,&#x27;min&#x27;]})
+print(annual_stats.head())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>1914~1968년 다우존스 지수 연말값 — 대공황(1929년 급락)이 데이터에 포함</li><li>resample('YE').last()는 각 연도의 마지막 거래일 종가 추출</li><li>연간 max-min 스프레드(변동폭)가 클수록 해당 연도의 변동성이 높음</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> resample 주요 빈도: 'ME'=월말, 'QE'=분기말, 'YE'=연말, 'W'=주간</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">이동평균 + 수익률 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>단순/지수 이동평균</span><span class="step"><span class="step-num">2</span>월별 수익률 계산</span><span class="step"><span class="step-num">3</span>양수/음수 수익률 비율</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+
+df = sns.load_dataset(&#x27;dowjones&#x27;)
+df[&#x27;Date&#x27;] = pd.to_datetime(df[&#x27;Date&#x27;])
+ts = df.set_index(&#x27;Date&#x27;)[&#x27;Price&#x27;].sort_index()
+
+# 단순 이동평균 (SMA)
+ts_df = ts.to_frame()
+ts_df[&#x27;SMA12&#x27;] = ts.rolling(12).mean()
+ts_df[&#x27;SMA60&#x27;] = ts.rolling(60).mean()
+
+# 월별 수익률
+ts_df[&#x27;return&#x27;] = ts.pct_change() * 100
+ts_df[&#x27;pos&#x27;] = ts_df[&#x27;return&#x27;] &gt; 0
+
+print(f&#x27;양수 수익률 월: {ts_df[&quot;pos&quot;].sum()} / {len(ts_df)}&#x27;)
+print(f&#x27;평균 수익률: {ts_df[&quot;return&quot;].mean():.4f}%&#x27;)
+print(f&#x27;수익률 표준편차: {ts_df[&quot;return&quot;].std():.4f}%&#x27;)
+print(ts_df[[&#x27;SMA12&#x27;,&#x27;SMA60&#x27;,&#x27;return&#x27;]].tail())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>전체 기간 양수 수익률 비율 약 56% — 장기적으로 상승 편향</li><li>SMA12(1년)가 SMA60(5년)을 상향 돌파하면 골든 크로스 — 상승 시그널</li><li>월별 수익률 표준편차 ≈ 4~5% — 단기 변동성이 연간 수익률 대비 매우 큼</li><li>대공황 기간 연속 음수 수익률 — 시계열 자기상관(autocorrelation) 확인 권장</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> pct_change()는 (현재-이전)/이전으로 비율 변화 계산; log return은 np.log(ts/ts.shift(1))</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">자기상관 분석 (ACF/PACF)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>수익률 정상성 확인</span><span class="step"><span class="step-num">2</span>ACF 계산</span><span class="step"><span class="step-num">3</span>자기상관 해석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.stattools import acf, pacf, adfuller
+
+df = sns.load_dataset(&#x27;dowjones&#x27;)
+df[&#x27;Date&#x27;] = pd.to_datetime(df[&#x27;Date&#x27;])
+ts = df.set_index(&#x27;Date&#x27;)[&#x27;Price&#x27;].sort_index()
+returns = ts.pct_change().dropna()
+
+# ADF 검정 (수익률)
+adf = adfuller(returns)
+print(f&#x27;수익률 ADF p-value: {adf[1]:.6f}&#x27;)
+
+# ACF 계산 (처음 20개 시차)
+acf_vals = acf(returns, nlags=20)
+pacf_vals = pacf(returns, nlags=20)
+
+print(&#x27;\nACF (수익률, lag 1~5):&#x27;)
+for i in range(1,6):
+    print(f&#x27;  lag {i}: {acf_vals[i]:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>수익률의 ADF p < 0.05 → 정상 시계열 (원 주가는 비정상, 차분 수익률은 정상)</li><li>ACF lag 1~5가 모두 0에 가까움 → 월별 수익률은 자기상관이 거의 없음 (랜덤워크 지지)</li><li>수익률 자체보다 절댓값이나 제곱 수익률의 ACF가 큼 → 변동성 군집(ARCH 효과) 가능성</li><li>주가 원시계열 ACF는 서서히 감소 → 비정상 시계열의 전형적 패턴</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 주가 수준(level)의 1차 차분 = 수익률(return) → 차분으로 비정상 → 정상 변환</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-ts" id="seaice">
+<div class="section-head">
+  <div class="sec-num">16</div>
+  <div class="sec-info">
+    <span class="sec-name">seaice</span>
+    <span class="sec-badge">시계열</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'seaice','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'seaice','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'seaice','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-seaice-overview">
+<div class="overview-inner">
+<p class="ds-desc">북극 해빙 면적 일별 관측 데이터. 기후변화 추세·계절성·기간별 비교 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 13175</span>
+  <span class="meta-chip">열 2</span>
+  <span class="meta-chip cat-ts">시계열</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>Date</code></td><td class="type-cell">str→datetime</td><td>날짜 (일별)</td></tr><tr><td><code>Extent</code></td><td class="type-cell">float</td><td>해빙 면적 (×10⁶km²)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-seaice-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">연간 집계</span><span class="pr-val">resample("YE").mean() + 선형 추세</span></div><div class="principle-item"><span class="pr-key">계절성</span><span class="pr-val">월별 groupby — 2~3월 최대, 9월 최소</span></div><div class="principle-item"><span class="pr-key">기간 비교</span><span class="pr-val">loc 슬라이싱 + 독립표본 t검정</span></div><div class="principle-item"><span class="pr-key">기후 분석</span><span class="pr-val">장기 감소 추세 정량화</span></div></div>
+</div>
+<div class="tab-pane" id="tab-seaice-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">시계열 트렌드 + 계절성 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>날짜 파싱</span><span class="step"><span class="step-num">2</span>연간·월별 집계</span><span class="step"><span class="step-num">3</span>선형 추세 검정</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from scipy.stats import linregress
+
+df = sns.load_dataset(&#x27;seaice&#x27;)
+df[&#x27;Date&#x27;] = pd.to_datetime(df[&#x27;Date&#x27;])
+df = df.set_index(&#x27;Date&#x27;).sort_index()
+
+# 연간 평균
+annual = df[&#x27;Extent&#x27;].resample(&#x27;YE&#x27;).mean()
+slope, intercept, r, p, se = linregress(
+    np.arange(len(annual)), annual.values)
+print(f&#x27;연간 감소 추세: {slope:.4f} × 10⁶km²/년&#x27;)
+print(f&#x27;R={r:.4f}, p={p:.6f}&#x27;)
+
+# 월별 계절성
+df[&#x27;month&#x27;] = df.index.month
+monthly_avg = df.groupby(&#x27;month&#x27;)[&#x27;Extent&#x27;].mean()
+print(&#x27;\n월별 평균 해빙 면적:&#x27;)
+print(monthly_avg.round(3))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>북극 해빙 면적 연간 감소 추세가 통계적으로 매우 유의 (p < 0.001)</li><li>2~3월이 연중 최대, 9월이 최소 — 북반구 계절에 따른 강한 계절성</li><li>선형 회귀로 감소 속도 정량화: 매년 약 0.05×10⁶km² 감소</li><li>기울기의 신뢰구간으로 감소 속도의 불확실성 범위 추정 가능</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 기후 데이터는 장기 추세와 계절성이 중첩 — seasonal_decompose로 분리해 각각 분석</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">기간별 비교 분석 (loc 슬라이싱)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>기간 슬라이싱</span><span class="step"><span class="step-num">2</span>두 기간 평균 비교</span><span class="step"><span class="step-num">3</span>t검정</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import ttest_ind
+
+df = sns.load_dataset(&#x27;seaice&#x27;)
+df[&#x27;Date&#x27;] = pd.to_datetime(df[&#x27;Date&#x27;])
+ts = df.set_index(&#x27;Date&#x27;)[&#x27;Extent&#x27;].sort_index()
+
+# 두 기간 비교 (1980년대 vs 2010년대)
+early = ts.loc[&#x27;1980&#x27;:&#x27;1989&#x27;].values
+recent = ts.loc[&#x27;2010&#x27;:&#x27;2019&#x27;].values
+
+print(f&#x27;1980년대 평균: {early.mean():.3f} × 10⁶km²&#x27;)
+print(f&#x27;2010년대 평균: {recent.mean():.3f} × 10⁶km²&#x27;)
+print(f&#x27;감소량: {early.mean()-recent.mean():.3f} × 10⁶km²&#x27;)
+
+t_stat, p = ttest_ind(early, recent)
+print(f&#x27;\nt-검정: t={t_stat:.4f}, p={p:.6f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>1980년대 vs 2010년대 해빙 면적 차이가 통계적으로 매우 유의</li><li>ts.loc['1980':'1989']는 datetime 인덱스의 연도 슬라이싱 — 간단하고 직관적</li><li>독립표본 t검정: 두 기간이 겹치지 않는 독립 표본으로 가정</li><li>감소량 > 1×10⁶km² — 한반도 면적의 약 10배에 해당하는 해빙 소실</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 시계열 t검정에서는 자기상관으로 인해 유효 자유도가 줄어듦 — 해석 시 주의</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-ts" id="fmri">
+<div class="section-head">
+  <div class="sec-num">17</div>
+  <div class="sec-info">
+    <span class="sec-name">fmri</span>
+    <span class="sec-badge">시계열</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'fmri','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'fmri','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'fmri','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-fmri-overview">
+<div class="overview-inner">
+<p class="ds-desc">fMRI 뇌 활성 신호 데이터. 다중 키 groupby·시점별 t검정·다중 비교 보정.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 1064</span>
+  <span class="meta-chip">열 5</span>
+  <span class="meta-chip cat-ts">시계열</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>subject</code></td><td class="type-cell">str</td><td>피험자 ID</td></tr><tr><td><code>timepoint</code></td><td class="type-cell">int</td><td>시간 포인트 (0~17)</td></tr><tr><td><code>event</code></td><td class="type-cell">str</td><td>이벤트 유형 (stim/cue)</td></tr><tr><td><code>region</code></td><td class="type-cell">str</td><td>뇌 영역 (parietal/frontal)</td></tr><tr><td><code>signal</code></td><td class="type-cell">float</td><td>BOLD 신호 값</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-fmri-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">다중 키 groupby</span><span class="pr-val">event × region × timepoint 집계</span></div><div class="principle-item"><span class="pr-key">idxmax</span><span class="pr-val">그룹별 피크 시점 추출</span></div><div class="principle-item"><span class="pr-key">시점별 t검정</span><span class="pr-val">루프 + ttest_ind + FDR 보정</span></div><div class="principle-item"><span class="pr-key">다중 비교</span><span class="pr-val">multipletests(method="fdr_bh")</span></div></div>
+</div>
+<div class="tab-pane" id="tab-fmri-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">그룹별 집계 + 다중 키 groupby</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>이벤트×지역별 집계</span><span class="step"><span class="step-num">2</span>피크 시점 탐색</span><span class="step"><span class="step-num">3</span>신호 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;fmri&#x27;)
+
+# 이벤트 × 지역별 평균 신호
+summary = df.groupby([&#x27;event&#x27;,&#x27;region&#x27;])[&#x27;signal&#x27;].agg([&#x27;mean&#x27;,&#x27;std&#x27;,&#x27;count&#x27;])
+print(summary.round(4))
+
+# 시점별 신호 최대값 (피크 시점)
+peak = df.groupby([&#x27;event&#x27;,&#x27;region&#x27;,&#x27;timepoint&#x27;])[&#x27;signal&#x27;].mean()
+peak_idx = peak.groupby(level=[&#x27;event&#x27;,&#x27;region&#x27;]).idxmax()
+print(&#x27;\n피크 시점:&#x27;)
+print(peak_idx)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>stim(자극) 이벤트가 cue(단서) 이벤트보다 평균 신호가 높음</li><li>parietal(두정엽) 지역과 frontal(전두엽) 지역의 반응 패턴이 다름</li><li>idxmax()로 그룹별 최대값의 인덱스(피크 시점)를 직접 추출</li><li>BOLD 신호는 자극 후 5~7초 지연 반응 (혈역학 반응 함수, HRF)</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> fMRI 데이터는 피험자 간 변동이 크므로 개별 피험자 분석과 그룹 분석을 병행</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">시점별 t검정 (stim vs cue)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>시점마다 두 조건 비교</span><span class="step"><span class="step-num">2</span>다중 비교 보정</span><span class="step"><span class="step-num">3</span>유의 시점 탐색</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import ttest_ind
+from statsmodels.stats.multitest import multipletests
+
+df = sns.load_dataset(&#x27;fmri&#x27;)
+
+results = []
+for tp in sorted(df[&#x27;timepoint&#x27;].unique()):
+    stim = df[(df[&#x27;timepoint&#x27;]==tp) &amp; (df[&#x27;event&#x27;]==&#x27;stim&#x27;)][&#x27;signal&#x27;]
+    cue  = df[(df[&#x27;timepoint&#x27;]==tp) &amp; (df[&#x27;event&#x27;]==&#x27;cue&#x27;)][&#x27;signal&#x27;]
+    t, p = ttest_ind(stim, cue)
+    results.append({&#x27;timepoint&#x27;: tp, &#x27;t&#x27;: t, &#x27;p&#x27;: p})
+
+res = pd.DataFrame(results)
+
+# Benjamini-Hochberg FDR 보정 (다중 비교)
+res[&#x27;reject&#x27;], res[&#x27;p_adj&#x27;], _, _ = multipletests(res[&#x27;p&#x27;], method=&#x27;fdr_bh&#x27;)
+sig = res[res[&#x27;reject&#x27;]]
+print(f&#x27;유의 시점 수: {len(sig)} / {len(res)}&#x27;)
+print(sig[[&#x27;timepoint&#x27;,&#x27;t&#x27;,&#x27;p&#x27;,&#x27;p_adj&#x27;]].to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>Benjamini-Hochberg FDR 보정으로 다중 비교의 위양성(1종 오류) 누적 방지</li><li>초기 시점보다 자극 후 3~8초 시점에서 두 조건 차이가 유의해지는 경향</li><li>FDR 보정 후에도 유의한 시점이 여러 개이면 해당 시점의 뇌 활성 차이 신뢰 가능</li><li>다중 비교 문제: 100번 t검정 시 우연히 ~5개가 유의 — 반드시 보정 적용</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> Bonferroni(보수적) vs BH-FDR(자유로움) — fMRI처럼 많은 시점 비교에는 BH-FDR 선호</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-ts" id="gammas">
+<div class="section-head">
+  <div class="sec-num">19</div>
+  <div class="sec-info">
+    <span class="sec-name">gammas</span>
+    <span class="sec-badge">시계열</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'gammas','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'gammas','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'gammas','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-gammas-overview">
+<div class="overview-inner">
+<p class="ds-desc">감마 분포 시뮬레이션 데이터. 분포 적합·KDE 시각화·그룹별 분포 비교.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 1200</span>
+  <span class="meta-chip">열 4</span>
+  <span class="meta-chip cat-ts">시계열</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>timepoint</code></td><td class="type-cell">float</td><td>시간 포인트</td></tr><tr><td><code>signal</code></td><td class="type-cell">float</td><td>신호 값</td></tr><tr><td><code>subject</code></td><td class="type-cell">str</td><td>피험자</td></tr><tr><td><code>ROI</code></td><td class="type-cell">str</td><td>관심 영역</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-gammas-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">분포 적합</span><span class="pr-val">scipy.stats.gamma.fit — MLE 파라미터</span></div><div class="principle-item"><span class="pr-key">KDE 시각화</span><span class="pr-val">seaborn kdeplot — 그룹별 분포 비교</span></div><div class="principle-item"><span class="pr-key">그룹 통계</span><span class="pr-val">groupby + agg — 코호트별 요약</span></div><div class="principle-item"><span class="pr-key">감마 분포</span><span class="pr-val">shape·scale 해석</span></div></div>
+</div>
+<div class="tab-pane" id="tab-gammas-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">분포 분석 + 그룹별 통계</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>감마 분포 파라미터 추정</span><span class="step"><span class="step-num">2</span>그룹별 통계</span><span class="step"><span class="step-num">3</span>KDE 준비</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import gamma as gamma_dist
+import numpy as np
+
+df = sns.load_dataset(&#x27;gammas&#x27;)
+
+# 컬럼별 기초 분포
+print(df.describe().round(3))
+
+# cohort별 통계
+if &#x27;cohort&#x27; in df.columns:
+    print(df.groupby(&#x27;cohort&#x27;).agg([&#x27;mean&#x27;,&#x27;std&#x27;,&#x27;count&#x27;]).round(3))
+
+# 감마 분포 적합 (MLE)
+for col in df.select_dtypes(&#x27;number&#x27;).columns[:2]:
+    data = df[col].dropna()
+    a, loc, scale = gamma_dist.fit(data, floc=0)
+    print(f&#x27;{col}: shape={a:.3f}, scale={scale:.3f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>gammas 데이터셋은 감마 분포를 따르는 시뮬레이션 데이터</li><li>shape(α) 파라미터가 클수록 분포가 정규분포에 가까워짐</li><li>scipy.stats.gamma.fit으로 MLE(최대우도추정) 파라미터 자동 추정</li><li>floc=0으로 위치 파라미터를 0으로 고정 — 표준 감마 분포 가정</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 감마 분포는 대기시간·보험 손해액·수명 등 양의 연속 변수 모델링에 활용</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-cl">🔵 클러스터링 Clustering</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-cl" id="geyser">
+<div class="section-head">
+  <div class="sec-num">09</div>
+  <div class="sec-info">
+    <span class="sec-name">geyser</span>
+    <span class="sec-badge">클러스터링</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'geyser','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'geyser','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'geyser','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-geyser-overview">
+<div class="overview-inner">
+<p class="ds-desc">옐로스톤 올드페이스풀 간헐천 분출 시간·대기시간. 이중 모드 군집화의 교과서적 데이터셋.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 272</span>
+  <span class="meta-chip">열 3</span>
+  <span class="meta-chip cat-cl">클러스터링</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>duration</code></td><td class="type-cell">float</td><td>분출 지속시간(분)</td></tr><tr><td><code>waiting</code></td><td class="type-cell">int</td><td>다음 분출까지 대기시간(분)</td></tr><tr><td><code>kind</code></td><td class="type-cell">str</td><td>분출 종류 (long/short)</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-geyser-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">KMeans</span><span class="pr-val">Elbow + 실루엣 → K=2 최적</span></div><div class="principle-item"><span class="pr-key">GMM</span><span class="pr-val">BIC로 성분 수 결정 + 소프트 할당</span></div><div class="principle-item"><span class="pr-key">DBSCAN</span><span class="pr-val">k-NN 거리로 eps 추정 + 노이즈 감지</span></div><div class="principle-item"><span class="pr-key">표준화</span><span class="pr-val">duration·waiting 스케일 차이 → StandardScaler 필수</span></div></div>
+</div>
+<div class="tab-pane" id="tab-geyser-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">KMeans 군집화 + 엘보우</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>표준화</span><span class="step"><span class="step-num">2</span>Elbow + 실루엣</span><span class="step"><span class="step-num">3</span>군집 통계</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score
+
+df = sns.load_dataset(&#x27;geyser&#x27;)
+X = df[[&#x27;duration&#x27;,&#x27;waiting&#x27;]]
+sc = StandardScaler()
+X_sc = sc.fit_transform(X)
+
+for k in range(2, 7):
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    labels = km.fit_predict(X_sc)
+    sil = silhouette_score(X_sc, labels)
+    print(f&#x27;K={k}  inertia={km.inertia_:.1f}  silhouette={sil:.4f}&#x27;)
+
+# 최적 K=2
+km2 = KMeans(n_clusters=2, n_init=10, random_state=42)
+df[&#x27;cluster&#x27;] = km2.fit_predict(X_sc)
+print(&#x27;\n군집별 통계:&#x27;)
+print(df.groupby(&#x27;cluster&#x27;)[[&#x27;duration&#x27;,&#x27;waiting&#x27;]].mean().round(2))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>K=2에서 실루엣 점수 최고(~0.71) — 가이저가 '짧고 자주' vs '길고 느리게' 두 모드</li><li>군집 0: duration≈2분, waiting≈55분 / 군집 1: duration≈4.5분, waiting≈80분</li><li>Elbow에서 K=2에서 inertia 급격히 감소 — 명확한 엘보우 포인트</li><li>duration과 waiting 사이의 이중 모드 분포(bimodal distribution)가 군집을 지배</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 실루엣 점수 > 0.5이면 좋은 군집 구조, > 0.7이면 매우 강한 군집 구조</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">GMM 가우시안 혼합 모델</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>GMM 학습</span><span class="step"><span class="step-num">2</span>BIC로 최적 성분 수</span><span class="step"><span class="step-num">3</span>소프트 할당 확률</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.mixture import GaussianMixture
+from sklearn.preprocessing import StandardScaler
+
+df = sns.load_dataset(&#x27;geyser&#x27;)
+X = StandardScaler().fit_transform(df[[&#x27;duration&#x27;,&#x27;waiting&#x27;]])
+
+# BIC로 최적 성분 수 선택
+bic_scores = []
+for n in range(1, 7):
+    gmm = GaussianMixture(n_components=n, n_init=5, random_state=42)
+    gmm.fit(X)
+    bic_scores.append((n, gmm.bic(X), gmm.aic(X)))
+    print(f&#x27;n={n}  BIC={gmm.bic(X):.1f}  AIC={gmm.aic(X):.1f}&#x27;)
+
+# 최적 모델 (BIC 최소)
+gmm2 = GaussianMixture(n_components=2, n_init=5, random_state=42)
+gmm2.fit(X)
+proba = gmm2.predict_proba(X)
+df[&#x27;gmm_cluster&#x27;] = gmm2.predict(X)
+df[&#x27;proba_c0&#x27;] = proba[:,0]
+print(&#x27;\n확률 &lt; 0.9 (불확실한 포인트):&#x27;)
+print(df[df[&#x27;proba_c0&#x27;].between(0.1, 0.9)][[&#x27;duration&#x27;,&#x27;waiting&#x27;,&#x27;proba_c0&#x27;]].head())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>BIC 최소값이 n=2에서 달성 → 2개 가우시안 성분이 데이터에 최적</li><li>GMM은 KMeans와 달리 소프트 할당(확률값) 제공 — 경계 포인트의 불확실성 표현 가능</li><li>proba_c0가 0.1~0.9 사이인 포인트들이 두 군집의 경계(중간 분출 패턴)</li><li>GMM은 타원형 군집도 인식 가능 — KMeans의 원형 군집 가정보다 유연</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> BIC(베이즈 정보기준) = -2*logL + k*ln(n) — 모델 복잡도를 패널티로 반영</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">DBSCAN 밀도 기반 군집화</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>eps·min_samples 탐색</span><span class="step"><span class="step-num">2</span>DBSCAN 학습</span><span class="step"><span class="step-num">3</span>노이즈 포인트 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
+
+df = sns.load_dataset(&#x27;geyser&#x27;)
+X = StandardScaler().fit_transform(df[[&#x27;duration&#x27;,&#x27;waiting&#x27;]])
+
+# eps 추정: k-NN 거리 정렬 (k=4)
+nn = NearestNeighbors(n_neighbors=4)
+nn.fit(X)
+distances, _ = nn.kneighbors(X)
+k_dist = np.sort(distances[:, -1])
+print(&#x27;4-NN 거리 분위수:&#x27;)
+print(pd.Series(k_dist).describe().round(3))
+
+# DBSCAN
+db = DBSCAN(eps=0.4, min_samples=5)
+df[&#x27;dbscan&#x27;] = db.fit_predict(X)
+print(f&#x27;\n군집 수: {df[&quot;dbscan&quot;].nunique() - 1}&#x27;)  # -1은 노이즈
+print(f&#x27;노이즈 포인트: {(df[&quot;dbscan&quot;]==-1).sum()}개&#x27;)
+print(df[&#x27;dbscan&#x27;].value_counts())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>DBSCAN은 eps 주변 반경 내 min_samples 이상이면 core point로 군집 확장</li><li>노이즈(-1) 포인트는 어느 군집에도 속하지 않는 이상치 — geyser에서는 소수</li><li>k-NN 거리 그래프의 'knee' 지점이 최적 eps — 보통 0.3~0.5 범위</li><li>DBSCAN 장점: 군집 수 미지정, 임의 형태 군집, 노이즈 자동 감지</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> geyser는 잘 분리된 두 군집이라 DBSCAN보다 KMeans/GMM이 더 적합한 경우</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cl" id="planets">
+<div class="section-head">
+  <div class="sec-num">14</div>
+  <div class="sec-info">
+    <span class="sec-name">planets</span>
+    <span class="sec-badge">클러스터링</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'planets','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'planets','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'planets','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-planets-overview">
+<div class="overview-inner">
+<p class="ds-desc">외계 행성 발견 데이터. 고결측 처리·로그 변환·탐색 방법별 계층 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 1035</span>
+  <span class="meta-chip">열 6</span>
+  <span class="meta-chip cat-cl">클러스터링</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>method</code></td><td class="type-cell">str</td><td>탐색 방법</td></tr><tr><td><code>number</code></td><td class="type-cell">int</td><td>발견 행성 수</td></tr><tr><td><code>orbital_period</code></td><td class="type-cell">float</td><td>공전 주기(일)</td></tr><tr><td><code>mass</code></td><td class="type-cell">float</td><td>질량(목성 기준)</td></tr><tr><td><code>distance</code></td><td class="type-cell">float</td><td>거리(광년)</td></tr><tr><td><code>year</code></td><td class="type-cell">int</td><td>발견 연도</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-planets-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">결측 분석</span><span class="pr-val">MNAR — 방법별 구조적 결측</span></div><div class="principle-item"><span class="pr-key">로그 변환</span><span class="pr-val">우측 편포 극복 → 정규화</span></div><div class="principle-item"><span class="pr-key">층화 분석</span><span class="pr-val">방법별 회귀 분리 — 선택 편향 고려</span></div><div class="principle-item"><span class="pr-key">멱함수</span><span class="pr-val">log-log 회귀로 케플러 법칙 검증</span></div></div>
+</div>
+<div class="tab-pane" id="tab-planets-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">결측 분석 + 로그 변환</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>결측 비율 계산</span><span class="step"><span class="step-num">2</span>탐색 방법별 분류</span><span class="step"><span class="step-num">3</span>로그 변환</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+
+df = sns.load_dataset(&#x27;planets&#x27;)
+miss_pct = df.isnull().mean().sort_values(ascending=False) * 100
+print(&#x27;결측 비율(%):&#x27;)
+print(miss_pct.round(1))
+
+# 탐색 방법별 데이터 수
+print(&#x27;\n탐색 방법별:&#x27;)
+print(df.groupby(&#x27;method&#x27;)[&#x27;orbital_period&#x27;].agg([&#x27;count&#x27;,&#x27;median&#x27;]).sort_values(&#x27;count&#x27;, ascending=False))
+
+# 수치 변수 로그 변환 후 분포
+for col in [&#x27;mass&#x27;,&#x27;orbital_period&#x27;,&#x27;distance&#x27;]:
+    valid = df[col].dropna()
+    print(f&#x27;{col}: skew={valid.skew():.2f} → log skew={np.log1p(valid).skew():.2f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>orbital_period·distance·mass 결측 비율 50~60% — 방법에 따라 측정 가능 변수가 다름</li><li>Radial Velocity 방법이 가장 많은 행성 발견, Transit은 소수지만 mass 정보 풍부</li><li>수치 변수들의 왜도(skew)가 매우 크므로 로그 변환으로 분석 용이화</li><li>결측이 50% 이상인 컬럼은 imputation 대신 방법별 층화 분석 권장</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 행성 데이터는 MNAR(Missing Not At Random) — 탐색 방법에 따라 구조적 결측</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">탐색 방법별 회귀 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>방법별 필터</span><span class="step"><span class="step-num">2</span>mass·orbital_period 회귀</span><span class="step"><span class="step-num">3</span>그룹 간 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from scipy.stats import linregress
+
+df = sns.load_dataset(&#x27;planets&#x27;)
+df_clean = df.dropna(subset=[&#x27;mass&#x27;,&#x27;orbital_period&#x27;])
+df_clean = df_clean.copy()
+df_clean[&#x27;log_mass&#x27;] = np.log1p(df_clean[&#x27;mass&#x27;])
+df_clean[&#x27;log_period&#x27;] = np.log1p(df_clean[&#x27;orbital_period&#x27;])
+
+# 주요 방법별 log-log 회귀
+for method in df_clean[&#x27;method&#x27;].value_counts().head(3).index:
+    sub = df_clean[df_clean[&#x27;method&#x27;]==method]
+    if len(sub) &gt;= 5:
+        slope, intercept, r, p, _ = linregress(sub[&#x27;log_mass&#x27;], sub[&#x27;log_period&#x27;])
+        print(f&#x27;{method:25}: slope={slope:.3f}, R={r:.3f}, n={len(sub)}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>방법별로 mass-period 상관 관계가 다르게 나타남 — 탐지 방법의 편향 반영</li><li>log-log 회귀 기울기는 멱함수 관계의 지수 — 케플러 법칙(P² ∝ a³)과 비교 가능</li><li>Radial Velocity: n이 커서 통계적으로 신뢰성 높음; 다른 방법은 표본 크기 주의</li><li>같은 우주지만 방법에 따라 관측 가능한 행성 특성이 달라짐 (선택 편향)</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> log-log 선형 회귀는 멱함수 y = ax^b의 선형화 (log y = log a + b·log x)</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-stat">📊 통계검정 Statistical Test</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-stat" id="attention">
+<div class="section-head">
+  <div class="sec-num">10</div>
+  <div class="sec-info">
+    <span class="sec-name">attention</span>
+    <span class="sec-badge">통계검정</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'attention','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'attention','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'attention','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-attention-overview">
+<div class="overview-inner">
+<p class="ds-desc">주의력 실험 점수 데이터. 일원·이원 ANOVA, 독립표본 t검정, 효과 크기 분석.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 60</span>
+  <span class="meta-chip">열 5</span>
+  <span class="meta-chip cat-stat">통계검정</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>score</code></td><td class="type-cell">int</td><td>과제 점수</td></tr><tr><td><code>attn</code></td><td class="type-cell">str</td><td>주의력 조건</td></tr><tr><td><code>solutions</code></td><td class="type-cell">int</td><td>제시된 해결책 수</td></tr><tr><td><code>subject</code></td><td class="type-cell">int</td><td>피험자 번호</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-attention-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">일원 ANOVA</span><span class="pr-val">f_oneway + Levene 등분산 검정</span></div><div class="principle-item"><span class="pr-key">이원 ANOVA</span><span class="pr-val">OLS + anova_lm(typ=2) + 교호작용</span></div><div class="principle-item"><span class="pr-key">t검정</span><span class="pr-val">ttest_ind + equal_var + Cohen's d</span></div><div class="principle-item"><span class="pr-key">사후검정</span><span class="pr-val">Tukey HSD — 어느 쌍이 다른지 파악</span></div></div>
+</div>
+<div class="tab-pane" id="tab-attention-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">일원 ANOVA (세 조건 비교)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>집단별 분리</span><span class="step"><span class="step-num">2</span>등분산 검정</span><span class="step"><span class="step-num">3</span>일원 ANOVA</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+from scipy.stats import f_oneway, levene
+import pandas as pd
+
+df = sns.load_dataset(&#x27;attention&#x27;)
+
+groups = [df[df[&#x27;solutions&#x27;]==s][&#x27;score&#x27;].values for s in df[&#x27;solutions&#x27;].unique()]
+print(&#x27;조건별 기술통계:&#x27;)
+print(df.groupby(&#x27;solutions&#x27;)[&#x27;score&#x27;].agg([&#x27;mean&#x27;,&#x27;std&#x27;,&#x27;count&#x27;]))
+
+# Levene 등분산 검정
+lev_stat, lev_p = levene(*groups)
+print(f&#x27;\nLevene: stat={lev_stat:.4f}, p={lev_p:.4f}&#x27;)
+
+# 일원 ANOVA
+f_stat, p_val = f_oneway(*groups)
+print(f&#x27;ANOVA: F={f_stat:.4f}, p={p_val:.4f}&#x27;)
+print(&#x27;유의&#x27; if p_val &lt; 0.05 else &#x27;비유의&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>solutions(주의력 과제 조건) 그룹 간 평균 차이가 통계적으로 유의한지 검정</li><li>ANOVA F = 집단간분산 / 집단내분산 — F값이 클수록 집단 간 차이가 큼</li><li>p < 0.05이면 적어도 하나의 집단 쌍이 다름 → Tukey HSD로 어느 쌍인지 파악</li><li>Levene p > 0.05 → 등분산 가정 충족 → ANOVA 사용 적합</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 집단이 2개면 t-test, 3개 이상이면 ANOVA — 다중 t-test는 1종 오류 누적</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">이원 ANOVA (solutions × attention)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>교호작용 항 포함</span><span class="step"><span class="step-num">2</span>OLS 회귀 ANOVA 테이블</span><span class="step"><span class="step-num">3</span>주효과·교호작용 해석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from statsmodels.formula.api import ols
+from statsmodels.stats.anova import anova_lm
+
+df = sns.load_dataset(&#x27;attention&#x27;)
+
+# 이원 ANOVA (교호작용 포함)
+model = ols(&#x27;score ~ C(solutions) * C(attention)&#x27;, data=df).fit()
+anova_table = anova_lm(model, typ=2)
+print(anova_table.round(4))
+
+# 교호작용 유의성 확인
+p_interact = anova_table.loc[&#x27;C(solutions):C(attention)&#x27;, &#x27;PR(&gt;F)&#x27;]
+print(f&#x27;\n교호작용 p값: {p_interact:.4f}&#x27;)
+if p_interact &lt; 0.05:
+    print(&#x27;교호작용 유의 → 각 조건 효과가 다른 변수 수준에 따라 달라짐&#x27;)
+else:
+    print(&#x27;교호작용 비유의 → 두 요인의 효과가 독립적&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>C(solutions)·C(attention) 주효과 F값과 p값으로 각 요인의 독립적 영향 확인</li><li>교호작용 항 C(solutions):C(attention)이 유의하면 두 변수의 효과가 서로 의존적</li><li>typ=2(Type II SS): 다른 변수를 통제한 후 각 변수의 고유 효과 측정</li><li>이원 ANOVA는 실험 설계에서 두 독립변수의 동시 효과를 분석하는 핵심 방법</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 교호작용이 유의하면 단순 주효과만 해석하는 것은 부적절 — 셀 평균 그래프 추가 필요</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">독립표본 t검정 (두 집단 비교)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>두 집단 추출</span><span class="step"><span class="step-num">2</span>등분산 검정</span><span class="step"><span class="step-num">3</span>Welch t검정</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+from scipy.stats import ttest_ind, levene
+import pandas as pd
+
+df = sns.load_dataset(&#x27;attention&#x27;)
+
+# attention 두 조건 비교 (high vs low)
+g1 = df[df[&#x27;attention&#x27;]==&#x27;high&#x27;][&#x27;score&#x27;]
+g2 = df[df[&#x27;attention&#x27;]==&#x27;low&#x27;][&#x27;score&#x27;]
+
+print(f&#x27;High: mean={g1.mean():.3f}, std={g1.std():.3f}, n={len(g1)}&#x27;)
+print(f&#x27;Low:  mean={g2.mean():.3f}, std={g2.std():.3f}, n={len(g2)}&#x27;)
+
+# Levene 등분산 검정
+stat_l, p_l = levene(g1, g2)
+print(f&#x27;\nLevene p={p_l:.4f}&#x27;)
+
+# 등분산 가정 여부에 따라 equal_var 설정
+equal_var = p_l &gt; 0.05
+t_stat, p_val = ttest_ind(g1, g2, equal_var=equal_var)
+print(f&#x27;{&quot;Student&quot; if equal_var else &quot;Welch&quot;} t={t_stat:.4f}, p={p_val:.4f}&#x27;)
+
+# 효과 크기 (Cohen&#x27;s d)
+import numpy as np
+d = (g1.mean()-g2.mean()) / np.sqrt((g1.std()**2+g2.std()**2)/2)
+print(f&quot;Cohen&#x27;s d: {d:.4f}&quot;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>Levene 검정 p값에 따라 equal_var=True(Student's t) 또는 False(Welch's t) 선택</li><li>Welch's t검정은 등분산 가정이 불필요 → 실무에서 더 안전한 기본 선택</li><li>Cohen's d: 0.2=소, 0.5=중, 0.8=대 효과 크기 — p값만이 아닌 실용적 크기 해석 필수</li><li>양측 검정이 기본; 방향성 가설이 있으면 단측 검정 사용 (alternative='greater')</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 대표본에서는 작은 차이도 유의해짐 → 효과 크기(Cohen's d)를 반드시 함께 보고</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-stat" id="car_crashes">
+<div class="section-head">
+  <div class="sec-num">11</div>
+  <div class="sec-info">
+    <span class="sec-name">car_crashes</span>
+    <span class="sec-badge">통계검정</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'car_crashes','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'car_crashes','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'car_crashes','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-car_crashes-overview">
+<div class="overview-inner">
+<p class="ds-desc">미국 주별 교통사고 통계. 상관분석·다중회귀·지역별 비교·이상치 탐색.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 51</span>
+  <span class="meta-chip">열 8</span>
+  <span class="meta-chip cat-stat">통계검정</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>total</code></td><td class="type-cell">float</td><td>총 사고율(10억 마일당)</td></tr><tr><td><code>speeding</code></td><td class="type-cell">float</td><td>과속 관련 사고 비율</td></tr><tr><td><code>alcohol</code></td><td class="type-cell">float</td><td>음주 관련 사고 비율</td></tr><tr><td><code>not_distracted</code></td><td class="type-cell">float</td><td>비주의분산 운전 비율</td></tr><tr><td><code>no_previous</code></td><td class="type-cell">float</td><td>사고 전례 없는 운전자 비율</td></tr><tr><td><code>ins_premium</code></td><td class="type-cell">float</td><td>자동차 보험료($)</td></tr><tr><td><code>ins_losses</code></td><td class="type-cell">float</td><td>보험 손해액($)</td></tr><tr><td><code>abbrev</code></td><td class="type-cell">str</td><td>주 약어</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-car_crashes-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">상관 분석</span><span class="pr-val">corr() + triu mask로 쌍별 정렬</span></div><div class="principle-item"><span class="pr-key">다중 회귀</span><span class="pr-val">statsmodels OLS — 계수 유의성·신뢰구간</span></div><div class="principle-item"><span class="pr-key">이상치</span><span class="pr-val">Z점수 + nlargest/nsmallest</span></div><div class="principle-item"><span class="pr-key">지역 비교</span><span class="pr-val">sort_values + 시각화 준비</span></div></div>
+</div>
+<div class="tab-pane" id="tab-car_crashes-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">상관 분석 + 히트맵</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>상관행렬 계산</span><span class="step"><span class="step-num">2</span>상위 상관 쌍 추출</span><span class="step"><span class="step-num">3</span>해석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+
+df = sns.load_dataset(&#x27;car_crashes&#x27;)
+num_cols = df.select_dtypes(include=&#x27;number&#x27;).columns.tolist()
+
+corr = df[num_cols].corr()
+print(corr[&#x27;total&#x27;].sort_values(ascending=False).round(3))
+
+# 상위 상관 쌍 (삼각행렬)
+mask = np.triu(np.ones_like(corr, dtype=bool))
+corr_pairs = (corr.where(~mask)
+    .stack()
+    .reset_index()
+    .rename(columns={&#x27;level_0&#x27;:&#x27;var1&#x27;,&#x27;level_1&#x27;:&#x27;var2&#x27;,0:&#x27;corr&#x27;})
+    .sort_values(&#x27;corr&#x27;, key=abs, ascending=False))
+print(&#x27;\n상위 5개 상관 쌍:&#x27;)
+print(corr_pairs.head())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>speeding·alcohol과 total 사고 간 양의 상관 ≈ 0.5~0.7 — 음주·과속이 사고의 주요 요인</li><li>no_previous·not_distracted는 음의 상관 (안전 운전 이력이 많으면 총 사고 감소)</li><li>triu mask로 대칭 행렬의 중복 쌍 제거 후 stack() → 쌍별 정렬 가능</li><li>ins_premium(보험료)이 높은 주가 반드시 사고율이 높지 않음 — 다른 요인 존재</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> corr()은 Pearson 상관계수 (선형관계만); 비선형이면 Spearman(.corr(method='spearman')) 사용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">다중 회귀 (사고율 예측)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>피처 선택</span><span class="step"><span class="step-num">2</span>OLS 회귀 요약</span><span class="step"><span class="step-num">3</span>잔차 진단</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import statsmodels.api as sm
+
+df = sns.load_dataset(&#x27;car_crashes&#x27;)
+
+feat = [&#x27;speeding&#x27;,&#x27;alcohol&#x27;,&#x27;not_distracted&#x27;,&#x27;no_previous&#x27;,&#x27;ins_premium&#x27;]
+X = df[feat]
+y = df[&#x27;total&#x27;]
+X_const = sm.add_constant(X)
+
+model = sm.OLS(y, X_const).fit()
+print(model.summary().tables[1])  # 계수 테이블
+
+# 잔차 정규성 검정
+from scipy.stats import shapiro
+stat, p = shapiro(model.resid)
+print(f&#x27;\nShapiro-Wilk: stat={stat:.4f}, p={p:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>statsmodels OLS는 계수 유의성(p값), 신뢰구간, R²를 한 번에 출력</li><li>speeding·alcohol의 계수가 양수이고 유의 → 사고 유발 요인으로 통계적 확인</li><li>ins_premium(보험료)은 계수가 음수일 수 있음 — 비싼 보험료 주는 안전의식 높음?</li><li>Shapiro-Wilk p < 0.05 → 잔차 비정규 → WLS(가중최소제곱) 또는 로버스트 표준오차 고려</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> sm.add_constant()로 절편 추가 필수; sklearn LinearRegression은 자동으로 절편 포함</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">지역별 순위 + 이상치 주 탐색</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>nlargest/nsmallest</span><span class="step"><span class="step-num">2</span>Z점수 이상치</span><span class="step"><span class="step-num">3</span>복합 점수</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from scipy.stats import zscore
+
+df = sns.load_dataset(&#x27;car_crashes&#x27;)
+
+# 사고율 상위/하위 5개 주
+print(&#x27;사고율 상위 5 주:&#x27;)
+print(df.nlargest(5, &#x27;total&#x27;)[[&#x27;abbrev&#x27;,&#x27;total&#x27;,&#x27;speeding&#x27;,&#x27;alcohol&#x27;]])
+
+print(&#x27;\n사고율 하위 5 주:&#x27;)
+print(df.nsmallest(5, &#x27;total&#x27;)[[&#x27;abbrev&#x27;,&#x27;total&#x27;,&#x27;speeding&#x27;,&#x27;alcohol&#x27;]])
+
+# Z점수 기반 이상치 탐색
+df[&#x27;z_total&#x27;] = zscore(df[&#x27;total&#x27;])
+outliers = df[df[&#x27;z_total&#x27;].abs() &gt; 2]
+print(f&#x27;\n이상치 주 (|Z| &gt; 2): {len(outliers)}개&#x27;)
+print(outliers[[&#x27;abbrev&#x27;,&#x27;total&#x27;,&#x27;z_total&#x27;]].sort_values(&#x27;z_total&#x27;, ascending=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>사고율 상위 주는 남부 주들이 많으며 음주 관련 비율도 높은 경향</li><li>Z > 2 이상치 주들은 인구 밀도·도로 환경 등 추가 변수 고려 필요</li><li>nlargest/nsmallest는 sort_values().head() 대비 간결하고 의도가 명확</li><li>zscore > 2를 이상치 기준으로 사용 — IQR 방법과 병행해 비교 권장</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 주(State) 수준 데이터는 n=51이므로 소표본 → 개별 이상치 영향이 회귀에 크게 작용</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-stat" id="exercise">
+<div class="section-head">
+  <div class="sec-num">15</div>
+  <div class="sec-info">
+    <span class="sec-name">exercise</span>
+    <span class="sec-badge">통계검정</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'exercise','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'exercise','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'exercise','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-exercise-overview">
+<div class="overview-inner">
+<p class="ds-desc">운동 종류별 시간에 따른 맥박 변화. 이원 ANOVA·교호작용·혼합 효과 모델.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 90</span>
+  <span class="meta-chip">열 6</span>
+  <span class="meta-chip cat-stat">통계검정</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>subject</code></td><td class="type-cell">int</td><td>피험자 번호</td></tr><tr><td><code>time</code></td><td class="type-cell">int</td><td>측정 시점(1/15/30분)</td></tr><tr><td><code>pulse</code></td><td class="type-cell">int</td><td>맥박</td></tr><tr><td><code>kind</code></td><td class="type-cell">str</td><td>운동 종류 (rest/walking/running)</td></tr><tr><td><code>diet</code></td><td class="type-cell">str</td><td>식이 조건</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-exercise-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">이원 ANOVA</span><span class="pr-val">kind × time 교호작용 분석</span></div><div class="principle-item"><span class="pr-key">피벗 테이블</span><span class="pr-val">시간 × 운동 종류 평균 맥박 시각화</span></div><div class="principle-item"><span class="pr-key">혼합 효과</span><span class="pr-val">mixedlm — 피험자 랜덤 효과</span></div><div class="principle-item"><span class="pr-key">사후검정</span><span class="pr-val">Tukey HSD — 운동 종류 간 쌍 비교</span></div></div>
+</div>
+<div class="tab-pane" id="tab-exercise-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">반복측정 ANOVA + 그룹 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>피벗으로 시간×종류 교호작용 확인</span><span class="step"><span class="step-num">2</span>이원 ANOVA 실시</span><span class="step"><span class="step-num">3</span>사후검정</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import f_oneway
+from statsmodels.formula.api import ols
+from statsmodels.stats.anova import anova_lm
+
+df = sns.load_dataset(&#x27;exercise&#x27;)
+
+# 시간대별 맥박 요약
+pivot = df.pivot_table(&#x27;pulse&#x27;, index=&#x27;time&#x27;, columns=&#x27;kind&#x27;, aggfunc=&#x27;mean&#x27;)
+print(pivot.round(2))
+
+# 이원 ANOVA (운동 종류 × 시간)
+model = ols(&#x27;pulse ~ C(kind) * C(time)&#x27;, data=df).fit()
+print(anova_lm(model, typ=2).round(4))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>피벗 테이블로 시간(1/15/30분)과 운동 종류(rest/walking/running)의 교호작용 시각화</li><li>running 그룹은 시간에 따라 맥박이 지속 증가; rest는 거의 변화 없음</li><li>교호작용 항이 유의하면 운동 종류에 따라 시간 효과가 다르게 나타남을 의미</li><li>이원 ANOVA로 종류, 시간, 교호작용 각각의 F값과 p값 동시 확인</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 반복측정 설계(동일 피험자가 여러 시간 측정)는 Mixed ANOVA 또는 pingouin 라이브러리 권장</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">선형 혼합 효과 모델</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>개체 내 상관 고려</span><span class="step"><span class="step-num">2</span>혼합 효과 모델 적합</span><span class="step"><span class="step-num">3</span>고정효과 해석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from statsmodels.formula.api import mixedlm
+
+df = sns.load_dataset(&#x27;exercise&#x27;)
+
+# 운동 종류와 시간의 효과 (피험자 랜덤 효과 포함)
+model = mixedlm(&#x27;pulse ~ C(kind) + time&#x27;, df,
+                groups=df[&#x27;subject&#x27;]).fit()
+print(model.summary().tables[1])</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>mixedlm은 피험자별 개인차(랜덤 효과)를 모델에 포함 → 반복측정 설계에 적합</li><li>고정 효과: C(kind)[T.running] 계수 > 0 → running이 rest 대비 맥박 유의하게 상승</li><li>time 계수 > 0 → 시간 경과에 따라 맥박 증가</li><li>랜덤 효과 분산이 크면 피험자 간 개인차가 맥박 분산의 주요 원인</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> ANOVA는 집단 평균 비교, 혼합 효과 모델은 개인차까지 설명하는 더 강력한 방법</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-viz">🎨 시각화 Visualization</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-viz" id="anscombe">
+<div class="section-head">
+  <div class="sec-num">12</div>
+  <div class="sec-info">
+    <span class="sec-name">anscombe</span>
+    <span class="sec-badge">시각화</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'anscombe','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'anscombe','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'anscombe','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-anscombe-overview">
+<div class="overview-inner">
+<p class="ds-desc">Anscombe의 4중주. 통계는 동일하지만 형태가 다른 4그룹 — EDA의 필요성을 보여주는 데이터셋.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 44</span>
+  <span class="meta-chip">열 3</span>
+  <span class="meta-chip cat-viz">시각화</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>dataset</code></td><td class="type-cell">str</td><td>그룹 (I/II/III/IV)</td></tr><tr><td><code>x</code></td><td class="type-cell">float</td><td>X 변수</td></tr><tr><td><code>y</code></td><td class="type-cell">float</td><td>Y 변수</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-anscombe-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">회귀 비교</span><span class="pr-val">linregress 4그룹 동시 적용</span></div><div class="principle-item"><span class="pr-key">잔차 진단</span><span class="pr-val">Shapiro-Wilk + 패턴 분류</span></div><div class="principle-item"><span class="pr-key">EDA 필요성</span><span class="pr-val">통계 수치 동일 → 시각화로만 구분 가능</span></div><div class="principle-item"><span class="pr-key">이상치 영향</span><span class="pr-val">Dataset III·IV — 이상치가 회귀를 지배</span></div></div>
+</div>
+<div class="tab-pane" id="tab-anscombe-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-viz">4그룹 회귀 계수 동일성 확인</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>그룹별 분리</span><span class="step"><span class="step-num">2</span>linregress 적용</span><span class="step"><span class="step-num">3</span>통계 동일성 검증</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import linregress
+
+df = sns.load_dataset(&#x27;anscombe&#x27;)
+
+results = []
+for ds, grp in df.groupby(&#x27;dataset&#x27;):
+    slope, intercept, r, p, se = linregress(grp[&#x27;x&#x27;], grp[&#x27;y&#x27;])
+    results.append({
+        &#x27;dataset&#x27;: ds,
+        &#x27;slope&#x27;: round(slope, 3),
+        &#x27;intercept&#x27;: round(intercept, 3),
+        &#x27;r_sq&#x27;: round(r**2, 3),
+        &#x27;x_mean&#x27;: round(grp[&#x27;x&#x27;].mean(), 2),
+        &#x27;y_mean&#x27;: round(grp[&#x27;y&#x27;].mean(), 2),
+        &#x27;x_var&#x27;: round(grp[&#x27;x&#x27;].var(), 2)
+    })
+
+result_df = pd.DataFrame(results)
+print(result_df.to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>4개 데이터셋이 slope≈0.5, intercept≈3.0, R²≈0.67로 거의 동일한 회귀 통계</li><li>그러나 분포 형태가 완전히 다름: I=선형, II=곡선, III=이상치, IV=수직 분포</li><li>x의 평균·분산도 동일(x̄=9, Var=11) → 통계 수치만 보면 구분 불가</li><li>핵심 메시지: 데이터 시각화 없이 통계 수치만 보는 것은 위험</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> Anscombe's Quartet(1973)은 탐색적 데이터 분석(EDA)의 중요성을 보여주는 고전적 예시</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-viz">잔차 분석으로 모델 적합성 진단</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>잔차 계산</span><span class="step"><span class="step-num">2</span>그룹별 잔차 패턴</span><span class="step"><span class="step-num">3</span>적합성 진단</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from scipy.stats import shapiro
+
+df = sns.load_dataset(&#x27;anscombe&#x27;)
+
+for ds, grp in df.groupby(&#x27;dataset&#x27;):
+    X = grp[[&#x27;x&#x27;]]
+    y = grp[&#x27;y&#x27;]
+    model = LinearRegression().fit(X, y)
+    resid = y - model.predict(X)
+
+    # 잔차 통계
+    stat, p = shapiro(resid)
+    print(f&#x27;Dataset {ds}: &#x27;
+          f&#x27;resid_std={resid.std():.3f}  &#x27;
+          f&#x27;Shapiro p={p:.3f}  &#x27;
+          f&#x27;{&quot;정규&quot; if p&gt;0.05 else &quot;비정규&quot;}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>Dataset I: 잔차가 정규분포 → 선형 회귀 가정 충족</li><li>Dataset II: 잔차에 곡선 패턴 → 2차항 추가 또는 다항 회귀 필요</li><li>Dataset III: 1개 이상치가 모델을 왜곡 → 로버스트 회귀(Theil-Sen) 또는 이상치 제거</li><li>Dataset IV: 모든 x가 동일(x=8)하고 1개만 다름 → 회귀 계수가 그 1개에 의해 결정</li><li>Shapiro-Wilk로 잔차 정규성을 수치로 확인 — 시각(QQ플롯)과 병행</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 잔차 vs 예측값 플롯, QQ플롯, Scale-Location 플롯이 회귀 진단의 4대 그래프</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-viz" id="taxis">
+<div class="section-head">
+  <div class="sec-num">13</div>
+  <div class="sec-info">
+    <span class="sec-name">taxis</span>
+    <span class="sec-badge">시각화</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'taxis','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'taxis','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'taxis','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-taxis-overview">
+<div class="overview-inner">
+<p class="ds-desc">NYC 택시 탑승 데이터. datetime 처리·탑승시간 계산·요금 회귀·비모수 검정.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 6433</span>
+  <span class="meta-chip">열 14</span>
+  <span class="meta-chip cat-viz">시각화</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>pickup</code></td><td class="type-cell">str→datetime</td><td>탑승 시간</td></tr><tr><td><code>dropoff</code></td><td class="type-cell">str→datetime</td><td>하차 시간</td></tr><tr><td><code>passengers</code></td><td class="type-cell">int</td><td>탑승 인원</td></tr><tr><td><code>distance</code></td><td class="type-cell">float</td><td>이동 거리(마일)</td></tr><tr><td><code>fare</code></td><td class="type-cell">float</td><td>기본 요금($)</td></tr><tr><td><code>tip</code></td><td class="type-cell">float</td><td>팁($)</td></tr><tr><td><code>payment</code></td><td class="type-cell">str</td><td>결제 방법</td></tr><tr><td><code>color</code></td><td class="type-cell">str</td><td>택시 색상</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-taxis-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">datetime</span><span class="pr-val">to_datetime + dt accessor + timedelta</span></div><div class="principle-item"><span class="pr-key">파생변수</span><span class="pr-val">duration_min, hour, is_peak, is_weekend</span></div><div class="principle-item"><span class="pr-key">요금 회귀</span><span class="pr-val">거리·시간으로 요금 예측 → 미터 요금표 추정</span></div><div class="principle-item"><span class="pr-key">비모수 검정</span><span class="pr-val">Mann-Whitney U — 결제 방법별 팁 차이</span></div></div>
+</div>
+<div class="tab-pane" id="tab-taxis-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ts">datetime 처리 + 탑승 시간 계산</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>to_datetime 변환</span><span class="step"><span class="step-num">2</span>timedelta 계산</span><span class="step"><span class="step-num">3</span>dt accessor 활용</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+
+df = sns.load_dataset(&#x27;taxis&#x27;)
+df[&#x27;pickup&#x27;] = pd.to_datetime(df[&#x27;pickup&#x27;])
+df[&#x27;dropoff&#x27;] = pd.to_datetime(df[&#x27;dropoff&#x27;])
+
+# 탑승 시간 계산
+df[&#x27;duration_min&#x27;] = (df[&#x27;dropoff&#x27;] - df[&#x27;pickup&#x27;]).dt.total_seconds() / 60
+
+# 시간대별 파생 변수
+df[&#x27;hour&#x27;] = df[&#x27;pickup&#x27;].dt.hour
+df[&#x27;dayofweek&#x27;] = df[&#x27;pickup&#x27;].dt.dayofweek
+df[&#x27;is_weekend&#x27;] = df[&#x27;dayofweek&#x27;].isin([5,6]).astype(int)
+
+print(df[[&#x27;pickup&#x27;,&#x27;duration_min&#x27;,&#x27;hour&#x27;,&#x27;is_weekend&#x27;]].head())
+print(f&#x27;\n평균 탑승시간: {df[&quot;duration_min&quot;].mean():.1f}분&#x27;)
+print(f&#x27;최대 탑승시간: {df[&quot;duration_min&quot;].max():.1f}분&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>dt.total_seconds()/60으로 timedelta를 분 단위 float으로 변환</li><li>dt.hour로 시간대 추출 → 러시아워(7~9시, 17~19시) 분석 기반</li><li>is_weekend 파생변수: 주말(5=토,6=일) 여부로 요금 패턴 차이 분석 가능</li><li>duration_min 이상치(수백 분)는 데이터 오류 또는 장거리 고속도로 이동 가능성</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> pd.to_datetime()은 '%Y-%m-%d %H:%M:%S' 형식을 자동 인식; 다른 형식은 format= 지정</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">요금 분석 (거리·시간·경로)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>요금 파생변수</span><span class="step"><span class="step-num">2</span>회귀 분석</span><span class="step"><span class="step-num">3</span>경로별 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+df = sns.load_dataset(&#x27;taxis&#x27;)
+df[&#x27;pickup&#x27;] = pd.to_datetime(df[&#x27;pickup&#x27;])
+df[&#x27;dropoff&#x27;] = pd.to_datetime(df[&#x27;dropoff&#x27;])
+df[&#x27;duration_min&#x27;] = (df[&#x27;dropoff&#x27;] - df[&#x27;pickup&#x27;]).dt.total_seconds() / 60
+df[&#x27;hour&#x27;] = df[&#x27;pickup&#x27;].dt.hour
+df[&#x27;is_peak&#x27;] = df[&#x27;hour&#x27;].isin(range(7,10)).astype(int) |                 df[&#x27;hour&#x27;].isin(range(17,20)).astype(int)
+
+# 유효 데이터만 사용
+mask = (df[&#x27;fare&#x27;] &gt; 0) &amp; (df[&#x27;distance&#x27;] &gt; 0) &amp; (df[&#x27;duration_min&#x27;] &gt; 0)
+d = df[mask].dropna(subset=[&#x27;fare&#x27;,&#x27;distance&#x27;,&#x27;duration_min&#x27;])
+
+X = d[[&#x27;distance&#x27;,&#x27;duration_min&#x27;,&#x27;is_peak&#x27;]]
+y = d[&#x27;fare&#x27;]
+model = LinearRegression().fit(X, y)
+print(f&#x27;R²: {r2_score(y, model.predict(X)):.4f}&#x27;)
+print(f&#x27;거리당 요금: ${model.coef_[0]:.3f}/마일&#x27;)
+print(f&#x27;시간당 요금: ${model.coef_[1]*60:.3f}/시간&#x27;)
+print(f&#x27;피크타임 추가: ${model.coef_[2]:.3f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>R² > 0.9 — 거리와 시간이 요금 분산을 90% 이상 설명</li><li>뉴욕 택시 미터 구조: 기본요금 + 거리요금 + 시간요금 → 회귀 계수가 실제 요금표와 근접</li><li>is_peak 계수가 양수이면 러시아워에 추가 요금 발생 확인</li><li>distance=0이지만 fare>0인 이상치 존재 → mask로 필터링 필수</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 실제 NYC 택시 요금은 $2.5 기본 + $0.5/0.2마일 + $0.5/60초 정지 구조</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-stat">지불 방법별 팁 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>결제 방법 그룹</span><span class="step"><span class="step-num">2</span>Mann-Whitney U 검정</span><span class="step"><span class="step-num">3</span>팁 비율 분포</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+from scipy.stats import mannwhitneyu, kruskal
+import numpy as np
+
+df = sns.load_dataset(&#x27;taxis&#x27;)
+df_valid = df[(df[&#x27;fare&#x27;] &gt; 0) &amp; (df[&#x27;tip&#x27;] &gt;= 0)].dropna(subset=[&#x27;payment&#x27;])
+
+# 팁 비율 계산
+df_valid = df_valid.copy()
+df_valid[&#x27;tip_rate&#x27;] = df_valid[&#x27;tip&#x27;] / df_valid[&#x27;fare&#x27;]
+
+# 결제 방법별 통계
+print(df_valid.groupby(&#x27;payment&#x27;)[&#x27;tip_rate&#x27;].agg([&#x27;mean&#x27;,&#x27;median&#x27;,&#x27;std&#x27;,&#x27;count&#x27;]).round(4))
+
+# credit card vs cash 비교 (비정규 분포 → 비모수 검정)
+cc = df_valid[df_valid[&#x27;payment&#x27;]==&#x27;credit card&#x27;][&#x27;tip_rate&#x27;]
+cash = df_valid[df_valid[&#x27;payment&#x27;]==&#x27;cash&#x27;][&#x27;tip_rate&#x27;]
+
+u_stat, p = mannwhitneyu(cc, cash, alternative=&#x27;two-sided&#x27;)
+print(f&#x27;\nMann-Whitney U: stat={u_stat:.1f}, p={p:.6f}&#x27;)
+print(&#x27;유의 차이 있음&#x27; if p &lt; 0.05 else &#x27;유의 차이 없음&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>신용카드 결제 팁 비율이 현금보다 유의미하게 높음 (p << 0.001)</li><li>현금 탑승객의 팁 비율 중앙값이 0에 가까움 — 현금 팁을 거의 안 주거나 기록 안 됨</li><li>Mann-Whitney U: 정규성 가정 없는 비모수 검정 — 팁 비율의 우측 편포에 적합</li><li>3개 이상 결제 방법 비교는 Kruskal-Wallis(kruskal) 검정 사용</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> cash tip은 데이터에 기록되지 않는 경우가 많아 실제 차이보다 과장될 수 있음</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-corr">🕸️ 상관/네트워크 Correlation</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-corr" id="brain_networks">
+<div class="section-head">
+  <div class="sec-num">21</div>
+  <div class="sec-info">
+    <span class="sec-name">brain_networks</span>
+    <span class="sec-badge">상관/네트워크</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'brain_networks','overview')">📋 개요·컬럼</button>
+  <button class="tab-btn" onclick="switchTab(this,'brain_networks','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'brain_networks','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-brain_networks-overview">
+<div class="overview-inner">
+<p class="ds-desc">뇌 기능적 연결성 네트워크 데이터. 멀티레벨 헤더·상관 행렬·계층적 군집화.</p>
+<div class="meta-chips">
+  <span class="meta-chip">행 n/a</span>
+  <span class="meta-chip">열 多</span>
+  <span class="meta-chip cat-corr">상관/네트워크</span>
+</div>
+<table class="col-table">
+<thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>MultiIndex 컬럼</code></td><td class="type-cell">float</td><td>뇌 영역 간 기능적 연결성 값</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="tab-pane" id="tab-brain_networks-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">멀티헤더</span><span class="pr-val">header=[0,1], index_col=0</span></div><div class="principle-item"><span class="pr-key">상관 행렬</span><span class="pr-val">df.T.corr() + triu 마스킹</span></div><div class="principle-item"><span class="pr-key">계층 군집화</span><span class="pr-val">linkage(ward) + fcluster + dendrogram</span></div><div class="principle-item"><span class="pr-key">상관 거리</span><span class="pr-val">1 - |r| → squareform 변환</span></div></div>
+</div>
+<div class="tab-pane" id="tab-brain_networks-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-corr">멀티레벨 헤더 로딩 + 상관 행렬</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>멀티헤더 파싱</span><span class="step"><span class="step-num">2</span>상관 행렬 계산</span><span class="step"><span class="step-num">3</span>Triu 마스킹</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+
+df = sns.load_dataset(&#x27;brain_networks&#x27;, header=[0,1], index_col=0)
+
+# 멀티레벨 컬럼 구조 확인
+print(f&#x27;컬럼 레벨: {df.columns.nlevels}&#x27;)
+print(f&#x27;Shape: {df.shape}&#x27;)
+print(df.columns[:5])
+
+# 상관 행렬 계산
+corr = df.T.corr()
+print(f&#x27;상관 행렬 크기: {corr.shape}&#x27;)
+print(f&#x27;평균 상관: {corr.values[np.triu_indices_from(corr.values, k=1)].mean():.4f}&#x27;)
+
+# 강한 상관 쌍 추출 (r &gt; 0.7)
+mask = np.triu(np.ones_like(corr, dtype=bool), k=1)
+corr_pairs = corr.where(mask).stack()
+strong = corr_pairs[corr_pairs &gt; 0.7]
+print(f&#x27;강한 상관 쌍(r&gt;0.7): {len(strong)}개&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>header=[0,1]로 2행짜리 멀티레벨 헤더를 pandas MultiIndex로 파싱</li><li>뇌 네트워크 데이터는 각 노드(뇌 영역)간 기능적 연결성 상관 행렬</li><li>np.triu_indices_from(k=1)으로 대각 제외 상삼각 행렬 인덱스 추출</li><li>강한 상관 쌍이 많으면 뇌 영역들이 기능적으로 강하게 연결됨을 의미</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> MultiIndex 컬럼은 df.columns.get_level_values(0)로 특정 레벨 값 추출 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">계층적 군집화 (Dendrogram)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>거리 행렬 계산</span><span class="step"><span class="step-num">2</span>계층 군집화</span><span class="step"><span class="step-num">3</span>군집 레이블 할당</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">import seaborn as sns
+import pandas as pd
+import numpy as np
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
+from scipy.spatial.distance import squareform
+
+df = sns.load_dataset(&#x27;brain_networks&#x27;, header=[0,1], index_col=0)
+corr = df.T.corr()
+
+# 상관 행렬 → 거리 행렬 (1 - |r|)
+dist_matrix = 1 - corr.abs()
+np.fill_diagonal(dist_matrix.values, 0)
+condensed = squareform(dist_matrix.values)
+
+# Ward 연결법으로 계층 군집화
+Z = linkage(condensed, method=&#x27;ward&#x27;)
+
+# t=1.5로 군집 레이블 할당
+labels = fcluster(Z, t=1.5, criterion=&#x27;distance&#x27;)
+cluster_counts = pd.Series(labels).value_counts()
+print(f&#x27;군집 수: {cluster_counts.nunique()}&#x27;)
+print(cluster_counts.head())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>Ward 연결법: 군집 내 분산 증가를 최소화 → 비교적 균형 잡힌 군집 생성</li><li>상관 거리(1-|r|)는 양·음 상관 모두 '연결'로 처리 — 반대 위상도 연결</li><li>fcluster의 t(임계값)를 조정해 군집 수를 간접 제어</li><li>dendrogram 시각화로 계층 구조와 병합 거리를 직관적으로 파악 가능</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> squareform()은 정방 거리 행렬 ↔ condensed 형식(pdist 출력) 상호 변환</div>
+</div></div>
+</div>
+</div>
+</section>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+function switchTab(btn, dataset, tab) {
+  const section = btn.closest('.section');
+  section.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  section.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pane = section.querySelector('#tab-' + dataset + '-' + tab);
+  if (pane) pane.classList.add('active');
+}
+
+function copyCode(btn) {
+  // Use textContent to get raw code without any HTML tags
+  const codeEl = btn.closest('.code-block').querySelector('code');
+  const text = codeEl.textContent || codeEl.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ 복사됨';
+    setTimeout(() => btn.textContent = orig, 1500);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const orig = btn.textContent;
+    btn.textContent = '✓ 복사됨';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// IntersectionObserver for sidebar active link
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+      const id = entry.target.id;
+      const link = document.querySelector('.sb-link[href="#' + id + '"]');
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seaborn 데이터셋 × Pandas 완전정복</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+:root{
+  --bg:#f8f9fb;
+  --white:#ffffff;
+  --border:#e2e6ef;
+  --border2:#cbd2e0;
+  --dark:#0f172a;
+  --dark2:#1e293b;
+  --dark3:#334155;
+  --gray:#64748b;
+  --gray2:#94a3b8;
+
+  --sn:#0f766e;       /* seaborn teal */
+  --sn-light:#f0fdfa;
+  --sn-mid:#ccfbf1;
+  --sn-dark:#134e4a;
+  --pd:#1a56db;
+  --pd-light:#eff6ff;
+  --pd-mid:#dbeafe;
+
+  /* category colors */
+  --cls:#7c3aed; --cls-bg:#faf5ff; --cls-bd:#ddd6fe;
+  --reg:#16a34a; --reg-bg:#f0fdf4; --reg-bd:#bbf7d0;
+  --ts:#c2600a;  --ts-bg:#fff7ed;  --ts-bd:#fed7aa;
+  --cl:#0ea5e9;  --cl-bg:#f0f9ff;  --cl-bd:#bae6fd;
+  --stat:#dc2626;--stat-bg:#fef2f2;--stat-bd:#fecaca;
+  --viz:#db2777; --viz-bg:#fdf2f8; --viz-bd:#fbcfe8;
+  --corr:#1a56db;--corr-bg:#eff6ff;--corr-bd:#bfdbfe;
+
+  /* syntax highlight */
+  --ck:#d73a49;
+  --cs:#1657a0;
+  --cn:#005cc5;
+  --cc:#6a737d;
+  --cf:#6f42c1;
+  --ctype:#c37600;
+  --cop:#e36209;
+  --cann:#2c7e52;
+  --cstr:#22863a;
+}
+
+body{
+  background:var(--bg);
+  color:var(--dark);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:14px;
+  line-height:1.7;
+}
+
+/* ─── STICKY HEADER ─── */
+.site-header{
+  position:sticky;top:0;z-index:200;
+  background:var(--white);
+  border-bottom:2px solid var(--border);
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.header-inner{
+  max-width:1380px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:56px;gap:16px;
+}
+.logo{
+  display:flex;align-items:center;gap:8px;
+  font-weight:900;font-size:17px;white-space:nowrap;
+}
+.logo-sn{color:var(--sn)}
+.logo-sep{color:var(--gray2);font-weight:300;margin:0 2px}
+.logo-pd{color:var(--pd)}
+.toc-nav{
+  display:flex;gap:4px;flex-wrap:wrap;
+  overflow:hidden;max-height:36px;
+}
+.toc-btn{
+  padding:4px 11px;border-radius:20px;
+  font-size:11px;font-weight:600;
+  border:1px solid var(--border2);
+  background:var(--white);color:var(--gray);
+  cursor:pointer;text-decoration:none;
+  transition:all .15s;white-space:nowrap;
+}
+.toc-btn:hover{background:var(--sn);color:#fff;border-color:var(--sn)}
+
+/* ─── HERO ─── */
+.hero{
+  background:linear-gradient(135deg,var(--sn-dark) 0%,#0f766e 40%,#0369a1 100%);
+  padding:52px 28px 44px;
+  text-align:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  border-radius:20px;padding:5px 16px;
+  font-size:11px;font-weight:700;color:#fff;
+  letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px;
+}
+.hero h1{
+  font-size:clamp(28px,4vw,54px);
+  font-weight:900;letter-spacing:-1.5px;
+  line-height:1.1;margin-bottom:12px;color:#fff;
+}
+.hero h1 em{color:#5eead4;font-style:normal}
+.hero-sub{
+  font-size:15px;color:rgba(255,255,255,.8);
+  max-width:600px;margin:0 auto 28px;
+}
+.hero-chips{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+}
+.chip{
+  padding:6px 18px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  background:rgba(255,255,255,.15);
+  color:#fff;border:1.5px solid rgba(255,255,255,.3);
+}
+
+/* ─── MAIN LAYOUT ─── */
+.main{
+  max-width:1380px;margin:0 auto;
+  display:grid;
+  grid-template-columns:220px 1fr;
+  gap:32px;
+  padding:32px 28px 80px;
+  align-items:start;
+}
+@media(max-width:900px){
+  .main{grid-template-columns:1fr;padding:20px 16px}
+  .sidebar{display:none}
+}
+
+/* ─── SIDEBAR TOC ─── */
+.sidebar{
+  position:sticky;top:72px;
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:12px;padding:18px 0;
+  max-height:calc(100vh - 90px);
+  overflow-y:auto;
+}
+.sidebar-title{
+  font-size:10px;font-weight:800;
+  color:var(--gray2);letter-spacing:1.2px;
+  text-transform:uppercase;
+  padding:0 18px 10px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+}
+.sb-group{padding:6px 0}
+.sb-cat{
+  font-size:10px;font-weight:700;
+  color:var(--gray);letter-spacing:.8px;
+  text-transform:uppercase;
+  padding:4px 18px 2px;
+}
+.sb-link{
+  display:block;padding:5px 18px;
+  font-size:12px;color:var(--dark3);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+.sb-link:hover{color:var(--sn);border-left-color:var(--sn);background:var(--sn-light)}
+.sb-link.active{color:var(--sn);border-left-color:var(--sn);font-weight:700;background:var(--sn-light)}
+
+/* ─── SECTION ─── */
+.section{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:24px;
+  overflow:hidden;
+}
+.section-head{
+  display:flex;align-items:center;gap:14px;
+  padding:18px 24px;
+  border-bottom:2px solid var(--border);
+}
+.sec-num{
+  width:32px;height:32px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;
+  flex-shrink:0;
+}
+.sec-title{font-size:18px;font-weight:800;flex:1}
+.sec-badge{
+  padding:4px 12px;border-radius:12px;
+  font-size:11px;font-weight:700;
+  border:1.5px solid;
+}
+
+/* category colors */
+.cat-cls .sec-num{background:var(--cls-bg);color:var(--cls)}
+.cat-cls .sec-title{color:var(--cls)}
+.cat-cls .sec-badge{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.cat-reg .sec-num{background:var(--reg-bg);color:var(--reg)}
+.cat-reg .sec-title{color:var(--reg)}
+.cat-reg .sec-badge{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.cat-ts .sec-num{background:var(--ts-bg);color:var(--ts)}
+.cat-ts .sec-title{color:var(--ts)}
+.cat-ts .sec-badge{background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)}
+.cat-cl .sec-num{background:var(--cl-bg);color:var(--cl)}
+.cat-cl .sec-title{color:var(--cl)}
+.cat-cl .sec-badge{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.cat-stat .sec-num{background:var(--stat-bg);color:var(--stat)}
+.cat-stat .sec-title{color:var(--stat)}
+.cat-stat .sec-badge{background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)}
+.cat-viz .sec-num{background:var(--viz-bg);color:var(--viz)}
+.cat-viz .sec-title{color:var(--viz)}
+.cat-viz .sec-badge{background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)}
+.cat-corr .sec-num{background:var(--corr-bg);color:var(--corr)}
+.cat-corr .sec-title{color:var(--corr)}
+.cat-corr .sec-badge{background:var(--corr-bg);color:var(--corr);border-color:var(--corr-bd)}
+
+/* ─── DATASET BLOCK ─── */
+.ds-block{
+  border-bottom:1px solid var(--border);
+  padding:24px;
+}
+.ds-block:last-child{border-bottom:none}
+.ds-header{
+  display:flex;align-items:flex-start;gap:14px;
+  margin-bottom:16px;
+}
+.ds-name{
+  font-family:'Fira Code',monospace;
+  font-size:20px;font-weight:600;
+  color:var(--dark);
+}
+.ds-meta-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-top:4px;
+}
+.ds-meta{
+  font-size:11px;font-weight:600;
+  color:var(--gray);
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:6px;padding:2px 8px;
+  font-family:'Fira Code',monospace;
+}
+.ds-tag{
+  font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:12px;border:1px solid;
+  letter-spacing:.3px;
+}
+
+/* ─── TABS ─── */
+.tabs{
+  display:flex;gap:0;
+  border-bottom:2px solid var(--border);
+  margin-bottom:16px;
+}
+.tab-btn{
+  padding:8px 16px;
+  font-size:12px;font-weight:700;
+  color:var(--gray);
+  background:none;border:none;
+  border-bottom:2px solid transparent;
+  margin-bottom:-2px;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.tab-btn.active{color:var(--sn);border-bottom-color:var(--sn)}
+.tab-btn:hover:not(.active){color:var(--dark);background:var(--bg)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ─── GRID LAYOUTS ─── */
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:700px){.cols-2,.cols-3{grid-template-columns:1fr}}
+
+/* ─── INFO CARDS ─── */
+.info-card{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+}
+.info-card-title{
+  font-size:11px;font-weight:700;
+  color:var(--gray);letter-spacing:.6px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.info-card p{font-size:13px;color:var(--dark2);line-height:1.6}
+
+/* ─── COLUMN TABLE ─── */
+.col-table{
+  width:100%;border-collapse:collapse;
+  font-size:12px;margin-bottom:16px;
+}
+.col-table th{
+  background:var(--bg);
+  padding:7px 12px;
+  text-align:left;font-weight:700;color:var(--gray);
+  border:1px solid var(--border);
+  font-size:11px;letter-spacing:.4px;text-transform:uppercase;
+}
+.col-table td{
+  padding:7px 12px;
+  border:1px solid var(--border);
+  color:var(--dark2);line-height:1.5;
+}
+.col-table tr:nth-child(even) td{background:#fafbfc}
+.col-name{font-family:'Fira Code',monospace;font-weight:600;color:var(--pd)}
+.col-type{font-family:'Fira Code',monospace;font-size:11px;color:var(--ctype)}
+.col-note{color:var(--gray)}
+
+/* ─── CODE BLOCK ─── */
+.code-block{
+  background:#1e293b;
+  border-radius:10px;
+  overflow:hidden;
+  margin:12px 0;
+  font-size:12.5px;
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#0f172a;
+  padding:8px 16px;
+}
+.code-lang{
+  font-family:'Fira Code',monospace;
+  font-size:10px;font-weight:600;
+  color:#64748b;letter-spacing:.8px;text-transform:uppercase;
+}
+.code-copy{
+  font-size:10px;font-weight:600;color:#64748b;
+  background:none;border:1px solid #334155;
+  border-radius:4px;padding:2px 8px;cursor:pointer;
+  transition:all .15s;
+}
+.code-copy:hover{color:#fff;border-color:#64748b}
+pre.code{
+  padding:16px;
+  overflow-x:auto;
+  line-height:1.8;
+  margin:0;
+}
+pre.code code{
+  font-family:'Fira Code',monospace;
+  font-size:12.5px;
+}
+/* syntax */
+.ck{color:#ff7b72}
+.cs{color:#a5d6ff}
+.cn{color:#79c0ff}
+.cc{color:#8b949e;font-style:italic}
+.cf{color:#d2a8ff}
+.ctype{color:#ffa657}
+.cop{color:#ff7b72}
+.cstr{color:#a5d6ff}
+.cnum{color:#79c0ff}
+.cann{color:#3fb950}
+.cmth{color:#ffa657}
+
+/* ─── RESULT BOX ─── */
+.result-box{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-left:4px solid var(--sn);
+  border-radius:0 8px 8px 0;
+  padding:14px 16px;
+  margin:10px 0;
+}
+.result-box h5{
+  font-size:11px;font-weight:700;
+  color:var(--sn);letter-spacing:.5px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.result-box p,.result-box li{
+  font-size:13px;color:var(--dark2);line-height:1.65;
+}
+.result-box ul{padding-left:16px;margin-top:6px}
+.result-box li{margin-bottom:4px}
+
+/* ─── TIP BOX ─── */
+.tip-box{
+  background:#fffbeb;
+  border:1px solid #fde68a;
+  border-radius:8px;padding:12px 16px;
+  margin:10px 0;font-size:13px;color:#92400e;
+}
+.tip-box strong{color:#78350f}
+
+/* ─── STEP PILLS ─── */
+.steps{
+  display:flex;gap:8px;flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.step{
+  display:flex;align-items:center;gap:6px;
+  background:var(--sn-light);border:1px solid var(--sn-mid);
+  border-radius:20px;padding:4px 12px;
+  font-size:11px;font-weight:700;color:var(--sn-dark);
+}
+.step-num{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--sn);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;flex-shrink:0;
+}
+
+/* ─── OUTPUT TABLE (sample) ─── */
+.out-table{
+  width:100%;border-collapse:collapse;
+  font-size:11.5px;margin:10px 0;
+  font-family:'Fira Code',monospace;
+}
+.out-table th{
+  background:#0f172a;color:#94a3b8;
+  padding:6px 10px;text-align:right;
+  border:1px solid #334155;font-weight:600;
+}
+.out-table th:first-child{text-align:left}
+.out-table td{
+  padding:5px 10px;border:1px solid #e2e6ef;
+  color:var(--dark2);text-align:right;
+}
+.out-table td:first-child{
+  text-align:left;color:var(--pd);font-weight:600;
+}
+.out-table tr:nth-child(even) td{background:#f8f9fb}
+
+/* ─── SECTION SEPARATOR ─── */
+.cat-separator{
+  display:flex;align-items:center;gap:12px;
+  padding:8px 0 20px;
+}
+.cat-sep-line{flex:1;height:1px;background:var(--border)}
+.cat-sep-label{
+  font-size:11px;font-weight:800;
+  color:var(--gray2);letter-spacing:1.2px;
+  text-transform:uppercase;white-space:nowrap;
+}
+
+/* ─── OVERVIEW GRID ─── */
+.overview-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:12px;
+  padding:20px 24px;
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:24px;
+}
+.ov-card{
+  padding:14px;
+  border-radius:10px;
+  border:1px solid;
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  text-decoration:none;
+}
+.ov-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.ov-card-name{font-family:'Fira Code',monospace;font-weight:600;font-size:14px;margin-bottom:4px}
+.ov-card-meta{font-size:11px;color:var(--gray);margin-bottom:4px}
+.ov-card-desc{font-size:11px;line-height:1.5}
+.ov-card.cls{background:var(--cls-bg);border-color:var(--cls-bd);color:var(--cls)}
+.ov-card.reg{background:var(--reg-bg);border-color:var(--reg-bd);color:var(--reg)}
+.ov-card.ts{background:var(--ts-bg);border-color:var(--ts-bd);color:var(--ts)}
+.ov-card.cl{background:var(--cl-bg);border-color:var(--cl-bd);color:var(--cl)}
+.ov-card.stat{background:var(--stat-bg);border-color:var(--stat-bd);color:var(--stat)}
+.ov-card.viz{background:var(--viz-bg);border-color:var(--viz-bd);color:var(--viz)}
+.ov-card.corr{background:var(--corr-bg);border-color:var(--corr-bd);color:var(--corr)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-sn">seaborn</span>
+      <span class="logo-sep">×</span>
+      <span class="logo-pd">pandas</span>
+      <span style="color:var(--gray2);font-size:12px;font-weight:400;margin-left:6px">완전정복</span>
+    </div>
+    <nav class="toc-nav">
+      <a class="toc-btn" href="#overview">전체보기</a>
+      <a class="toc-btn" href="#cls">분류</a>
+      <a class="toc-btn" href="#reg">회귀</a>
+      <a class="toc-btn" href="#ts">시계열</a>
+      <a class="toc-btn" href="#cl">클러스터링</a>
+      <a class="toc-btn" href="#stat">통계검정</a>
+      <a class="toc-btn" href="#viz">시각화</a>
+      <a class="toc-btn" href="#corr">상관</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="hero">
+  <div class="hero-badge">📊 21 Datasets · Pandas + Seaborn</div>
+  <h1>Seaborn 내장 데이터셋 <em>완전정복</em></h1>
+  <p class="hero-sub">각 데이터셋의 구조·원리·pandas 분석 방법·소스 코드·결과 해석을 한 페이지에 정리한 완전 레퍼런스</p>
+  <div class="hero-chips">
+    <span class="chip">분류 4개</span>
+    <span class="chip">회귀 4개</span>
+    <span class="chip">시계열 5개</span>
+    <span class="chip">클러스터링 2개</span>
+    <span class="chip">통계검정 3개</span>
+    <span class="chip">시각화 2개</span>
+    <span class="chip">상관 1개</span>
+  </div>
+</div>
+
+<!-- ══════════ MAIN ══════════ -->
+<div class="main">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">데이터셋 목록</div>
+    <div class="sb-group">
+      <div class="sb-cat">분류 (Classification)</div>
+      <a class="sb-link" href="#titanic">titanic</a>
+      <a class="sb-link" href="#iris">iris</a>
+      <a class="sb-link" href="#penguins">penguins</a>
+      <a class="sb-link" href="#glue">glue</a>
+    </div>
+    <div class="sb-group">
+      <div class="sb-cat">회귀 (Regression)</div>
+      <a class="sb-link" href="#tips">tips</a>
+      <a class="sb-link" href="#diamonds">diamonds</a>
+      <a class="sb-link" href="#mpg">mpg</a>
+      <a class="sb-link" href="#healthexp">healthexp</a>
+    </div>
+    <div class="sb-group">
+      <div class="sb-cat">시계열 (Time-series)</div>
+      <a class="sb-link" href="#flights">flights</a>
+      <a class="sb-link" href="#dowjones">dowjones</a>
+      <a class="sb-link" href="#seaice">seaice</a>
+      <a class="sb-link" href="#fmri">fmri</a>
+      <a class="sb-link" href="#gammas">gammas</a>
+    </div>
+    <div class="sb-group">
+      <div class="sb-cat">클러스터링</div>
+      <a class="sb-link" href="#geyser">geyser</a>
+      <a class="sb-link" href="#planets">planets</a>
+    </div>
+    <div class="sb-group">
+      <div class="sb-cat">통계검정</div>
+      <a class="sb-link" href="#attention">attention</a>
+      <a class="sb-link" href="#exercise">exercise</a>
+      <a class="sb-link" href="#car_crashes">car_crashes</a>
+    </div>
+    <div class="sb-group">
+      <div class="sb-cat">시각화</div>
+      <a class="sb-link" href="#anscombe">anscombe</a>
+      <a class="sb-link" href="#taxis">taxis</a>
+    </div>
+    <div class="sb-group">
+      <div class="sb-cat">상관/네트워크</div>
+      <a class="sb-link" href="#brain_networks">brain_networks</a>
+    </div>
+  </aside>
+
+  <!-- ─── CONTENT ─── -->
+  <main class="content">
+
+    <!-- ── OVERVIEW CARDS ── -->
+    <div id="overview" class="overview-grid">
+      <a class="ov-card cls" href="#titanic"><div class="ov-card-name">titanic</div><div class="ov-card-meta">891 × 15</div><div class="ov-card-desc">이진분류·결측처리</div></a>
+      <a class="ov-card cls" href="#iris"><div class="ov-card-name">iris</div><div class="ov-card-meta">150 × 5</div><div class="ov-card-desc">다중분류·PCA</div></a>
+      <a class="ov-card cls" href="#penguins"><div class="ov-card-name">penguins</div><div class="ov-card-meta">344 × 7</div><div class="ov-card-desc">다중분류·결측처리</div></a>
+      <a class="ov-card cls" href="#glue"><div class="ov-card-name">glue</div><div class="ov-card-meta">816 × 4</div><div class="ov-card-desc">NLP 벤치마크비교</div></a>
+      <a class="ov-card reg" href="#tips"><div class="ov-card-name">tips</div><div class="ov-card-meta">244 × 7</div><div class="ov-card-desc">팁예측·범주형</div></a>
+      <a class="ov-card reg" href="#diamonds"><div class="ov-card-name">diamonds</div><div class="ov-card-meta">53940 × 10</div><div class="ov-card-desc">가격예측·순서인코딩</div></a>
+      <a class="ov-card reg" href="#mpg"><div class="ov-card-name">mpg</div><div class="ov-card-meta">398 × 9</div><div class="ov-card-desc">연비예측·다중공선성</div></a>
+      <a class="ov-card reg" href="#healthexp"><div class="ov-card-name">healthexp</div><div class="ov-card-meta">274 × 4</div><div class="ov-card-desc">의료비→기대수명</div></a>
+      <a class="ov-card ts" href="#flights"><div class="ov-card-name">flights</div><div class="ov-card-meta">144 × 3</div><div class="ov-card-desc">월별승객·계절성</div></a>
+      <a class="ov-card ts" href="#dowjones"><div class="ov-card-name">dowjones</div><div class="ov-card-meta">121 × 2</div><div class="ov-card-desc">다우존스·이동평균</div></a>
+      <a class="ov-card ts" href="#seaice"><div class="ov-card-name">seaice</div><div class="ov-card-meta">14219 × 2</div><div class="ov-card-desc">북극해빙·장기추세</div></a>
+      <a class="ov-card ts" href="#fmri"><div class="ov-card-name">fmri</div><div class="ov-card-meta">1064 × 5</div><div class="ov-card-desc">뇌BOLD·반복측정</div></a>
+      <a class="ov-card ts" href="#gammas"><div class="ov-card-name">gammas</div><div class="ov-card-meta">1700 × 3</div><div class="ov-card-desc">감마BOLD·ROI비교</div></a>
+      <a class="ov-card cl" href="#geyser"><div class="ov-card-name">geyser</div><div class="ov-card-meta">272 × 2</div><div class="ov-card-desc">간헐천·KDE·2군집</div></a>
+      <a class="ov-card cl" href="#planets"><div class="ov-card-name">planets</div><div class="ov-card-meta">1035 × 6</div><div class="ov-card-desc">외계행성·로그변환</div></a>
+      <a class="ov-card stat" href="#attention"><div class="ov-card-name">attention</div><div class="ov-card-meta">60 × 5</div><div class="ov-card-desc">주의력·반복측정ANOVA</div></a>
+      <a class="ov-card stat" href="#exercise"><div class="ov-card-name">exercise</div><div class="ov-card-meta">90 × 6</div><div class="ov-card-desc">운동·심박수·그룹비교</div></a>
+      <a class="ov-card stat" href="#car_crashes"><div class="ov-card-name">car_crashes</div><div class="ov-card-meta">51 × 8</div><div class="ov-card-desc">교통사고·상관분석</div></a>
+      <a class="ov-card viz" href="#anscombe"><div class="ov-card-name">anscombe</div><div class="ov-card-meta">44 × 3</div><div class="ov-card-desc">시각화필요성·잔차</div></a>
+      <a class="ov-card viz" href="#taxis"><div class="ov-card-name">taxis</div><div class="ov-card-meta">6433 × 14</div><div class="ov-card-desc">NYC택시·datetime</div></a>
+      <a class="ov-card corr" href="#brain_networks"><div class="ov-card-name">brain_networks</div><div class="ov-card-meta">87 × 87</div><div class="ov-card-desc">뇌상관행렬·clustermap</div></a>
+    </div>
+
+    <!-- ════════════════════════════════════
+         ① 분류 (Classification)
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">① 분류 (Classification)</div><div class="cat-sep-line"></div></div>
+
+    <!-- titanic -->
+    <div id="cls" class="section cat-cls">
+      <div class="section-head">
+        <div class="sec-num">①</div>
+        <div style="flex:1">
+          <div class="sec-title">분류 (Classification)</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">이진·다중 분류 모델 학습 · 결측값 처리 실습</div>
+        </div>
+        <div class="sec-badge">4개 데이터셋</div>
+      </div>
+
+      <!-- titanic -->
+      <div id="titanic" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🚢 titanic</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">891행 × 15열</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">이진분류</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">결측처리</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs" id="tabs-titanic">
+          <button class="tab-btn active" onclick="switchTab('titanic','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('titanic','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('titanic','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('titanic','해석',this)">📊 결과해석</button>
+        </div>
+
+        <div id="titanic-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 데이터셋 개요</div>
+              <p>1912년 타이타닉 호 침몰 사고의 탑승객 데이터. <strong>survived(생존여부 0/1)</strong>를 타깃으로 하는 이진 분류의 교과서적 예제. 결측값, 범주형 변수, 수치형 변수가 혼재하여 전처리 실습에 최적.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🎯 주요 활용</div>
+              <p>결측값 탐색 및 처리 (age, embarked, deck 등 결측 다수), 범주형 인코딩 (sex, embarked), 생존율 그룹 분석, 로지스틱 회귀 / 랜덤포레스트 분류기 입력.</p>
+            </div>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th><th>결측여부</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">survived</td><td class="col-type">int64</td><td>생존(1) / 사망(0) — 타깃 변수</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">pclass</td><td class="col-type">int64</td><td>티켓 등급 (1/2/3)</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">sex</td><td class="col-type">object</td><td>성별 (male/female)</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">age</td><td class="col-type">float64</td><td>나이</td><td class="col-note">⚠ 177개 결측</td></tr>
+              <tr><td class="col-name">sibsp</td><td class="col-type">int64</td><td>동승 형제자매/배우자 수</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">parch</td><td class="col-type">int64</td><td>동승 부모/자녀 수</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">fare</td><td class="col-type">float64</td><td>운임 요금</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">embarked</td><td class="col-type">object</td><td>승선 항구 (S/C/Q)</td><td class="col-note">⚠ 2개 결측</td></tr>
+              <tr><td class="col-name">deck</td><td class="col-type">category</td><td>객실 갑판 (A~G)</td><td class="col-note">⚠ 688개 결측</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="titanic-원리" class="tab-panel">
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div>데이터 로드 & 구조 파악</div>
+            <div class="step"><div class="step-num">2</div>결측값 탐색 (isnull)</div>
+            <div class="step"><div class="step-num">3</div>결측값 처리 (fillna/dropna)</div>
+            <div class="step"><div class="step-num">4</div>범주형 인코딩 (get_dummies)</div>
+            <div class="step"><div class="step-num">5</div>그룹별 생존율 분석 (groupby)</div>
+            <div class="step"><div class="step-num">6</div>피처 엔지니어링 (family_size)</div>
+          </div>
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">🔑 핵심 원리 — 결측값 처리</div>
+              <p><strong>age</strong>처럼 연속형은 중앙값·평균으로 대체 (<code>fillna(median)</code>). <strong>embarked</strong>처럼 범주형은 최빈값으로 대체. <strong>deck</strong>처럼 결측 비율이 77%를 넘으면 열 삭제를 고려. <code>isnull().sum()</code>으로 먼저 결측 현황을 파악하는 게 필수 절차.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🔑 핵심 원리 — groupby 생존율</div>
+              <p><code>groupby('pclass')['survived'].mean()</code>처럼 그룹별 평균으로 생존율 계산. <code>pivot_table</code>로 sex × pclass 2차원 생존율 매트릭스 생성. 시험에서 "성별·등급별 생존율을 구하시오" 유형 빈출.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="titanic-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code><span class="ck">import</span> seaborn <span class="ck">as</span> sns
+<span class="ck">import</span> pandas <span class="ck">as</span> pd
+<span class="ck">import</span> numpy <span class="ck">as</span> np
+
+<span class="cc"># ① 데이터 로드</span>
+df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'titanic'</span>)
+<span class="cf">print</span>(df.<span class="cf">shape</span>)          <span class="cc"># (891, 15)</span>
+<span class="cf">print</span>(df.<span class="cf">dtypes</span>)
+<span class="cf">print</span>(df.<span class="cf">head</span>())
+
+<span class="cc"># ② 결측값 파악</span>
+missing = df.<span class="cf">isnull</span>().<span class="cf">sum</span>().<span class="cf">sort_values</span>(ascending=<span class="ck">False</span>)
+missing_pct = (df.<span class="cf">isnull</span>().<span class="cf">mean</span>() * <span class="cnum">100</span>).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(pd.<span class="cf">DataFrame</span>({<span class="cstr">'count'</span>: missing, <span class="cstr">'pct'</span>: missing_pct}))
+
+<span class="cc"># ③ 결측값 처리</span>
+df[<span class="cstr">'age'</span>] = df[<span class="cstr">'age'</span>].<span class="cf">fillna</span>(df[<span class="cstr">'age'</span>].<span class="cf">median</span>())
+df[<span class="cstr">'embarked'</span>] = df[<span class="cstr">'embarked'</span>].<span class="cf">fillna</span>(df[<span class="cstr">'embarked'</span>].<span class="cf">mode</span>()[<span class="cnum">0</span>])
+df = df.<span class="cf">drop</span>(columns=[<span class="cstr">'deck'</span>])  <span class="cc"># 결측 77% → 삭제</span>
+
+<span class="cc"># ④ 그룹별 생존율</span>
+surv_sex = df.<span class="cf">groupby</span>(<span class="cstr">'sex'</span>)[<span class="cstr">'survived'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">3</span>)
+surv_cls = df.<span class="cf">groupby</span>(<span class="cstr">'pclass'</span>)[<span class="cstr">'survived'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">3</span>)
+<span class="cf">print</span>(<span class="cstr">"성별 생존율:\n"</span>, surv_sex)
+<span class="cf">print</span>(<span class="cstr">"등급별 생존율:\n"</span>, surv_cls)
+
+<span class="cc"># ⑤ 2차원 피벗 — sex × pclass</span>
+pivot = df.<span class="cf">pivot_table</span>(
+    values=<span class="cstr">'survived'</span>, index=<span class="cstr">'sex'</span>,
+    columns=<span class="cstr">'pclass'</span>, aggfunc=<span class="cstr">'mean'</span>
+).<span class="cf">round</span>(<span class="cnum">3</span>)
+<span class="cf">print</span>(pivot)
+
+<span class="cc"># ⑥ 피처 엔지니어링 — 가족 규모</span>
+df[<span class="cstr">'family_size'</span>] = df[<span class="cstr">'sibsp'</span>] + df[<span class="cstr">'parch'</span>] + <span class="cnum">1</span>
+df[<span class="cstr">'is_alone'</span>] = (df[<span class="cstr">'family_size'</span>] == <span class="cnum">1</span>).<span class="cf">astype</span>(<span class="cstr">'int'</span>)
+
+<span class="cc"># ⑦ 원-핫 인코딩</span>
+df_enc = pd.<span class="cf">get_dummies</span>(df[[<span class="cstr">'pclass'</span>,<span class="cstr">'sex'</span>,<span class="cstr">'age'</span>,
+                              <span class="cstr">'fare'</span>,<span class="cstr">'embarked'</span>,<span class="cstr">'survived'</span>]],
+                         drop_first=<span class="ck">True</span>)
+<span class="cf">print</span>(df_enc.<span class="cf">head</span>())</code></pre>
+          </div>
+        </div>
+
+        <div id="titanic-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석 포인트</h5>
+            <ul>
+              <li><strong>성별 생존율:</strong> female ≈ 0.742, male ≈ 0.189 → 여성 생존율이 약 4배 높음. "여성과 어린이 먼저" 원칙 반영.</li>
+              <li><strong>등급별 생존율:</strong> 1등급 ≈ 0.630, 2등급 ≈ 0.473, 3등급 ≈ 0.242 → 높은 등급일수록 생존 가능성 큼.</li>
+              <li><strong>pivot_table 해석:</strong> 1등급 여성(0.968)이 가장 높고, 3등급 남성(0.135)이 가장 낮음. 성별 효과가 등급 효과보다 더 강함.</li>
+              <li><strong>결측값 처리 후:</strong> age 중앙값(28.0)으로 대체 시 분포가 일부 왜곡될 수 있으므로, 시험에서는 "중앙값으로 대체했다"는 명시가 중요.</li>
+            </ul>
+          </div>
+          <div class="tip-box"><strong>⚠ 빅분기 시험 포인트:</strong> <code>isnull().sum()</code>으로 결측 개수 확인, <code>fillna(df['age'].median())</code> 정확한 문법 암기. pivot_table에서 <code>aggfunc='mean'</code>으로 생존율 계산하는 패턴 숙지.</div>
+          <table class="out-table">
+            <thead><tr><th>pclass</th><th>1</th><th>2</th><th>3</th></tr></thead>
+            <tbody>
+              <tr><td>female</td><td>0.968</td><td>0.921</td><td>0.500</td></tr>
+              <tr><td>male</td><td>0.369</td><td>0.157</td><td>0.135</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /titanic -->
+
+      <!-- iris -->
+      <div id="iris" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🌸 iris</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">150행 × 5열</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">다중분류</span>
+              <span class="ds-tag" style="background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)">PCA·클러스터링</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('iris','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('iris','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('iris','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('iris','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="iris-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 데이터셋 개요</div>
+              <p>3종 붓꽃(setosa, versicolor, virginica)의 꽃받침·꽃잎 크기를 측정한 고전 데이터셋. 결측값이 없어 전처리 부담이 낮고, 다중 분류·PCA·클러스터링의 기준 데이터로 가장 많이 사용됨.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🎯 주요 활용</div>
+              <p>describe()로 기초통계 확인, groupby로 종별 평균 비교, PCA 2차원 축소 후 산점도, K-Means 군집과 실제 레이블 비교, 상관 히트맵.</p>
+            </div>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">sepal_length</td><td class="col-type">float64</td><td>꽃받침 길이 (cm)</td></tr>
+              <tr><td class="col-name">sepal_width</td><td class="col-type">float64</td><td>꽃받침 너비 (cm)</td></tr>
+              <tr><td class="col-name">petal_length</td><td class="col-type">float64</td><td>꽃잎 길이 (cm)</td></tr>
+              <tr><td class="col-name">petal_width</td><td class="col-type">float64</td><td>꽃잎 너비 (cm)</td></tr>
+              <tr><td class="col-name">species</td><td class="col-type">object</td><td>붓꽃 종류 — 타깃 변수</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="iris-원리" class="tab-panel">
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div>groupby 종별 기초통계</div>
+            <div class="step"><div class="step-num">2</div>상관행렬 (.corr)</div>
+            <div class="step"><div class="step-num">3</div>표준화 (StandardScaler)</div>
+            <div class="step"><div class="step-num">4</div>PCA 2차원 축소</div>
+            <div class="step"><div class="step-num">5</div>K-Means 군집분석</div>
+          </div>
+          <div class="info-card" style="margin-bottom:12px">
+            <div class="info-card-title">🔑 핵심 원리 — 상관분석 + PCA</div>
+            <p>petal_length와 petal_width의 상관계수가 0.96에 달해 강한 양의 상관. PCA 전에 반드시 표준화(<code>StandardScaler</code>)를 적용해야 스케일 차이로 인한 왜곡을 방지. PC1이 전체 분산의 약 73%를 설명하며 꽃잎 크기 정보를 대표.</p>
+          </div>
+        </div>
+        <div id="iris-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code><span class="ck">import</span> seaborn <span class="ck">as</span> sns
+<span class="ck">import</span> pandas <span class="ck">as</span> pd
+<span class="ck">from</span> sklearn.preprocessing <span class="ck">import</span> StandardScaler
+<span class="ck">from</span> sklearn.decomposition <span class="ck">import</span> PCA
+<span class="ck">from</span> sklearn.cluster <span class="ck">import</span> KMeans
+
+df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'iris'</span>)
+
+<span class="cc"># ① 기초 통계</span>
+<span class="cf">print</span>(df.<span class="cf">describe</span>())
+
+<span class="cc"># ② 종별 그룹 평균</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'species'</span>).<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">2</span>))
+
+<span class="cc"># ③ 상관행렬</span>
+corr = df.<span class="cf">select_dtypes</span>(<span class="cstr">'number'</span>).<span class="cf">corr</span>()
+<span class="cf">print</span>(corr.<span class="cf">round</span>(<span class="cnum">2</span>))
+
+<span class="cc"># ④ 표준화 + PCA</span>
+X = df.<span class="cf">select_dtypes</span>(<span class="cstr">'number'</span>)
+scaler = <span class="cf">StandardScaler</span>()
+X_sc = scaler.<span class="cf">fit_transform</span>(X)
+
+pca = <span class="cf">PCA</span>(n_components=<span class="cnum">2</span>)
+X_pca = pca.<span class="cf">fit_transform</span>(X_sc)
+df_pca = pd.<span class="cf">DataFrame</span>(X_pca, columns=[<span class="cstr">'PC1'</span>,<span class="cstr">'PC2'</span>])
+df_pca[<span class="cstr">'species'</span>] = df[<span class="cstr">'species'</span>].<span class="cf">values</span>
+<span class="cf">print</span>(<span class="cstr">"설명 분산비:"</span>, pca.explained_variance_ratio_.<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ⑤ K-Means 클러스터링</span>
+km = <span class="cf">KMeans</span>(n_clusters=<span class="cnum">3</span>, random_state=<span class="cnum">42</span>)
+df[<span class="cstr">'cluster'</span>] = km.<span class="cf">fit_predict</span>(X_sc)
+<span class="cf">print</span>(pd.<span class="cf">crosstab</span>(df[<span class="cstr">'species'</span>], df[<span class="cstr">'cluster'</span>]))</code></pre>
+          </div>
+        </div>
+        <div id="iris-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>그룹 평균:</strong> setosa는 petal_length 평균 1.46cm로 다른 종(4.26, 5.55)에 비해 현저히 작아 선형 분리 가능.</li>
+              <li><strong>PCA 설명력:</strong> PC1(72.8%) + PC2(23.0%) → 2개 주성분이 전체 분산의 95.8% 설명. 4차원→2차원 축소 가능.</li>
+              <li><strong>K-Means vs 실제:</strong> setosa는 완벽하게 분리, versicolor/virginica는 일부 혼재(경계 불명확).</li>
+              <li><strong>상관계수:</strong> petal_length ↔ petal_width = 0.96 (강한 양의 상관), sepal_width ↔ 나머지는 약한 음의 상관.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /iris -->
+
+      <!-- penguins -->
+      <div id="penguins" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🐧 penguins</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">344행 × 7열</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">다중분류</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">결측처리</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('penguins','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('penguins','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('penguins','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('penguins','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="penguins-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 개요</div>
+              <p>남극 팔머 군도 3종 펭귄(Adelie, Chinstrap, Gentoo)의 신체 측정 데이터. iris의 현대적 대안. 성별(sex)과 섬(island) 정보가 추가되어 교차분석 및 카이제곱 검정 실습에 유용.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🎯 주요 활용</div>
+              <p>dropna() vs fillna() 선택 전략 실습, groupby + agg 다중 집계, 성별×종 교차빈도표, 부리 길이 × 두께 산점도로 종 구분.</p>
+            </div>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th><th>결측</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">species</td><td class="col-type">object</td><td>펭귄 종 (Adelie/Chinstrap/Gentoo) — 타깃</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">island</td><td class="col-type">object</td><td>서식 섬 (Biscoe/Dream/Torgersen)</td><td class="col-note">없음</td></tr>
+              <tr><td class="col-name">bill_length_mm</td><td class="col-type">float64</td><td>부리 길이 (mm)</td><td class="col-note">⚠ 2개</td></tr>
+              <tr><td class="col-name">bill_depth_mm</td><td class="col-type">float64</td><td>부리 깊이 (mm)</td><td class="col-note">⚠ 2개</td></tr>
+              <tr><td class="col-name">flipper_length_mm</td><td class="col-type">float64</td><td>날개 길이 (mm)</td><td class="col-note">⚠ 2개</td></tr>
+              <tr><td class="col-name">body_mass_g</td><td class="col-type">float64</td><td>체중 (g)</td><td class="col-note">⚠ 2개</td></tr>
+              <tr><td class="col-name">sex</td><td class="col-type">object</td><td>성별 (Male/Female)</td><td class="col-note">⚠ 11개</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="penguins-원리" class="tab-panel">
+          <div class="info-card" style="margin-bottom:12px">
+            <div class="info-card-title">🔑 핵심 원리 — dropna vs fillna</div>
+            <p>결측 11행(3.2%)은 전체 대비 비율이 낮으므로 <code>dropna()</code>가 안전. 단, 시험에서는 "결측을 제거했는가, 대체했는가" 명확히 서술. sex가 결측인 행은 분석 목적에 따라 제거(성별 분석) vs 유지(전체 분석) 선택.</p>
+          </div>
+        </div>
+        <div id="penguins-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'penguins'</span>)
+
+<span class="cc"># ① 결측 현황</span>
+<span class="cf">print</span>(df.<span class="cf">isnull</span>().<span class="cf">sum</span>())
+
+<span class="cc"># ② 결측 제거 (2개 수치 결측행 + sex 결측 11개)</span>
+df_clean = df.<span class="cf">dropna</span>()   <span class="cc"># 333행 남음</span>
+
+<span class="cc"># ③ 종 × 성별 그룹 집계</span>
+summary = df_clean.<span class="cf">groupby</span>([<span class="cstr">'species'</span>,<span class="cstr">'sex'</span>])[[
+    <span class="cstr">'bill_length_mm'</span>,<span class="cstr">'body_mass_g'</span>
+]].<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'std'</span>]).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(summary)
+
+<span class="cc"># ④ 교차빈도표 — 종 × 섬</span>
+ct = pd.<span class="cf">crosstab</span>(df_clean[<span class="cstr">'species'</span>], df_clean[<span class="cstr">'island'</span>])
+<span class="cf">print</span>(ct)
+
+<span class="cc"># ⑤ 카이제곱 검정</span>
+<span class="ck">from</span> scipy.stats <span class="ck">import</span> chi2_contingency
+chi2, p, dof, expected = <span class="cf">chi2_contingency</span>(ct)
+<span class="cf">print</span>(<span class="cf">f"χ²={chi2:.2f}, p={p:.4f}, df={dof}"</span>)</code></pre>
+          </div>
+        </div>
+        <div id="penguins-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>Gentoo 수컷</strong>이 평균 체중 5485g으로 가장 무거움. 암수 차이도 Gentoo에서 가장 큼(~700g).</li>
+              <li><strong>교차빈도표:</strong> Chinstrap은 Dream 섬에만 서식. Gentoo는 Biscoe 섬에만. Adelie는 3개 섬 모두.</li>
+              <li><strong>카이제곱:</strong> p &lt; 0.001 → 종과 서식지 사이에 유의한 관계. 귀무가설(독립) 기각.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /penguins -->
+
+      <!-- glue -->
+      <div id="glue" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🤖 glue</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">816행 × 4열</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">모델비교</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">NLP 벤치마크</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('glue','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('glue','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('glue','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="glue-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>NLP 모델(BERT, GPT 등)의 GLUE 벤치마크 점수 데이터. Model × Task × Score 구조로, <code>pivot_table</code>로 모델별 태스크 성능 매트릭스를 만들거나, <code>groupby</code>로 모델 평균 성능 순위를 매기는 데 활용.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">Model</td><td class="col-type">object</td><td>NLP 모델명</td></tr>
+              <tr><td class="col-name">Task</td><td class="col-type">object</td><td>GLUE 태스크명</td></tr>
+              <tr><td class="col-name">Score</td><td class="col-type">float64</td><td>성능 점수 (0~100)</td></tr>
+              <tr><td class="col-name">Encoder</td><td class="col-type">object</td><td>인코더 아키텍처 유형</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="glue-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'glue'</span>)
+
+<span class="cc"># ① 모델별 평균 성능 순위</span>
+rank = df.<span class="cf">groupby</span>(<span class="cstr">'Model'</span>)[<span class="cstr">'Score'</span>].<span class="cf">mean</span>().\
+       <span class="cf">sort_values</span>(ascending=<span class="ck">False</span>).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(rank)
+
+<span class="cc"># ② 모델 × 태스크 피벗</span>
+pivot = df.<span class="cf">pivot_table</span>(
+    values=<span class="cstr">'Score'</span>, index=<span class="cstr">'Model'</span>,
+    columns=<span class="cstr">'Task'</span>, aggfunc=<span class="cstr">'mean'</span>
+).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(pivot)</code></pre>
+          </div>
+        </div>
+        <div id="glue-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li>pivot_table 결과로 어떤 모델이 어떤 태스크에서 강점/약점이 있는지 직관적으로 파악 가능.</li>
+              <li>일부 모델은 특정 태스크에서 NaN이 나올 수 있음 → <code>fillna('-')</code>로 처리 후 출력.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /glue -->
+    </div><!-- /cls section -->
+
+    <!-- ════════════════════════════════════
+         ② 회귀 (Regression)
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">② 회귀 (Regression)</div><div class="cat-sep-line"></div></div>
+
+    <div id="reg" class="section cat-reg">
+      <div class="section-head">
+        <div class="sec-num">②</div>
+        <div style="flex:1">
+          <div class="sec-title">회귀 (Regression)</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">수치 예측 · 피처 엔지니어링 · 범주형 인코딩 실습</div>
+        </div>
+        <div class="sec-badge">4개 데이터셋</div>
+      </div>
+
+      <!-- tips -->
+      <div id="tips" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">💰 tips</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">244행 × 7열</span>
+              <span class="ds-tag" style="background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)">회귀</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">범주형</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('tips','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('tips','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('tips','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('tips','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="tips-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 개요</div>
+              <p>레스토랑 팁 데이터. total_bill(식사비)과 tip(팁) 관계 분석, 성별·흡연·요일·시간대별 팁 차이 분석에 활용. 범주형 변수가 풍부해 groupby·pivot·get_dummies 종합 실습에 최적.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🎯 주요 활용</div>
+              <p>tip_rate(팁 비율) 파생변수 생성, groupby 다차원 집계, 상관계수 계산, 선형회귀 모델 적합, 범주형 변수 시각화.</p>
+            </div>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">total_bill</td><td class="col-type">float64</td><td>식사 총금액 ($)</td></tr>
+              <tr><td class="col-name">tip</td><td class="col-type">float64</td><td>팁 금액 ($) — 타깃 변수</td></tr>
+              <tr><td class="col-name">sex</td><td class="col-type">category</td><td>성별 (Male/Female)</td></tr>
+              <tr><td class="col-name">smoker</td><td class="col-type">category</td><td>흡연 여부 (Yes/No)</td></tr>
+              <tr><td class="col-name">day</td><td class="col-type">category</td><td>요일 (Thur/Fri/Sat/Sun)</td></tr>
+              <tr><td class="col-name">time</td><td class="col-type">category</td><td>시간대 (Lunch/Dinner)</td></tr>
+              <tr><td class="col-name">size</td><td class="col-type">int64</td><td>테이블 인원 수</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="tips-원리" class="tab-panel">
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div>tip_rate 파생변수</div>
+            <div class="step"><div class="step-num">2</div>groupby 다차원 집계</div>
+            <div class="step"><div class="step-num">3</div>상관계수 분석</div>
+            <div class="step"><div class="step-num">4</div>OLS 선형회귀</div>
+          </div>
+          <div class="info-card" style="margin-bottom:12px">
+            <div class="info-card-title">🔑 핵심 원리</div>
+            <p><strong>tip_rate = tip / total_bill × 100</strong>으로 파생변수를 만들면 절대 팁액 대신 비율로 비교 가능. category 타입은 <code>.cat.codes</code>나 <code>pd.get_dummies()</code>로 수치화. 다중 groupby는 <code>.agg({'tip':'mean','total_bill':'sum'})</code>처럼 컬럼별 다른 집계 함수 지정.</p>
+          </div>
+        </div>
+        <div id="tips-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'tips'</span>)
+
+<span class="cc"># ① 팁 비율 파생변수</span>
+df[<span class="cstr">'tip_rate'</span>] = (df[<span class="cstr">'tip'</span>] / df[<span class="cstr">'total_bill'</span>] * <span class="cnum">100</span>).<span class="cf">round</span>(<span class="cnum">2</span>)
+
+<span class="cc"># ② 성별 × 흡연 × 요일 집계</span>
+g = df.<span class="cf">groupby</span>([<span class="cstr">'sex'</span>,<span class="cstr">'smoker'</span>]).<span class="cf">agg</span>(
+    tip_mean=(<span class="cstr">'tip'</span>,<span class="cstr">'mean'</span>),
+    tip_rate_mean=(<span class="cstr">'tip_rate'</span>,<span class="cstr">'mean'</span>),
+    count=(<span class="cstr">'tip'</span>,<span class="cstr">'count'</span>)
+).<span class="cf">round</span>(<span class="cnum">2</span>)
+<span class="cf">print</span>(g)
+
+<span class="cc"># ③ 상관계수</span>
+<span class="cf">print</span>(df[[<span class="cstr">'total_bill'</span>,<span class="cstr">'tip'</span>,<span class="cstr">'size'</span>,<span class="cstr">'tip_rate'</span>]].<span class="cf">corr</span>().<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ④ 요일별 총매출 피벗</span>
+piv = df.<span class="cf">pivot_table</span>(
+    values=[<span class="cstr">'total_bill'</span>,<span class="cstr">'tip'</span>],
+    index=<span class="cstr">'day'</span>, columns=<span class="cstr">'time'</span>,
+    aggfunc=<span class="cstr">'sum'</span>
+).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(piv)
+
+<span class="cc"># ⑤ 선형회귀</span>
+<span class="ck">from</span> sklearn.linear_model <span class="ck">import</span> LinearRegression
+X = df[[<span class="cstr">'total_bill'</span>,<span class="cstr">'size'</span>]]
+y = df[<span class="cstr">'tip'</span>]
+lr = <span class="cf">LinearRegression</span>().<span class="cf">fit</span>(X, y)
+<span class="cf">print</span>(<span class="cf">f"R²={lr.score(X,y):.3f}, 절편={lr.intercept_:.3f}"</span>)
+<span class="cf">print</span>(<span class="cf">f"계수={dict(zip(['total_bill','size'], lr.coef_.round(3)))}"</span>)</code></pre>
+          </div>
+        </div>
+        <div id="tips-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>total_bill ↔ tip 상관:</strong> r = 0.676 (중간 양의 상관). 식사비가 많을수록 팁도 많음.</li>
+              <li><strong>tip_rate:</strong> 평균 약 16%. 비흡연 여성이 약 17.2%로 가장 높은 팁 비율.</li>
+              <li><strong>회귀 R²:</strong> 약 0.467. total_bill 계수 ≈ 0.093 → 식사비 1달러 증가 시 팁 약 9.3센트 증가.</li>
+              <li><strong>요일 피벗:</strong> 토요일 Dinner 총매출이 가장 높음. Lunch는 목요일에만 데이터 존재.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /tips -->
+
+      <!-- diamonds -->
+      <div id="diamonds" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">💎 diamonds</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">53,940행 × 10열</span>
+              <span class="ds-tag" style="background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)">회귀</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">순서인코딩</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('diamonds','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('diamonds','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('diamonds','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="diamonds-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 개요</div>
+              <p>약 54,000개 다이아몬드 가격 데이터. cut(컷팅)/color(색상)/clarity(투명도)는 순서형(Ordinal) 범주 변수. 대용량 데이터 처리, 순서형 인코딩, 로그 변환 실습에 최적.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🎯 주요 활용</div>
+              <p>OrdinalEncoder로 cut/color/clarity 인코딩, price 로그 변환 (오른쪽 치우침 완화), cut 등급별 price 분포 비교, carat ↔ price 회귀분석.</p>
+            </div>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">carat</td><td class="col-type">float64</td><td>캐럿 무게</td></tr>
+              <tr><td class="col-name">cut</td><td class="col-type">category</td><td>컷 품질 (Fair &lt; Good &lt; VG &lt; Premium &lt; Ideal)</td></tr>
+              <tr><td class="col-name">color</td><td class="col-type">category</td><td>색상 (D 최상 → J 최하)</td></tr>
+              <tr><td class="col-name">clarity</td><td class="col-type">category</td><td>투명도 (IF 최상 → I1 최하)</td></tr>
+              <tr><td class="col-name">depth, table</td><td class="col-type">float64</td><td>깊이 비율, 테이블 너비 (%)</td></tr>
+              <tr><td class="col-name">price</td><td class="col-type">int64</td><td>가격 ($) — 타깃 변수</td></tr>
+              <tr><td class="col-name">x, y, z</td><td class="col-type">float64</td><td>치수 (mm)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="diamonds-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'diamonds'</span>)
+
+<span class="cc"># ① 순서형 인코딩</span>
+cut_order = [<span class="cstr">'Fair'</span>,<span class="cstr">'Good'</span>,<span class="cstr">'Very Good'</span>,<span class="cstr">'Premium'</span>,<span class="cstr">'Ideal'</span>]
+color_order = [<span class="cstr">'J'</span>,<span class="cstr">'I'</span>,<span class="cstr">'H'</span>,<span class="cstr">'G'</span>,<span class="cstr">'F'</span>,<span class="cstr">'E'</span>,<span class="cstr">'D'</span>]
+clarity_order = [<span class="cstr">'I1'</span>,<span class="cstr">'SI2'</span>,<span class="cstr">'SI1'</span>,<span class="cstr">'VS2'</span>,<span class="cstr">'VS1'</span>,<span class="cstr">'VVS2'</span>,<span class="cstr">'VVS1'</span>,<span class="cstr">'IF'</span>]
+
+df[<span class="cstr">'cut_enc'</span>] = pd.<span class="cf">Categorical</span>(df[<span class="cstr">'cut'</span>], categories=cut_order, ordered=<span class="ck">True</span>).<span class="cf">codes</span>
+df[<span class="cstr">'color_enc'</span>] = pd.<span class="cf">Categorical</span>(df[<span class="cstr">'color'</span>], categories=color_order, ordered=<span class="ck">True</span>).<span class="cf">codes</span>
+df[<span class="cstr">'clarity_enc'</span>] = pd.<span class="cf">Categorical</span>(df[<span class="cstr">'clarity'</span>], categories=clarity_order, ordered=<span class="ck">True</span>).<span class="cf">codes</span>
+
+<span class="cc"># ② 로그 변환 (오른쪽 꼬리 분포 완화)</span>
+<span class="ck">import</span> numpy <span class="ck">as</span> np
+df[<span class="cstr">'log_price'</span>] = np.<span class="cf">log1p</span>(df[<span class="cstr">'price'</span>])
+df[<span class="cstr">'log_carat'</span>] = np.<span class="cf">log1p</span>(df[<span class="cstr">'carat'</span>])
+
+<span class="cc"># ③ 컷 등급별 가격 통계</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'cut'</span>)[<span class="cstr">'price'</span>].<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'median'</span>,<span class="cstr">'std'</span>]).<span class="cf">round</span>(<span class="cnum">0</span>))
+
+<span class="cc"># ④ carat-price 상관 (원본 vs 로그)</span>
+<span class="cf">print</span>(<span class="cf">f"원본 상관: {df['carat'].corr(df['price']):.3f}"</span>)
+<span class="cf">print</span>(<span class="cf">f"로그 상관: {df['log_carat'].corr(df['log_price']):.3f}"</span>)</code></pre>
+          </div>
+        </div>
+        <div id="diamonds-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>역설적 패턴:</strong> Fair(최하등급) 컷의 평균 가격이 Ideal보다 높게 나옴 → carat 크기와 컷 등급이 역상관(대형 원석은 완벽하게 컷팅하기 어려움).</li>
+              <li><strong>로그 변환 효과:</strong> carat ↔ price 원본 상관 0.922 → 로그 변환 후 0.960 (선형 관계가 더 강해짐).</li>
+              <li><strong>순서 인코딩 중요성:</strong> get_dummies 대신 OrdinalEncoder를 써야 품질 순위 정보를 보존.</li>
+            </ul>
+          </div>
+          <div class="tip-box"><strong>⚠ 함정:</strong> "Ideal 컷이 가장 비싸야 한다"는 직관이 틀림. 반드시 carat을 통제(층화 분석)해야 올바른 컷-가격 관계 파악 가능.</div>
+        </div>
+      </div><!-- /diamonds -->
+
+      <!-- mpg -->
+      <div id="mpg" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🚗 mpg</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">398행 × 9열</span>
+              <span class="ds-tag" style="background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)">회귀</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">다중공선성</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('mpg','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('mpg','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('mpg','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="mpg-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>1970~1982년 자동차 연비(mpg) 데이터. horsepower 컬럼에 '?' 문자가 섞인 실제 데이터 오류 처리 실습 포함. cylinders/displacement/weight/horsepower 간 강한 다중공선성이 특징.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">mpg</td><td class="col-type">float64</td><td>연비 (마일/갤런) — 타깃</td></tr>
+              <tr><td class="col-name">cylinders</td><td class="col-type">int64</td><td>실린더 수 (3~8)</td></tr>
+              <tr><td class="col-name">displacement</td><td class="col-type">float64</td><td>배기량 (cubic inches)</td></tr>
+              <tr><td class="col-name">horsepower</td><td class="col-type">object</td><td>마력 ⚠ '?' 포함 → 수치 변환 필요</td></tr>
+              <tr><td class="col-name">weight</td><td class="col-type">int64</td><td>차량 중량 (파운드)</td></tr>
+              <tr><td class="col-name">acceleration</td><td class="col-type">float64</td><td>0→60mph 도달 시간 (초)</td></tr>
+              <tr><td class="col-name">model_year</td><td class="col-type">int64</td><td>모델 연도 (70~82)</td></tr>
+              <tr><td class="col-name">origin</td><td class="col-type">int64</td><td>원산지 (1=미국, 2=유럽, 3=일본)</td></tr>
+              <tr><td class="col-name">name</td><td class="col-type">object</td><td>자동차 이름</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="mpg-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'mpg'</span>)
+
+<span class="cc"># ① horsepower '?' → NaN → 수치 변환</span>
+df[<span class="cstr">'horsepower'</span>] = pd.<span class="cf">to_numeric</span>(df[<span class="cstr">'horsepower'</span>], errors=<span class="cstr">'coerce'</span>)
+df[<span class="cstr">'horsepower'</span>] = df[<span class="cstr">'horsepower'</span>].<span class="cf">fillna</span>(df[<span class="cstr">'horsepower'</span>].<span class="cf">median</span>())
+
+<span class="cc"># ② 연도별 평균 연비 추세</span>
+trend = df.<span class="cf">groupby</span>(<span class="cstr">'model_year'</span>)[<span class="cstr">'mpg'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(trend)
+
+<span class="cc"># ③ 원산지별 평균 비교</span>
+origin_map = {<span class="cnum">1</span>:<span class="cstr">'미국'</span>, <span class="cnum">2</span>:<span class="cstr">'유럽'</span>, <span class="cnum">3</span>:<span class="cstr">'일본'</span>}
+df[<span class="cstr">'origin_name'</span>] = df[<span class="cstr">'origin'</span>].<span class="cf">map</span>(origin_map)
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'origin_name'</span>)[<span class="cstr">'mpg'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">1</span>))
+
+<span class="cc"># ④ VIF로 다중공선성 확인</span>
+<span class="ck">from</span> statsmodels.stats.outliers_influence <span class="ck">import</span> variance_inflation_factor
+X_cols = [<span class="cstr">'cylinders'</span>,<span class="cstr">'displacement'</span>,<span class="cstr">'horsepower'</span>,<span class="cstr">'weight'</span>]
+X = df[X_cols]
+vif = pd.<span class="cf">DataFrame</span>({
+    <span class="cstr">'feature'</span>: X_cols,
+    <span class="cstr">'VIF'</span>: [<span class="cf">variance_inflation_factor</span>(X.values, i)
+             <span class="ck">for</span> i <span class="ck">in</span> <span class="cf">range</span>(X.<span class="cf">shape</span>[<span class="cnum">1</span>])]
+})
+<span class="cf">print</span>(vif.<span class="cf">round</span>(<span class="cnum">1</span>))</code></pre>
+          </div>
+        </div>
+        <div id="mpg-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>horsepower 처리:</strong> <code>pd.to_numeric(errors='coerce')</code>로 '?'를 NaN으로 만든 후 중앙값 대체. 이 패턴이 ADP 실기 단골 출제.</li>
+              <li><strong>연도 추세:</strong> 70년대 초 ~17mpg → 82년 ~31mpg. 오일쇼크 이후 연비 급격 개선.</li>
+              <li><strong>원산지:</strong> 일본(30.4) > 유럽(27.6) > 미국(20.0) 순서로 연비 좋음.</li>
+              <li><strong>VIF:</strong> displacement(VIF≈21), weight(VIF≈11) 등 10 이상 → 심각한 다중공선성. PCA로 차원 축소 또는 Ridge/Lasso 회귀 고려.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /mpg -->
+
+      <!-- healthexp -->
+      <div id="healthexp" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🏥 healthexp</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">274행 × 4열</span>
+              <span class="ds-tag" style="background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)">회귀</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">국가비교</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('healthexp','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('healthexp','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('healthexp','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="healthexp-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>주요 국가의 연도별 의료비 지출(Spending_USD)과 기대수명(Life_Expectancy) 데이터. 패널 데이터(국가×연도) 구조. 의료비 증가가 기대수명 향상으로 이어지는지 분석.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">Country</td><td>국가명</td></tr>
+              <tr><td class="col-name">Year</td><td>연도</td></tr>
+              <tr><td class="col-name">Spending_USD</td><td>1인당 의료비 지출 (USD)</td></tr>
+              <tr><td class="col-name">Life_Expectancy</td><td>기대수명 (년) — 타깃</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="healthexp-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'healthexp'</span>)
+
+<span class="cc"># ① 최신 연도 데이터 (국가별 비교)</span>
+latest = df.<span class="cf">loc</span>[df.<span class="cf">groupby</span>(<span class="cstr">'Country'</span>)[<span class="cstr">'Year'</span>].<span class="cf">idxmax</span>()]
+<span class="cf">print</span>(latest.<span class="cf">sort_values</span>(<span class="cstr">'Spending_USD'</span>, ascending=<span class="ck">False</span>))
+
+<span class="cc"># ② 국가별 의료비 증가율 (첫해 대비)</span>
+df_sorted = df.<span class="cf">sort_values</span>([<span class="cstr">'Country'</span>,<span class="cstr">'Year'</span>])
+first = df_sorted.<span class="cf">groupby</span>(<span class="cstr">'Country'</span>)[<span class="cstr">'Spending_USD'</span>].<span class="cf">first</span>()
+last  = df_sorted.<span class="cf">groupby</span>(<span class="cstr">'Country'</span>)[<span class="cstr">'Spending_USD'</span>].<span class="cf">last</span>()
+growth = ((last / first - <span class="cnum">1</span>) * <span class="cnum">100</span>).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(growth.<span class="cf">sort_values</span>(ascending=<span class="ck">False</span>))
+
+<span class="cc"># ③ 의료비 → 기대수명 상관</span>
+<span class="cf">print</span>(df[[<span class="cstr">'Spending_USD'</span>,<span class="cstr">'Life_Expectancy'</span>]].<span class="cf">corr</span>().<span class="cf">round</span>(<span class="cnum">3</span>))</code></pre>
+          </div>
+        </div>
+        <div id="healthexp-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>미국 특이점:</strong> 1인당 의료비가 가장 높지만 기대수명은 중간 수준 → 의료비 효율 문제 시사.</li>
+              <li><strong>상관계수:</strong> r ≈ 0.77 (양의 상관). 하지만 단순 상관이므로 인과관계 아님.</li>
+              <li><strong>idxmax() 패턴:</strong> groupby 후 각 그룹에서 최대값 행의 인덱스 반환 → 최신 연도 데이터 추출에 자주 사용.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /healthexp -->
+    </div><!-- /reg section -->
+
+    <!-- ════════════════════════════════════
+         ③ 시계열 (Time-series)
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">③ 시계열 (Time-series)</div><div class="cat-sep-line"></div></div>
+
+    <div id="ts" class="section cat-ts">
+      <div class="section-head">
+        <div class="sec-num">③</div>
+        <div style="flex:1">
+          <div class="sec-title">시계열 (Time-series)</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">추세 · 계절성 · 이동평균 · 반복측정 분석</div>
+        </div>
+        <div class="sec-badge">5개 데이터셋</div>
+      </div>
+
+      <!-- flights -->
+      <div id="flights" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">✈️ flights</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">144행 × 3열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">시계열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">계절성</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('flights','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('flights','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('flights','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('flights','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="flights-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>1949~1960년 월별 국제선 항공 승객 수. 12년 × 12월 = 144행. <strong>pivot_table로 연도×월 히트맵</strong>을 만드는 것이 핵심 실습. 매년 여름(7~8월)에 승객이 급증하는 뚜렷한 계절성이 있음.</p>
+          </div>
+        </div>
+        <div id="flights-원리" class="tab-panel">
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div>pivot_table (연도×월)</div>
+            <div class="step"><div class="step-num">2</div>pct_change (전월비 증감률)</div>
+            <div class="step"><div class="step-num">3</div>rolling (이동평균)</div>
+            <div class="step"><div class="step-num">4</div>월별 계절 지수</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-title">🔑 핵심 원리 — pivot_table 히트맵</div>
+            <p><code>pivot_table(index='year', columns='month', values='passengers')</code>로 year×month 매트릭스 생성 후 seaborn <code>heatmap</code>에 바로 입력. 빅분기 실기에서 pivot_table → heatmap 패턴이 자주 출제.</p>
+          </div>
+        </div>
+        <div id="flights-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'flights'</span>)
+
+<span class="cc"># ① pivot_table — 연도 × 월 승객수</span>
+piv = df.<span class="cf">pivot_table</span>(
+    index=<span class="cstr">'year'</span>, columns=<span class="cstr">'month'</span>,
+    values=<span class="cstr">'passengers'</span>, aggfunc=<span class="cstr">'sum'</span>
+)
+<span class="cf">print</span>(piv)
+
+<span class="cc"># ② 연도별 총 승객수 & 전년비 성장률</span>
+yearly = df.<span class="cf">groupby</span>(<span class="cstr">'year'</span>)[<span class="cstr">'passengers'</span>].<span class="cf">sum</span>()
+growth = yearly.<span class="cf">pct_change</span>() * <span class="cnum">100</span>
+<span class="cf">print</span>(pd.<span class="cf">DataFrame</span>({<span class="cstr">'total'</span>:yearly, <span class="cstr">'growth%'</span>:growth.<span class="cf">round</span>(<span class="cnum">1</span>)}))
+
+<span class="cc"># ③ 월별 평균 승객 (계절 패턴)</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'month'</span>)[<span class="cstr">'passengers'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">0</span>))
+
+<span class="cc"># ④ 이동평균 (rolling 3개월)</span>
+df_sorted = df.<span class="cf">sort_values</span>([<span class="cstr">'year'</span>,<span class="cstr">'month'</span>])
+df_sorted[<span class="cstr">'ma3'</span>] = df_sorted[<span class="cstr">'passengers'</span>].<span class="cf">rolling</span>(<span class="cnum">3</span>).<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">0</span>)</code></pre>
+          </div>
+        </div>
+        <div id="flights-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>계절성:</strong> 7월(July)이 매년 최고 승객. 12월도 고점. 2월이 최저 (구조적 계절성).</li>
+              <li><strong>추세:</strong> 1949년 1416천명 → 1960년 5714천명. 연평균 약 12% 성장.</li>
+              <li><strong>pivot_table 히트맵:</strong> 오른쪽 하단(1960년 여름)이 가장 진한 색 → 성장+계절성 동시 시각화.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /flights -->
+
+      <!-- dowjones -->
+      <div id="dowjones" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">📈 dowjones</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">121행 × 2열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">시계열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">금융</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('dowjones','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('dowjones','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('dowjones','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="dowjones-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>다우존스 지수 월별 종가 데이터. Date 컬럼을 <code>pd.to_datetime()</code>으로 변환 후 set_index, 이동평균(rolling), 수익률(pct_change) 계산 실습에 사용.</p>
+          </div>
+        </div>
+        <div id="dowjones-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'dowjones'</span>)
+
+<span class="cc"># ① datetime 변환 & 인덱스 설정</span>
+df[<span class="cstr">'Date'</span>] = pd.<span class="cf">to_datetime</span>(df[<span class="cstr">'Date'</span>])
+df = df.<span class="cf">set_index</span>(<span class="cstr">'Date'</span>).<span class="cf">sort_index</span>()
+
+<span class="cc"># ② 월별 수익률</span>
+df[<span class="cstr">'return'</span>] = df[<span class="cstr">'Price'</span>].<span class="cf">pct_change</span>() * <span class="cnum">100</span>
+
+<span class="cc"># ③ 이동평균 (3개월, 12개월)</span>
+df[<span class="cstr">'MA3'</span>]  = df[<span class="cstr">'Price'</span>].<span class="cf">rolling</span>(<span class="cnum">3</span>).<span class="cf">mean</span>()
+df[<span class="cstr">'MA12'</span>] = df[<span class="cstr">'Price'</span>].<span class="cf">rolling</span>(<span class="cnum">12</span>).<span class="cf">mean</span>()
+
+<span class="cc"># ④ 연도별 집계 (resample)</span>
+yearly = df[<span class="cstr">'Price'</span>].<span class="cf">resample</span>(<span class="cstr">'Y'</span>).<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'max'</span>,<span class="cstr">'min'</span>]).<span class="cf">round</span>(<span class="cnum">0</span>)
+<span class="cf">print</span>(yearly)
+
+<span class="cc"># ⑤ 수익률 통계</span>
+<span class="cf">print</span>(df[<span class="cstr">'return'</span>].<span class="cf">describe</span>().<span class="cf">round</span>(<span class="cnum">2</span>))</code></pre>
+          </div>
+        </div>
+        <div id="dowjones-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>resample('Y'):</strong> DatetimeIndex에서 연도 단위 집계. 'M'=월, 'Q'=분기, 'Y'=연도.</li>
+              <li><strong>이동평균:</strong> MA12가 단기 변동을 걸러낸 장기 추세. MA3가 MA12를 상향 돌파하면 골든크로스 매수 신호.</li>
+              <li><strong>pct_change():</strong> NaN 포함 → 첫 행은 항상 NaN. <code>dropna()</code> 후 통계 계산.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /dowjones -->
+
+      <!-- seaice -->
+      <div id="seaice" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🧊 seaice</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">14,219행 × 2열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">시계열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">장기추세</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('seaice','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('seaice','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('seaice','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="seaice-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>북극 해빙 면적 일별 측정 데이터 (약 39년치). 대용량 일별 시계열의 <strong>resample로 월/연 집계</strong>, 장기 감소 추세 분석, 연도×월 계절 패턴 분석에 활용.</p>
+          </div>
+        </div>
+        <div id="seaice-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'seaice'</span>)
+df[<span class="cstr">'Date'</span>] = pd.<span class="cf">to_datetime</span>(df[<span class="cstr">'Date'</span>])
+df = df.<span class="cf">set_index</span>(<span class="cstr">'Date'</span>).<span class="cf">sort_index</span>()
+
+<span class="cc"># ① 연별 평균 해빙 면적</span>
+annual = df[<span class="cstr">'Extent'</span>].<span class="cf">resample</span>(<span class="cstr">'Y'</span>).<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">3</span>)
+
+<span class="cc"># ② 월별 평균 (계절성)</span>
+df[<span class="cstr">'month'</span>] = df.<span class="cf">index</span>.month
+monthly_avg = df.<span class="cf">groupby</span>(<span class="cstr">'month'</span>)[<span class="cstr">'Extent'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">2</span>)
+<span class="cf">print</span>(monthly_avg)
+
+<span class="cc"># ③ 특정 기간 슬라이싱</span>
+recent = df.loc[<span class="cstr">'2010'</span>:<span class="cstr">'2020'</span>]
+<span class="cf">print</span>(recent[<span class="cstr">'Extent'</span>].<span class="cf">describe</span>().<span class="cf">round</span>(<span class="cnum">2</span>))</code></pre>
+          </div>
+        </div>
+        <div id="seaice-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>계절성:</strong> 3월(약 15.5 million km²) 최대, 9월(약 6.7 million km²) 최소 → 북반구 계절 반영.</li>
+              <li><strong>장기 추세:</strong> 연평균 해빙 면적이 꾸준히 감소 → 기후변화 지표.</li>
+              <li><strong>DatetimeIndex 슬라이싱:</strong> <code>df.loc['2010':'2020']</code>처럼 문자열로 연도 범위 지정 가능 (DatetimeIndex의 편의 기능).</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /seaice -->
+
+      <!-- fmri -->
+      <div id="fmri" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🧠 fmri</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">1,064행 × 5열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">시계열</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">반복측정</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('fmri','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('fmri','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('fmri','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="fmri-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 개요</div>
+              <p>fMRI 뇌 BOLD(혈산소 의존) 신호 데이터. 14명의 피험자, 2종 자극(stim/cue), 2개 뇌 영역(parietal/frontal), 18개 시점. 반복측정 시계열 시각화의 표준 예제.</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🎯 주요 활용</div>
+              <p>groupby + agg로 시점×조건별 평균 신호 계산, pivot_table로 region × timepoint 매트릭스, 조건 간 차이 분석.</p>
+            </div>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">subject</td><td>피험자 ID (s1~s14)</td></tr>
+              <tr><td class="col-name">timepoint</td><td>측정 시점 (0~18)</td></tr>
+              <tr><td class="col-name">event</td><td>자극 유형 (stim / cue)</td></tr>
+              <tr><td class="col-name">region</td><td>뇌 영역 (parietal / frontal)</td></tr>
+              <tr><td class="col-name">signal</td><td>BOLD 신호 강도</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="fmri-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'fmri'</span>)
+
+<span class="cc"># ① 조건×시점별 평균 신호</span>
+avg = df.<span class="cf">groupby</span>([<span class="cstr">'event'</span>,<span class="cstr">'region'</span>,<span class="cstr">'timepoint'</span>])[<span class="cstr">'signal'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">4</span>)
+<span class="cf">print</span>(avg.<span class="cf">head</span>(<span class="cnum">8</span>))
+
+<span class="cc"># ② event 별 최대 신호 시점</span>
+peak = df.<span class="cf">groupby</span>([<span class="cstr">'event'</span>,<span class="cstr">'region'</span>]).<span class="cf">apply</span>(
+    <span class="ck">lambda</span> x: x.<span class="cf">loc</span>[x[<span class="cstr">'signal'</span>].<span class="cf">idxmax</span>(), <span class="cstr">'timepoint'</span>]
+)
+<span class="cf">print</span>(<span class="cstr">"최대 신호 시점:\n"</span>, peak)
+
+<span class="cc"># ③ 피험자별 평균 (subject effect)</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'subject'</span>)[<span class="cstr">'signal'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">4</span>))</code></pre>
+          </div>
+        </div>
+        <div id="fmri-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>stim > cue:</strong> stim(실제 자극)이 cue(예고 신호)보다 전반적으로 높은 BOLD 신호.</li>
+              <li><strong>지역차:</strong> parietal(두정엽)이 frontal(전두엽)보다 신호 변화가 빠르게 나타남.</li>
+              <li><strong>피험자 효과:</strong> 피험자마다 기저 신호 수준이 달라 반복측정 ANOVA 시 random effect 고려 필요.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /fmri -->
+
+      <!-- gammas -->
+      <div id="gammas" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🌊 gammas</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">1,700행 × 3열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">시계열</span>
+              <span class="ds-tag" style="background:var(--ts-bg);color:var(--ts);border-color:var(--ts-bd)">다중ROI</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('gammas','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('gammas','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('gammas','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="gammas-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>감마 대역 BOLD 신호 데이터. ROI(관심 영역) × 시점 × 신호 강도 구조. fmri의 심화 버전. groupby로 ROI별 시계열 특성 비교, wide → long 변환(melt) 실습.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">ROI</td><td>뇌 관심 영역 번호</td></tr>
+              <tr><td class="col-name">timepoint</td><td>측정 시점</td></tr>
+              <tr><td class="col-name">BOLD</td><td>감마 대역 BOLD 신호</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="gammas-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'gammas'</span>)
+
+<span class="cc"># ① ROI별 신호 통계</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'ROI'</span>)[<span class="cstr">'BOLD'</span>].<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'std'</span>,<span class="cstr">'max'</span>]).<span class="cf">round</span>(<span class="cnum">4</span>))
+
+<span class="cc"># ② ROI × 시점 pivot (wide format)</span>
+pivot = df.<span class="cf">pivot_table</span>(
+    index=<span class="cstr">'ROI'</span>, columns=<span class="cstr">'timepoint'</span>,
+    values=<span class="cstr">'BOLD'</span>, aggfunc=<span class="cstr">'mean'</span>
+)
+<span class="cf">print</span>(pivot.<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ③ 특정 ROI 시계열 추출</span>
+roi_1 = df[df[<span class="cstr">'ROI'</span>] == <span class="cnum">1</span>].<span class="cf">sort_values</span>(<span class="cstr">'timepoint'</span>)</code></pre>
+          </div>
+        </div>
+        <div id="gammas-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li>ROI별 BOLD 신호 피크 시점이 다름 → 뇌 영역마다 활성화 타이밍이 다른 기능적 분리 반영.</li>
+              <li>pivot_table wide format → seaborn heatmap으로 ROI × 시점 활성화 지도 시각화.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /gammas -->
+    </div><!-- /ts section -->
+
+    <!-- ════════════════════════════════════
+         ④ 클러스터링 / 분포
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">④ 클러스터링 / 분포</div><div class="cat-sep-line"></div></div>
+
+    <div id="cl" class="section cat-cl">
+      <div class="section-head">
+        <div class="sec-num">④</div>
+        <div style="flex:1">
+          <div class="sec-title">클러스터링 / 분포</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">군집 분석 · KDE · 이변량 분포 · 로그변환</div>
+        </div>
+        <div class="sec-badge">2개 데이터셋</div>
+      </div>
+
+      <!-- geyser -->
+      <div id="geyser" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🌋 geyser</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">272행 × 2열</span>
+              <span class="ds-tag" style="background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)">클러스터링</span>
+              <span class="ds-tag" style="background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)">KDE</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('geyser','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('geyser','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('geyser','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="geyser-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>옐로스톤 간헐천 올드 페이스풀의 분출 시간(duration)과 다음 분출까지 대기 시간(waiting). 2개 컬럼만 있어 이변량 분포 · KDE · K-Means 클러스터링 개념 설명에 최적. 산점도로 보면 2개 군집이 명확히 보임.</p>
+          </div>
+        </div>
+        <div id="geyser-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'geyser'</span>)
+
+<span class="cc"># ① 기초 통계</span>
+<span class="cf">print</span>(df.<span class="cf">describe</span>().<span class="cf">round</span>(<span class="cnum">2</span>))
+
+<span class="cc"># ② 상관계수</span>
+<span class="cf">print</span>(df.<span class="cf">corr</span>().<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ③ K-Means 클러스터링 (2군집)</span>
+<span class="ck">from</span> sklearn.cluster <span class="ck">import</span> KMeans
+<span class="ck">from</span> sklearn.preprocessing <span class="ck">import</span> StandardScaler
+
+X = df[[<span class="cstr">'duration'</span>,<span class="cstr">'waiting'</span>]]
+X_sc = <span class="cf">StandardScaler</span>().<span class="cf">fit_transform</span>(X)
+
+km = <span class="cf">KMeans</span>(n_clusters=<span class="cnum">2</span>, random_state=<span class="cnum">42</span>)
+df[<span class="cstr">'cluster'</span>] = km.<span class="cf">fit_predict</span>(X_sc)
+
+<span class="cc"># ④ 군집별 통계</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'cluster'</span>)[[<span class="cstr">'duration'</span>,<span class="cstr">'waiting'</span>]].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">2</span>))
+
+<span class="cc"># ⑤ 이진 레이블 비교 (kind 컬럼 있음)</span>
+<span class="cf">print</span>(pd.<span class="cf">crosstab</span>(df[<span class="cstr">'kind'</span>], df[<span class="cstr">'cluster'</span>]))</code></pre>
+          </div>
+        </div>
+        <div id="geyser-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>2군집:</strong> 군집0 = 분출 짧고(~2분) 대기 짧음(~55분) / 군집1 = 분출 길고(~4.5분) 대기 긺(~80분).</li>
+              <li><strong>상관:</strong> duration ↔ waiting r ≈ 0.90 (매우 강한 양의 상관). 길게 분출할수록 다음까지 오래 기다림.</li>
+              <li><strong>K-Means vs kind:</strong> kind 레이블(short/long)과 K-Means 군집이 거의 완벽하게 일치.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /geyser -->
+
+      <!-- planets -->
+      <div id="planets" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🪐 planets</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">1,035행 × 6열</span>
+              <span class="ds-tag" style="background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)">EDA</span>
+              <span class="ds-tag" style="background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)">로그변환</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('planets','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('planets','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('planets','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="planets-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>NASA 외계행성 탐지 데이터. mass(질량), distance(거리), orbital_period(공전주기) 등에 결측값 대량 포함. 극단적으로 오른쪽 치우친 분포로 로그 변환이 필수. 탐지 방법별(method) 그룹 분석.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>설명</th><th>결측</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">method</td><td>발견 방법</td><td>없음</td></tr>
+              <tr><td class="col-name">number</td><td>행성 수</td><td>없음</td></tr>
+              <tr><td class="col-name">orbital_period</td><td>공전 주기 (일)</td><td>⚠ 111개</td></tr>
+              <tr><td class="col-name">mass</td><td>행성 질량 (목성 대비)</td><td>⚠ 522개</td></tr>
+              <tr><td class="col-name">distance</td><td>거리 (파섹)</td><td>⚠ 227개</td></tr>
+              <tr><td class="col-name">year</td><td>발견 연도</td><td>없음</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="planets-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'planets'</span>)
+<span class="ck">import</span> numpy <span class="ck">as</span> np
+
+<span class="cc"># ① 결측 현황</span>
+<span class="cf">print</span>((df.<span class="cf">isnull</span>().<span class="cf">sum</span>() / <span class="cf">len</span>(df) * <span class="cnum">100</span>).<span class="cf">round</span>(<span class="cnum">1</span>))
+
+<span class="cc"># ② 방법별 발견 수 & 연도 범위</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'method'</span>).<span class="cf">agg</span>(
+    count=(<span class="cstr">'number'</span>,<span class="cstr">'count'</span>),
+    first_year=(<span class="cstr">'year'</span>,<span class="cstr">'min'</span>),
+    last_year=(<span class="cstr">'year'</span>,<span class="cstr">'max'</span>)
+))
+
+<span class="cc"># ③ 로그 변환 (오른쪽 치우침 완화)</span>
+df[<span class="cstr">'log_mass'</span>] = np.<span class="cf">log10</span>(df[<span class="cstr">'mass'</span>])
+df[<span class="cstr">'log_dist'</span>] = np.<span class="cf">log10</span>(df[<span class="cstr">'distance'</span>])
+df[<span class="cstr">'log_period'</span>] = np.<span class="cf">log10</span>(df[<span class="cstr">'orbital_period'</span>])
+
+<span class="cc"># ④ 연도별 탐지 수 추이</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'year'</span>)[<span class="cstr">'number'</span>].<span class="cf">sum</span>())</code></pre>
+          </div>
+        </div>
+        <div id="planets-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>결측 비율:</strong> mass 50.4%, distance 21.9% → mass는 모델 입력에서 제외하거나 따로 분석.</li>
+              <li><strong>발견 방법:</strong> Radial Velocity(268개)가 가장 오래되고 많음. Transit(Transit photometry)이 케플러 위성 이후 폭발적 증가.</li>
+              <li><strong>로그 변환:</strong> orbital_period 범위가 0.09일~730,000일 → log 변환 필수.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /planets -->
+    </div><!-- /cl section -->
+
+    <!-- ════════════════════════════════════
+         ⑤ 통계검정
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">⑤ 통계검정 / 실험</div><div class="cat-sep-line"></div></div>
+
+    <div id="stat" class="section cat-stat">
+      <div class="section-head">
+        <div class="sec-num">⑤</div>
+        <div style="flex:1">
+          <div class="sec-title">통계검정 / 실험</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">ANOVA · 그룹 비교 · 상관분석 · 카이제곱</div>
+        </div>
+        <div class="sec-badge">3개 데이터셋</div>
+      </div>
+
+      <!-- attention -->
+      <div id="attention" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🧩 attention</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">60행 × 5열</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">반복측정ANOVA</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('attention','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('attention','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('attention','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="attention-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>주의력 실험 데이터. 피험자, 솔루션 유형(focused/divided), 점수(score), 조건(attention type). 2×3 반복측정 실험 설계. groupby로 조건별 평균 비교 후 일원/이원 ANOVA 검정에 활용.</p>
+          </div>
+        </div>
+        <div id="attention-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'attention'</span>)
+<span class="cf">print</span>(df.<span class="cf">head</span>())
+<span class="cf">print</span>(df.<span class="cf">columns</span>.<span class="cf">tolist</span>())
+
+<span class="cc"># ① 조건별 평균 점수</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>([<span class="cstr">'solutions'</span>,<span class="cstr">'attention'</span>])[<span class="cstr">'score'</span>].<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'std'</span>]).<span class="cf">round</span>(<span class="cnum">2</span>))
+
+<span class="cc"># ② 일원 ANOVA (solutions 그룹 간)</span>
+<span class="ck">from</span> scipy.stats <span class="ck">import</span> f_oneway
+g1 = df[df[<span class="cstr">'solutions'</span>]==<span class="cnum">1</span>][<span class="cstr">'score'</span>]
+g2 = df[df[<span class="cstr">'solutions'</span>]==<span class="cnum">2</span>][<span class="cstr">'score'</span>]
+g3 = df[df[<span class="cstr">'solutions'</span>]==<span class="cnum">3</span>][<span class="cstr">'score'</span>]
+F, p = <span class="cf">f_oneway</span>(g1, g2, g3)
+<span class="cf">print</span>(<span class="cf">f"F={F:.3f}, p={p:.4f}"</span>)
+
+<span class="cc"># ③ 교호작용 확인 — 이원 집계</span>
+pivot = df.<span class="cf">pivot_table</span>(
+    values=<span class="cstr">'score'</span>, index=<span class="cstr">'attention'</span>,
+    columns=<span class="cstr">'solutions'</span>, aggfunc=<span class="cstr">'mean'</span>
+).<span class="cf">round</span>(<span class="cnum">2</span>)
+<span class="cf">print</span>(pivot)</code></pre>
+          </div>
+        </div>
+        <div id="attention-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>ANOVA F 값:</strong> p < 0.05이면 최소 한 그룹 간 평균 차이 유의. 사후 검정(Tukey HSD)으로 어떤 쌍이 다른지 확인.</li>
+              <li><strong>교호작용:</strong> pivot_table에서 행과 열 조합에 따라 점수 차이 패턴이 달라지면 교호작용 존재.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /attention -->
+
+      <!-- exercise -->
+      <div id="exercise" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🏃 exercise</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">90행 × 6열</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">그룹비교</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('exercise','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('exercise','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('exercise','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="exercise-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>운동 종류(rest/walk/run)와 식이요법(no fat/low fat) 조합별 심박수 변화를 측정. 반복측정(시점: 1분, 15분, 30분) 포함. 이원 ANOVA, 그룹별 시계열 비교에 활용.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">id</td><td>피험자 ID</td></tr>
+              <tr><td class="col-name">diet</td><td>식이요법 (no fat / low fat)</td></tr>
+              <tr><td class="col-name">pulse</td><td>심박수 (bpm)</td></tr>
+              <tr><td class="col-name">time</td><td>측정 시점 (1 / 15 / 30분)</td></tr>
+              <tr><td class="col-name">kind</td><td>운동 종류 (rest / walk / run)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="exercise-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'exercise'</span>)
+
+<span class="cc"># ① 운동 종류 × 시점별 평균 심박수</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>([<span class="cstr">'kind'</span>,<span class="cstr">'time'</span>])[<span class="cstr">'pulse'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">1</span>))
+
+<span class="cc"># ② 식이요법 × 운동 이원 분석</span>
+pivot = df.<span class="cf">pivot_table</span>(
+    values=<span class="cstr">'pulse'</span>, index=<span class="cstr">'kind'</span>,
+    columns=<span class="cstr">'diet'</span>, aggfunc=<span class="cstr">'mean'</span>
+).<span class="cf">round</span>(<span class="cnum">1</span>)
+<span class="cf">print</span>(pivot)
+
+<span class="cc"># ③ 운동 간 t-검정 (run vs rest)</span>
+<span class="ck">from</span> scipy.stats <span class="ck">import</span> ttest_ind
+run  = df[df[<span class="cstr">'kind'</span>]==<span class="cstr">'run'</span>][<span class="cstr">'pulse'</span>]
+rest = df[df[<span class="cstr">'kind'</span>]==<span class="cstr">'rest'</span>][<span class="cstr">'pulse'</span>]
+t, p = <span class="cf">ttest_ind</span>(run, rest)
+<span class="cf">print</span>(<span class="cf">f"t={t:.3f}, p={p:.6f}"</span>)</code></pre>
+          </div>
+        </div>
+        <div id="exercise-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>운동 효과:</strong> run > walk > rest 순으로 심박수 높음. 30분에서 격차 최대.</li>
+              <li><strong>식이요법 효과:</strong> 식이요법(no fat vs low fat) 간 차이는 작음. 운동 종류 효과가 지배적.</li>
+              <li><strong>t-검정:</strong> run vs rest p < 0.001 → 강하게 유의. 두 그룹 심박수 차이는 통계적으로 확실.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /exercise -->
+
+      <!-- car_crashes -->
+      <div id="car_crashes" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🚨 car_crashes</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">51행 × 8열</span>
+              <span class="ds-tag" style="background:var(--stat-bg);color:var(--stat);border-color:var(--stat-bd)">상관분석</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('car_crashes','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('car_crashes','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('car_crashes','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="car_crashes-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>미국 51개 주의 교통사고 관련 통계. total(10억 마일당 사고 수), speeding(과속 비율), alcohol(음주 비율) 등 다변량 상관분석 및 scatter_matrix 시각화에 활용. 소규모(51행)로 전처리 없이 바로 분석 가능.</p>
+          </div>
+        </div>
+        <div id="car_crashes-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'car_crashes'</span>)
+
+<span class="cc"># ① 전체 상관행렬</span>
+corr = df.<span class="cf">select_dtypes</span>(<span class="cstr">'number'</span>).<span class="cf">corr</span>().<span class="cf">round</span>(<span class="cnum">3</span>)
+<span class="cf">print</span>(corr)
+
+<span class="cc"># ② total 과 각 요인 상관</span>
+total_corr = corr[<span class="cstr">'total'</span>].<span class="cf">drop</span>(<span class="cstr">'total'</span>).<span class="cf">sort_values</span>(key=<span class="cf">abs</span>, ascending=<span class="ck">False</span>)
+<span class="cf">print</span>(total_corr)
+
+<span class="cc"># ③ 음주 비율 상위 5개 주</span>
+<span class="cf">print</span>(df.<span class="cf">nlargest</span>(<span class="cnum">5</span>, <span class="cstr">'alcohol'</span>)[[<span class="cstr">'abbrev'</span>,<span class="cstr">'total'</span>,<span class="cstr">'alcohol'</span>]])
+
+<span class="cc"># ④ 새 피처: 음주 사고 비율</span>
+df[<span class="cstr">'alcohol_rate'</span>] = df[<span class="cstr">'alcohol'</span>] / df[<span class="cstr">'total'</span>]
+<span class="cf">print</span>(df[<span class="cstr">'alcohol_rate'</span>].<span class="cf">describe</span>().<span class="cf">round</span>(<span class="cnum">3</span>))</code></pre>
+          </div>
+        </div>
+        <div id="car_crashes-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>total 상관:</strong> alcohol(0.80), speeding(0.77)이 사고율과 강한 양의 상관. 음주운전·과속이 핵심 요인.</li>
+              <li><strong>nlargest(5):</strong> 음주 비율 상위 주들이 반드시 총 사고율 상위는 아님 → 다변량 분석 필요.</li>
+              <li><strong>alcohol_rate:</strong> 사고 중 음주 관련 비율. 주별 비교에 절대값보다 비율이 더 공정한 지표.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /car_crashes -->
+    </div><!-- /stat section -->
+
+    <!-- ════════════════════════════════════
+         ⑥ 시각화 전용
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">⑥ 시각화 전용</div><div class="cat-sep-line"></div></div>
+
+    <div id="viz" class="section cat-viz">
+      <div class="section-head">
+        <div class="sec-num">⑥</div>
+        <div style="flex:1">
+          <div class="sec-title">시각화 전용</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">시각화 필요성 증명 · datetime 처리 · 지역 분석</div>
+        </div>
+        <div class="sec-badge">2개 데이터셋</div>
+      </div>
+
+      <!-- anscombe -->
+      <div id="anscombe" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">📐 anscombe</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">44행 × 3열</span>
+              <span class="ds-tag" style="background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)">시각화 필요성</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('anscombe','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('anscombe','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('anscombe','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="anscombe-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p><strong>앤스컴의 4분류</strong>. 4개 그룹(I/II/III/IV)이 평균·분산·상관계수·회귀계수 모두 거의 동일하지만 산점도는 완전히 다른 분포. <em>"숫자만 믿지 말고 시각화하라"</em>는 가장 유명한 데이터 예제.</p>
+          </div>
+        </div>
+        <div id="anscombe-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'anscombe'</span>)
+
+<span class="cc"># ① 4그룹의 통계 비교 — "동일한" 통계</span>
+stats = df.<span class="cf">groupby</span>(<span class="cstr">'dataset'</span>)[[<span class="cstr">'x'</span>,<span class="cstr">'y'</span>]].<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'var'</span>]).<span class="cf">round</span>(<span class="cnum">2</span>)
+<span class="cf">print</span>(stats)
+
+<span class="cc"># ② 그룹별 상관계수 & 회귀계수</span>
+<span class="ck">from</span> scipy.stats <span class="ck">import</span> linregress
+<span class="ck">for</span> name, grp <span class="ck">in</span> df.<span class="cf">groupby</span>(<span class="cstr">'dataset'</span>):
+    slope, intercept, r, p, se = <span class="cf">linregress</span>(grp[<span class="cstr">'x'</span>], grp[<span class="cstr">'y'</span>])
+    <span class="cf">print</span>(<span class="cf">f"{name}: slope={slope:.2f}, intercept={intercept:.2f}, r²={r**2:.2f}"</span>)
+
+<span class="cc"># ③ 결과: 통계는 같지만 시각화하면 완전히 다른 분포 확인</span>
+<span class="cc"># → 반드시 항상 시각화로 분포 확인 필요!</span></code></pre>
+          </div>
+        </div>
+        <div id="anscombe-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석 — 핵심 메시지</h5>
+            <ul>
+              <li><strong>4그룹 공통 통계:</strong> x̄ ≈ 9.0, ȳ ≈ 7.5, x분산 ≈ 11, y분산 ≈ 4.12, r ≈ 0.816, slope ≈ 0.5.</li>
+              <li><strong>I:</strong> 선형 관계 (정상). <strong>II:</strong> 곡선(2차) 관계. <strong>III:</strong> 선형이지만 이상치 1개. <strong>IV:</strong> 수직 분포에 이상치 1개.</li>
+              <li><strong>교훈:</strong> 기술통계만으로는 데이터 구조를 파악할 수 없다. 시각화 → 기술통계 순서가 올바른 EDA.</li>
+            </ul>
+          </div>
+          <div class="tip-box"><strong>⚠ ADP 단골 서술형:</strong> "왜 기술통계만으로는 충분하지 않은가?" → 앤스컴의 4분류를 예시로 시각화의 필요성 서술.</div>
+        </div>
+      </div><!-- /anscombe -->
+
+      <!-- taxis -->
+      <div id="taxis" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🚕 taxis</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">6,433행 × 14열</span>
+              <span class="ds-tag" style="background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)">datetime</span>
+              <span class="ds-tag" style="background:var(--viz-bg);color:var(--viz);border-color:var(--viz-bd)">지역분석</span>
+              <span class="ds-tag" style="background:var(--pd-light);color:var(--pd);border-color:var(--pd-mid)">빅분기</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('taxis','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('taxis','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('taxis','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('taxis','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="taxis-개요" class="tab-panel active">
+          <div class="info-card">
+            <div class="info-card-title">📌 개요</div>
+            <p>NYC 택시 승하차 데이터 (2019년). pickup/dropoff datetime, 구역명, 요금, 팁, 결제수단 등 실무에 가까운 복합 데이터. datetime 특성 추출, 구역별 집계, 결제수단별 분석에 최적.</p>
+          </div>
+          <table class="col-table">
+            <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="col-name">pickup, dropoff</td><td class="col-type">datetime</td><td>승하차 일시</td></tr>
+              <tr><td class="col-name">passengers</td><td class="col-type">int64</td><td>탑승 인원</td></tr>
+              <tr><td class="col-name">distance</td><td class="col-type">float64</td><td>이동 거리 (마일)</td></tr>
+              <tr><td class="col-name">fare</td><td class="col-type">float64</td><td>기본 요금</td></tr>
+              <tr><td class="col-name">tip</td><td class="col-type">float64</td><td>팁 금액</td></tr>
+              <tr><td class="col-name">tolls</td><td class="col-type">float64</td><td>통행료</td></tr>
+              <tr><td class="col-name">total</td><td class="col-type">float64</td><td>총 결제 금액</td></tr>
+              <tr><td class="col-name">color</td><td class="col-type">object</td><td>택시 색상 (yellow/green)</td></tr>
+              <tr><td class="col-name">payment</td><td class="col-type">object</td><td>결제수단 (credit card/cash 등)</td></tr>
+              <tr><td class="col-name">pickup_zone, dropoff_zone</td><td class="col-type">object</td><td>승하차 구역명</td></tr>
+              <tr><td class="col-name">pickup_borough, dropoff_borough</td><td class="col-type">object</td><td>행정구 (Manhattan 등)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="taxis-원리" class="tab-panel">
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div>to_datetime 변환</div>
+            <div class="step"><div class="step-num">2</div>dt 접근자로 특성 추출</div>
+            <div class="step"><div class="step-num">3</div>timedelta 이동시간</div>
+            <div class="step"><div class="step-num">4</div>구역별 groupby 집계</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-title">🔑 핵심 원리 — datetime 처리</div>
+            <p><code>df['pickup'] = pd.to_datetime(df['pickup'])</code> 후 <code>.dt.hour</code>, <code>.dt.dayofweek</code>, <code>.dt.month</code>로 시간 특성 추출. 두 datetime 컬럼 차이로 <strong>이동시간(timedelta)</strong> 계산 후 <code>.dt.total_seconds() / 60</code>로 분 단위 변환.</p>
+          </div>
+        </div>
+        <div id="taxis-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code>df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'taxis'</span>)
+
+<span class="cc"># ① datetime 변환</span>
+df[<span class="cstr">'pickup'</span>]  = pd.<span class="cf">to_datetime</span>(df[<span class="cstr">'pickup'</span>])
+df[<span class="cstr">'dropoff'</span>] = pd.<span class="cf">to_datetime</span>(df[<span class="cstr">'dropoff'</span>])
+
+<span class="cc"># ② 시간 특성 추출</span>
+df[<span class="cstr">'hour'</span>]      = df[<span class="cstr">'pickup'</span>].dt.hour
+df[<span class="cstr">'dayofweek'</span>]  = df[<span class="cstr">'pickup'</span>].dt.dayofweek  <span class="cc"># 0=월</span>
+df[<span class="cstr">'is_weekend'</span>] = df[<span class="cstr">'dayofweek'</span>].isin([<span class="cnum">5</span>,<span class="cnum">6</span>])
+
+<span class="cc"># ③ 이동 시간 (분)</span>
+df[<span class="cstr">'duration_min'</span>] = (df[<span class="cstr">'dropoff'</span>] - df[<span class="cstr">'pickup'</span>]).\
+                    dt.total_seconds() / <span class="cnum">60</span>
+
+<span class="cc"># ④ 시간대별 평균 요금</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'hour'</span>)[[<span class="cstr">'fare'</span>,<span class="cstr">'tip'</span>,<span class="cstr">'total'</span>]].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">2</span>))
+
+<span class="cc"># ⑤ 결제수단별 팁 비율</span>
+df[<span class="cstr">'tip_rate'</span>] = df[<span class="cstr">'tip'</span>] / df[<span class="cstr">'fare'</span>]
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'payment'</span>)[<span class="cstr">'tip_rate'</span>].<span class="cf">mean</span>().<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ⑥ 상위 승차 구역 TOP5</span>
+<span class="cf">print</span>(df[<span class="cstr">'pickup_zone'</span>].<span class="cf">value_counts</span>().<span class="cf">head</span>(<span class="cnum">5</span>))
+
+<span class="cc"># ⑦ 행정구별 평균 이동거리</span>
+<span class="cf">print</span>(df.<span class="cf">groupby</span>(<span class="cstr">'pickup_borough'</span>)[<span class="cstr">'distance'</span>].<span class="cf">agg</span>([<span class="cstr">'mean'</span>,<span class="cstr">'median'</span>]).<span class="cf">round</span>(<span class="cnum">2</span>))</code></pre>
+          </div>
+        </div>
+        <div id="taxis-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>시간대:</strong> 야간(22시~3시) 및 출퇴근 시간대(8시, 18시)에 요금 높음. 거리 대비 야간 할증 반영.</li>
+              <li><strong>결제수단:</strong> credit card 이용 시 팁 비율 약 22%. cash는 거의 0% (현금 팁은 데이터에 미기록).</li>
+              <li><strong>주요 승차지:</strong> JFK Airport, Midtown Center 등 관광·교통 허브 상위권.</li>
+              <li><strong>행정구:</strong> Staten Island 평균 이동거리 가장 길고, Manhattan이 이동 건수 가장 많음.</li>
+              <li><strong>dt 접근자:</strong> <code>.dt.dayofweek</code>는 0(월)~6(일). isin([5,6])으로 주말 필터링 패턴 빅분기 단골.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /taxis -->
+    </div><!-- /viz section -->
+
+    <!-- ════════════════════════════════════
+         ⑦ 상관 / 네트워크
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">⑦ 상관 / 네트워크</div><div class="cat-sep-line"></div></div>
+
+    <div id="corr" class="section cat-corr">
+      <div class="section-head">
+        <div class="sec-num">⑦</div>
+        <div style="flex:1">
+          <div class="sec-title">상관 / 네트워크</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">상관행렬 · clustermap · 네트워크 분석</div>
+        </div>
+        <div class="sec-badge">1개 데이터셋</div>
+      </div>
+
+      <!-- brain_networks -->
+      <div id="brain_networks" class="ds-block">
+        <div class="ds-header">
+          <div>
+            <div class="ds-name">🧬 brain_networks</div>
+            <div class="ds-meta-row">
+              <span class="ds-meta">87행 × 87열</span>
+              <span class="ds-tag" style="background:var(--corr-bg);color:var(--corr);border-color:var(--corr-bd)">상관행렬</span>
+              <span class="ds-tag" style="background:var(--corr-bg);color:var(--corr);border-color:var(--corr-bd)">clustermap</span>
+              <span class="ds-tag" style="background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)">ADP</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('brain_networks','개요',this)">📋 개요</button>
+          <button class="tab-btn" onclick="switchTab('brain_networks','원리',this)">🔑 원리</button>
+          <button class="tab-btn" onclick="switchTab('brain_networks','소스',this)">💻 소스</button>
+          <button class="tab-btn" onclick="switchTab('brain_networks','해석',this)">📊 결과해석</button>
+        </div>
+        <div id="brain_networks-개요" class="tab-panel active">
+          <div class="cols-2">
+            <div class="info-card">
+              <div class="info-card-title">📌 개요</div>
+              <p>인간 뇌의 87개 기능적 ROI(관심 영역) 간 BOLD 신호 기능적 연결성(Functional Connectivity) 상관행렬. 87×87 대칭 행렬. <strong>header=[0,1] 옵션 필요</strong> (멀티인덱스 컬럼).</p>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">⚠ 로드 특이사항</div>
+              <p><code>sns.load_dataset('brain_networks')</code>는 오류 발생. 반드시 <code>header=[0,1], index_col=0</code>으로 로드해야 함. 또는 pandas로 직접 CSV를 읽어야 하는 경우도 있음.</p>
+            </div>
+          </div>
+        </div>
+        <div id="brain_networks-원리" class="tab-panel">
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div>멀티인덱스 컬럼 처리</div>
+            <div class="step"><div class="step-num">2</div>상관행렬 직접 분석</div>
+            <div class="step"><div class="step-num">3</div>계층 클러스터링</div>
+            <div class="step"><div class="step-num">4</div>clustermap 시각화</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-title">🔑 핵심 원리 — clustermap</div>
+            <p>상관행렬이 이미 주어진 경우 <code>sns.clustermap(corr_matrix)</code>로 행/열을 계층 클러스터링 순서로 재정렬. 유사한 ROI끼리 블록을 이루어 뇌 기능 네트워크(시각/청각/운동 피질 등)를 시각화. <code>method='ward', metric='euclidean'</code>이 기본.</p>
+          </div>
+        </div>
+        <div id="brain_networks-소스" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">python</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
+            <pre class="code"><code><span class="cc"># ⚠ brain_networks는 멀티인덱스 컬럼 — header=[0,1] 필요</span>
+df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'brain_networks'</span>,
+                       header=[<span class="cnum">0</span>,<span class="cnum">1</span>], index_col=<span class="cnum">0</span>)
+
+<span class="cc"># ① 컬럼 레벨 확인</span>
+<span class="cf">print</span>(<span class="cf">type</span>(df.<span class="cf">columns</span>))          <span class="cc"># MultiIndex</span>
+<span class="cf">print</span>(df.<span class="cf">columns</span>.<span class="cf">levels</span>)         <span class="cc"># 레벨 확인</span>
+<span class="cf">print</span>(df.<span class="cf">shape</span>)                   <span class="cc"># (87, 87) 예상</span>
+
+<span class="cc"># ② 숫자형만 추출 후 상관행렬</span>
+df_num = df.<span class="cf">select_dtypes</span>(<span class="cstr">'number'</span>)
+corr = df_num.<span class="cf">corr</span>()
+
+<span class="cc"># ③ 상위 N개 고상관 ROI 쌍 찾기</span>
+<span class="ck">import</span> numpy <span class="ck">as</span> np
+mask = np.<span class="cf">triu</span>(np.<span class="cf">ones</span>(corr.<span class="cf">shape</span>), k=<span class="cnum">1</span>).<span class="cf">astype</span>(<span class="cstr">'bool'</span>)
+corr_pairs = corr.<span class="cf">where</span>(mask).<span class="cf">stack</span>().\
+             <span class="cf">sort_values</span>(ascending=<span class="ck">False</span>)
+<span class="cf">print</span>(<span class="cstr">"Top 10 고상관 ROI 쌍:\n"</span>, corr_pairs.<span class="cf">head</span>(<span class="cnum">10</span>).<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ④ 네트워크별 평균 연결성</span>
+network_corr = corr.<span class="cf">mean</span>().<span class="cf">sort_values</span>(ascending=<span class="ck">False</span>)
+<span class="cf">print</span>(<span class="cstr">"네트워크별 평균 연결성 (상위 10):\n"</span>, network_corr.<span class="cf">head</span>(<span class="cnum">10</span>).<span class="cf">round</span>(<span class="cnum">3</span>))
+
+<span class="cc"># ⑤ 클러스터 분석 (계층 클러스터링)</span>
+<span class="ck">from</span> scipy.cluster.hierarchy <span class="ck">import</span> linkage, fcluster
+link = <span class="cf">linkage</span>(corr, method=<span class="cstr">'ward'</span>)
+clusters = <span class="cf">fcluster</span>(link, t=<span class="cnum">5</span>, criterion=<span class="cstr">'maxclust'</span>)
+<span class="cf">print</span>(<span class="cstr">"5개 클러스터 크기:"</span>, pd.<span class="cf">Series</span>(clusters).<span class="cf">value_counts</span>())</code></pre>
+          </div>
+        </div>
+        <div id="brain_networks-해석" class="tab-panel">
+          <div class="result-box">
+            <h5>📈 결과 해석</h5>
+            <ul>
+              <li><strong>멀티인덱스:</strong> 컬럼이 (네트워크명, ROI번호) 2레벨. <code>df.columns.get_level_values(0)</code>로 네트워크명 추출.</li>
+              <li><strong>상관 구조:</strong> 같은 기능 네트워크(예: 시각 피질) ROI끼리 r > 0.8의 강한 상관. 다른 네트워크 간은 낮거나 음수.</li>
+              <li><strong>stack() 패턴:</strong> 상관행렬에서 상삼각(triu)만 추출 후 stack()으로 쌍-상관값 시리즈 변환 → 상위 상관쌍 순위화. ADP 분석 리포트에 자주 사용.</li>
+              <li><strong>계층 클러스터링:</strong> 5개 클러스터로 분류 시 뇌의 주요 기능 네트워크(Default Mode Network, Visual, Somatomotor 등)와 유사하게 묶임.</li>
+            </ul>
+          </div>
+          <div class="tip-box"><strong>⚠ 주의:</strong> brain_networks는 로드 방식이 다른 데이터셋과 다름. 시험/실습에서 <code>header=[0,1], index_col=0</code> 반드시 지정.</div>
+        </div>
+      </div><!-- /brain_networks -->
+    </div><!-- /corr section -->
+
+    <!-- ════════════════════════════════════
+         QUICK REFERENCE
+    ════════════════════════════════════ -->
+    <div class="cat-separator"><div class="cat-sep-line"></div><div class="cat-sep-label">Quick Reference</div><div class="cat-sep-line"></div></div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="sec-num" style="background:#f8f9fb;color:#334155">🗂</div>
+        <div class="sec-title" style="color:var(--dark)">pandas × seaborn 핵심 패턴 총정리</div>
+      </div>
+      <div style="padding:24px">
+        <div class="cols-2">
+          <div>
+            <div class="info-card" style="margin-bottom:12px">
+              <div class="info-card-title">📦 데이터 로드 패턴</div>
+              <div class="code-block" style="margin-top:8px;font-size:11.5px">
+                <pre class="code" style="padding:12px"><code><span class="cc"># 일반</span>
+df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'iris'</span>)
+
+<span class="cc"># brain_networks만 특수</span>
+df = sns.<span class="cf">load_dataset</span>(<span class="cstr">'brain_networks'</span>,
+         header=[<span class="cnum">0</span>,<span class="cnum">1</span>], index_col=<span class="cnum">0</span>)
+
+<span class="cc"># 전체 목록 확인</span>
+sns.<span class="cf">get_dataset_names</span>()</code></pre>
+              </div>
+            </div>
+            <div class="info-card" style="margin-bottom:12px">
+              <div class="info-card-title">🔄 datetime 처리 패턴</div>
+              <div class="code-block" style="margin-top:8px;font-size:11.5px">
+                <pre class="code" style="padding:12px"><code>df[<span class="cstr">'date'</span>] = pd.<span class="cf">to_datetime</span>(df[<span class="cstr">'date'</span>])
+df.<span class="cf">set_index</span>(<span class="cstr">'date'</span>, inplace=<span class="ck">True</span>)
+df[<span class="cstr">'hour'</span>]  = df.<span class="cf">index</span>.hour
+df[<span class="cstr">'month'</span>] = df.<span class="cf">index</span>.month
+df[<span class="cstr">'year'</span>]  = df.<span class="cf">index</span>.year
+<span class="cc"># resample</span>
+df.<span class="cf">resample</span>(<span class="cstr">'M'</span>).<span class="cf">mean</span>()  <span class="cc"># 월집계</span></code></pre>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="info-card" style="margin-bottom:12px">
+              <div class="info-card-title">📊 groupby 핵심 패턴</div>
+              <div class="code-block" style="margin-top:8px;font-size:11.5px">
+                <pre class="code" style="padding:12px"><code><span class="cc"># Named aggregation</span>
+df.<span class="cf">groupby</span>(<span class="cstr">'col'</span>).<span class="cf">agg</span>(
+    mean_val=(<span class="cstr">'value'</span>,<span class="cstr">'mean'</span>),
+    count=(<span class="cstr">'value'</span>,<span class="cstr">'count'</span>),
+    std_val=(<span class="cstr">'value'</span>,<span class="cstr">'std'</span>)
+)
+
+<span class="cc"># 최대값 행 추출</span>
+df.<span class="cf">loc</span>[df.<span class="cf">groupby</span>(<span class="cstr">'g'</span>)[<span class="cstr">'v'</span>].<span class="cf">idxmax</span>()]
+
+<span class="cc"># 그룹별 변환</span>
+df[<span class="cstr">'zscore'</span>] = df.<span class="cf">groupby</span>(<span class="cstr">'g'</span>)[<span class="cstr">'v'</span>].\
+    <span class="cf">transform</span>(<span class="ck">lambda</span> x: (x-x.<span class="cf">mean</span>())/x.<span class="cf">std</span>())</code></pre>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-title">🔀 pivot_table 패턴</div>
+              <div class="code-block" style="margin-top:8px;font-size:11.5px">
+                <pre class="code" style="padding:12px"><code>pd.<span class="cf">pivot_table</span>(
+    df,
+    values=<span class="cstr">'value'</span>,
+    index=<span class="cstr">'row_col'</span>,
+    columns=<span class="cstr">'col_col'</span>,
+    aggfunc=<span class="cstr">'mean'</span>,  <span class="cc"># 또는 sum, count</span>
+    fill_value=<span class="cnum">0</span>,
+    margins=<span class="ck">True</span>   <span class="cc"># 합계 행/열 추가</span>
+)</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table class="col-table" style="margin-top:16px">
+          <thead>
+            <tr>
+              <th>데이터셋</th>
+              <th>결측처리</th>
+              <th>핵심 pandas 기법</th>
+              <th>시험 출제 포인트</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="col-name">titanic</td><td class="col-type">fillna(median)</td><td>groupby, pivot_table, get_dummies</td><td class="col-note">성별/등급별 생존율, 결측 처리</td></tr>
+            <tr><td class="col-name">iris</td><td class="col-type">없음</td><td>describe, corr, groupby</td><td class="col-note">PCA, K-Means, 상관행렬</td></tr>
+            <tr><td class="col-name">penguins</td><td class="col-type">dropna()</td><td>crosstab, groupby agg</td><td class="col-note">카이제곱, 종별 비교</td></tr>
+            <tr><td class="col-name">tips</td><td class="col-type">없음</td><td>파생변수, agg, pivot_table</td><td class="col-note">팁 비율, 회귀</td></tr>
+            <tr><td class="col-name">diamonds</td><td class="col-type">없음</td><td>OrdinalEncoder, log1p</td><td class="col-note">순서인코딩, 로그변환</td></tr>
+            <tr><td class="col-name">mpg</td><td class="col-type">to_numeric+fillna</td><td>map, VIF</td><td class="col-note">다중공선성, 특수결측('?')</td></tr>
+            <tr><td class="col-name">flights</td><td class="col-type">없음</td><td>pivot_table, pct_change, rolling</td><td class="col-note">히트맵, 계절성, 이동평균</td></tr>
+            <tr><td class="col-name">taxis</td><td class="col-type">일부</td><td>to_datetime, dt accessor, timedelta</td><td class="col-note">datetime 특성추출, 구역분석</td></tr>
+            <tr><td class="col-name">brain_networks</td><td class="col-type">없음</td><td>header=[0,1], triu, stack</td><td class="col-note">특수 로드, 상관쌍 추출</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /main -->
+
+<script>
+/* ── Tab switching ── */
+function switchTab(ds, label, btn) {
+  // deactivate all panels for this dataset
+  document.querySelectorAll(`[id^="${ds}-"]`).forEach(el => el.classList.remove('active'));
+  // deactivate all buttons in same .tabs
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  // activate selected
+  const panel = document.getElementById(`${ds}-${label}`);
+  if (panel) panel.classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Copy code ── */
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = '✓ copied';
+    setTimeout(() => btn.textContent = 'copy', 1500);
+  });
+}
+
+/* ── Active sidebar link on scroll ── */
+const sections = document.querySelectorAll('.ds-block[id]');
+const sbLinks = document.querySelectorAll('.sb-link');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sbLinks.forEach(l => l.classList.remove('active'));
+      const match = document.querySelector(`.sb-link[href="#${e.target.id}"]`);
+      if (match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
