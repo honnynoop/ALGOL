@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sklearn 데이터셋 완전정복</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#f8f9fb; --white:#ffffff;
+  --border:#e2e6ef; --border2:#cbd2e0;
+  --dark:#0f172a; --dark2:#1e293b; --dark3:#334155;
+  --gray:#64748b;  --gray2:#94a3b8;
+  --sk:#f97316;     /* scikit-orange */
+  --sk-light:#fff7ed; --sk-mid:#fed7aa; --sk-dark:#9a3412;
+  --pd:#1a56db; --pd-light:#eff6ff;
+
+  --cls:#7c3aed; --cls-bg:#faf5ff; --cls-bd:#ddd6fe;
+  --reg:#16a34a; --reg-bg:#f0fdf4; --reg-bd:#bbf7d0;
+  --gen:#0ea5e9; --gen-bg:#f0f9ff; --gen-bd:#bae6fd;
+}
+body{background:var(--bg);color:var(--dark);
+     font-family:'Noto Sans KR',sans-serif;font-size:14px;line-height:1.7}
+
+/* HEADER */
+.site-header{position:sticky;top:0;z-index:200;
+  background:var(--white);border-bottom:2px solid var(--border);
+  box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.header-inner{max-width:1380px;margin:0 auto;display:flex;
+  align-items:center;justify-content:space-between;
+  padding:0 28px;height:56px;gap:16px}
+.logo{display:flex;align-items:center;gap:8px;
+  font-weight:900;font-size:17px;white-space:nowrap}
+.logo-sk{color:var(--sk)}
+.logo-sep{color:var(--gray2);font-weight:300;margin:0 2px}
+.logo-pd{color:var(--pd)}
+.toc-nav{display:flex;gap:4px;flex-wrap:wrap;overflow:hidden;max-height:36px}
+.toc-btn{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;
+  border:1px solid var(--border2);background:var(--white);color:var(--gray);
+  cursor:pointer;text-decoration:none;transition:all .15s;white-space:nowrap}
+.toc-btn:hover{background:var(--sk);color:#fff;border-color:var(--sk)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--sk-dark) 0%,#c2410c 40%,#b45309 100%);
+  padding:52px 28px 44px;text-align:center}
+.hero h1{font-size:clamp(26px,4vw,50px);font-weight:900;
+  letter-spacing:-1.5px;color:#fff;margin-bottom:12px}
+.hero h1 em{color:#fdba74;font-style:normal}
+.hero-sub{font-size:15px;color:#fed7aa;max-width:620px;margin:0 auto 24px}
+.hero-chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.chip{padding:5px 16px;border-radius:8px;font-size:12px;font-weight:700;
+  border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff}
+
+/* LAYOUT */
+.main{max-width:1380px;margin:0 auto;display:grid;
+  grid-template-columns:220px 1fr;gap:32px;
+  padding:32px 28px 80px;align-items:start}
+@media(max-width:900px){.main{grid-template-columns:1fr;padding:20px 16px}.sidebar{display:none}}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:72px;background:var(--white);
+  border:1px solid var(--border);border-radius:12px;padding:18px 0;
+  max-height:calc(100vh - 90px);overflow-y:auto}
+.sidebar-title{font-size:10px;font-weight:800;color:var(--gray2);
+  letter-spacing:1.2px;text-transform:uppercase;
+  padding:0 18px 10px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sb-link{display:block;padding:6px 18px;font-size:11.5px;color:var(--dark3);
+  text-decoration:none;border-left:2px solid transparent;
+  font-family:'Fira Code',monospace;transition:all .15s}
+.sb-link:hover{color:var(--sk);border-left-color:var(--sk);background:var(--sk-light)}
+.sb-link.active{color:var(--sk);border-left-color:var(--sk);
+  font-weight:700;background:var(--sk-light)}
+
+/* SECTION */
+.section{background:var(--white);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:24px;overflow:hidden}
+.section-head{display:flex;align-items:center;gap:14px;
+  padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg)}
+.sec-num{width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;flex-shrink:0}
+.sec-info{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.sec-name{font-size:15px;font-weight:800;font-family:'Fira Code',monospace}
+.sec-badge{font-size:10px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;padding:2px 10px;
+  border-radius:12px;border:1px solid}
+.cat-cls .sec-num{background:var(--cls-bg);color:var(--cls)}
+.cat-cls .sec-badge{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.cat-reg .sec-num{background:var(--reg-bg);color:var(--reg)}
+.cat-reg .sec-badge{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.cat-gen .sec-num{background:var(--gen-bg);color:var(--gen)}
+.cat-gen .sec-badge{background:var(--gen-bg);color:var(--gen);border-color:var(--gen-bd)}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;padding:12px 16px 0;
+  border-bottom:1px solid var(--border);background:var(--white)}
+.tab-btn{padding:7px 16px;border-radius:8px 8px 0 0;
+  font-size:12px;font-weight:600;border:1px solid transparent;
+  background:none;color:var(--gray);cursor:pointer;transition:all .15s}
+.tab-btn.active{background:var(--white);border-color:var(--border);
+  border-bottom-color:var(--white);color:var(--sk);margin-bottom:-1px}
+.tab-btn:hover:not(.active){color:var(--dark);background:var(--bg)}
+.tab-content{padding:20px 24px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* OVERVIEW */
+.ds-desc{color:var(--gray);margin-bottom:14px;font-size:13px}
+.meta-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.meta-chip{padding:3px 12px;border-radius:12px;font-size:11px;font-weight:600;
+  background:var(--bg);border:1px solid var(--border2);color:var(--dark3)}
+.meta-chip.cat-cls{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.meta-chip.cat-reg{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.meta-chip.cat-gen{background:var(--gen-bg);color:var(--gen);border-color:var(--gen-bd)}
+
+/* COLUMN TABLE */
+.col-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.col-table th{background:var(--bg);padding:8px 12px;text-align:left;
+  border:1px solid var(--border);font-size:11px;font-weight:700;
+  color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.col-table td{padding:7px 12px;border:1px solid var(--border);color:var(--dark2)}
+.col-table td code{font-family:'Fira Code',monospace;font-size:12px;
+  background:var(--sk-light);color:var(--sk-dark);
+  padding:1px 5px;border-radius:4px}
+.type-cell{font-family:'Fira Code',monospace;font-size:12px;color:var(--sk)}
+.col-table tr:nth-child(even) td{background:#fafbfc}
+
+/* PRINCIPLES */
+.principles-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.principles-grid{grid-template-columns:1fr}}
+.principle-item{background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:4px}
+.pr-key{font-size:11px;font-weight:800;color:var(--sk-dark);
+  text-transform:uppercase;letter-spacing:.5px}
+.pr-val{font-size:12px;color:var(--dark2);line-height:1.5}
+
+/* SUB EXAMPLE */
+.examples-container{display:flex;flex-direction:column;gap:28px}
+.sub-example{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sub-ex-header{padding:10px 16px;background:var(--bg);
+  border-bottom:1px solid var(--border)}
+.sub-ex-badge{display:inline-block;font-size:11px;font-weight:700;
+  padding:3px 12px;border-radius:12px;border:1.5px solid}
+.badge-cls{background:var(--cls-bg);color:var(--cls);border-color:var(--cls-bd)}
+.badge-reg{background:var(--reg-bg);color:var(--reg);border-color:var(--reg-bd)}
+.badge-cl{background:var(--gen-bg);color:var(--gen);border-color:var(--gen-bd)}
+.badge-ml{background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd}
+.badge-eda{background:#fefce8;color:#854d0e;border-color:#fde047}
+
+/* CODE BLOCK — Prism.js */
+.code-block{border:1px solid #d0d7de;border-radius:8px;overflow:hidden;margin:0}
+.code-header{display:flex;align-items:center;justify-content:space-between;
+  background:#eef0f2;border-bottom:1px solid #d0d7de;padding:7px 14px}
+.code-lang{font-family:'Fira Code',monospace;font-size:10px;font-weight:600;
+  color:#57606a;letter-spacing:.8px;text-transform:uppercase}
+.code-copy{font-size:10px;font-weight:600;color:#57606a;
+  background:#fff;border:1px solid #d0d7de;border-radius:4px;
+  padding:2px 8px;cursor:pointer;transition:all .15s}
+.code-copy:hover{color:var(--sk);border-color:var(--sk)}
+pre.code{margin:0!important;padding:14px 16px!important;
+  background:#f6f8fa!important;border-radius:0!important;
+  border:none!important;overflow-x:auto;line-height:1.85!important}
+pre.code code{font-family:'Fira Code',monospace!important;
+  font-size:12.5px!important;background:none!important;
+  color:#24292f!important;text-shadow:none!important;padding:0!important}
+pre.code .token.comment{color:#6e7781;font-style:italic}
+pre.code .token.keyword{color:#cf222e;font-weight:600}
+pre.code .token.string,.token.char{color:#0a3069}
+pre.code .token.number,.token.boolean{color:#0550ae}
+pre.code .token.function{color:#8250df}
+pre.code .token.class-name,.token.builtin{color:#953800}
+pre.code .token.operator{color:#cf222e}
+pre.code .token.punctuation{color:#24292f}
+pre.code .token.decorator{color:#116329;font-style:italic}
+
+/* RESULT BOX */
+.result-box{background:#fff7ed;border:1px solid #fed7aa;
+  border-left:4px solid var(--sk);border-radius:0 8px 8px 0;
+  padding:14px 16px;margin:12px 16px 0}
+.result-box h5{font-size:11px;font-weight:700;color:var(--sk-dark);
+  letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.result-box ul{padding-left:16px;margin-top:4px}
+.result-box li{font-size:13px;color:var(--dark2);line-height:1.65;margin-bottom:4px}
+
+/* TIP BOX */
+.tip-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;
+  padding:10px 16px;margin:8px 16px 16px;font-size:12px;color:#92400e}
+.tip-box strong{color:#78350f}
+
+/* STEPS */
+.steps{display:flex;gap:8px;flex-wrap:wrap;padding:10px 16px}
+.step{display:flex;align-items:center;gap:6px;
+  background:var(--sk-light);border:1px solid var(--sk-mid);
+  border-radius:20px;padding:3px 12px;
+  font-size:11px;font-weight:700;color:var(--sk-dark)}
+.step-num{width:16px;height:16px;border-radius:50%;background:var(--sk);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;flex-shrink:0}
+
+/* SEPARATOR */
+.cat-separator{display:flex;align-items:center;gap:12px;padding:8px 0 20px}
+.cat-sep-line{flex:1;height:1px;background:var(--border)}
+.cat-sep-label{font-size:12px;font-weight:800;color:var(--gray);
+  letter-spacing:.5px;white-space:nowrap}
+.cat-sep-cls{color:var(--cls)}
+.cat-sep-reg{color:var(--reg)}
+.cat-sep-gen{color:var(--gen)}
+
+/* OVERVIEW */
+.overview-section{background:var(--white);border:1px solid var(--border);
+  border-radius:14px;padding:20px 24px;margin-bottom:24px}
+.overview-title{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:16px}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.ov-card{padding:12px;border-radius:10px;border:1.5px solid;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;text-decoration:none}
+.ov-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.ov-card-name{font-family:'Fira Code',monospace;font-weight:700;font-size:12px;margin-bottom:3px}
+.ov-card-meta{font-size:10px;color:var(--gray);margin-bottom:4px}
+.ov-card-desc{font-size:11px;line-height:1.4}
+.ov-card.cls{background:var(--cls-bg);border-color:var(--cls-bd);color:var(--cls)}
+.ov-card.reg{background:var(--reg-bg);border-color:var(--reg-bd);color:var(--reg)}
+.ov-card.gen{background:var(--gen-bg);border-color:var(--gen-bd);color:var(--gen)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-sk">sklearn</span>
+      <span class="logo-sep">×</span>
+      <span class="logo-pd">pandas</span>
+      <span style="color:var(--gray2);font-size:12px;font-weight:400;margin-left:6px">완전정복</span>
+    </div>
+    <nav class="toc-nav">
+      <a class="toc-btn" href="#overview-sec">전체보기</a>
+      <a class="toc-btn" href="#iris">분류</a>
+      <a class="toc-btn" href="#diabetes">회귀</a>
+      <a class="toc-btn" href="#make_classification">생성 데이터</a>
+      <a class="toc-btn" href="#fetch_20newsgroups">텍스트</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>sklearn <em>데이터셋</em><br>완전정복</h1>
+  <p class="hero-sub">14개 내장·생성·fetch 데이터셋 · Pipeline·GridSearch·앙상블·다양체학습 · Prism.js 라이트 코드</p>
+  <div class="hero-chips">
+    <span class="chip">다중분류 3종</span>
+    <span class="chip">이진분류 1종</span>
+    <span class="chip">회귀 3종</span>
+    <span class="chip">생성 데이터 6종</span>
+    <span class="chip">텍스트 분류 1종</span>
+  </div>
+</div>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sidebar-title">데이터셋 목록</div>
+    <a class="sb-link" href="#iris">#01 load_iris()</a>
+<a class="sb-link" href="#digits">#02 load_digits()</a>
+<a class="sb-link" href="#wine">#03 load_wine()</a>
+<a class="sb-link" href="#breast_cancer">#04 load_breast_cancer()</a>
+<a class="sb-link" href="#diabetes">#05 load_diabetes()</a>
+<a class="sb-link" href="#california_housing">#06 fetch_california_housing()</a>
+<a class="sb-link" href="#linnerud">#07 load_linnerud()</a>
+<a class="sb-link" href="#make_classification">#08 make_classification()</a>
+<a class="sb-link" href="#make_regression">#09 make_regression()</a>
+<a class="sb-link" href="#make_blobs">#10 make_blobs()</a>
+<a class="sb-link" href="#make_moons">#11 make_moons()</a>
+<a class="sb-link" href="#make_circles">#12 make_circles()</a>
+<a class="sb-link" href="#make_swiss_roll">#13 make_swiss_roll()</a>
+<a class="sb-link" href="#fetch_20newsgroups">#14 fetch_20newsgroups()</a>
+  </aside>
+  <main class="content" id="overview-sec">
+
+    <div class="overview-section">
+      <div class="overview-title">📦 전체 데이터셋 (14개)</div>
+      <div class="overview-grid"><a class="ov-card cls" href="#iris"><div class="ov-card-name">sklearn.<br>load_iris()</div><div class="ov-card-meta">150행 · 다중분류</div><div class="ov-card-desc">붓꽃 3종 분류. 다중분류 알고리즘 비교·Pipeline·교차검증의 표준 벤치마크....</div></a>
+<a class="ov-card cls" href="#digits"><div class="ov-card-name">sklearn.<br>load_digits()</div><div class="ov-card-meta">1797행 · 이미지 분류</div><div class="ov-card-desc">8×8 픽셀 손글씨 숫자(0~9). 이미지 분류·PCA 시각화·MLP·SVM 실습....</div></a>
+<a class="ov-card cls" href="#wine"><div class="ov-card-name">sklearn.<br>load_wine()</div><div class="ov-card-meta">178행 · 다중분류</div><div class="ov-card-desc">이탈리아 와인 3품종의 화학 성분 13개. 피처 중요도·표준화 효과·다중분류 분석....</div></a>
+<a class="ov-card cls" href="#breast_cancer"><div class="ov-card-name">sklearn.<br>load_breast_cancer()</div><div class="ov-card-meta">569행 · 이진분류</div><div class="ov-card-desc">유방암 세포핵의 30개 형태 측정치. 이진분류·ROC-AUC·임계값 조정·클래스 불균형...</div></a>
+<a class="ov-card reg" href="#diabetes"><div class="ov-card-name">sklearn.<br>load_diabetes()</div><div class="ov-card-meta">442행 · 회귀</div><div class="ov-card-desc">당뇨 환자 10개 생리적 변수로 1년 후 진행 수치 예측. 선형·Ridge·Lasso·...</div></a>
+<a class="ov-card reg" href="#california_housing"><div class="ov-card-name">sklearn.<br>fetch_california_housing()</div><div class="ov-card-meta">20640행 · 회귀</div><div class="ov-card-desc">캘리포니아 블록별 주택 가격 예측. GBM·RF 회귀·지리 피처·SHAP 해석....</div></a>
+<a class="ov-card reg" href="#linnerud"><div class="ov-card-name">sklearn.<br>load_linnerud()</div><div class="ov-card-meta">20행 · 다중출력 회귀</div><div class="ov-card-desc">운동량 3개 → 신체측정 3개 동시 예측. 다중출력 회귀·상관 구조·PLS 분석....</div></a>
+<a class="ov-card gen" href="#make_classification"><div class="ov-card-name">sklearn.<br>make_classification()</div><div class="ov-card-meta">가변행 · 생성:분류</div><div class="ov-card-desc">합성 분류 데이터 생성. 불균형·노이즈·클래스 수·피처 수를 자유롭게 설정....</div></a>
+<a class="ov-card gen" href="#make_regression"><div class="ov-card-name">sklearn.<br>make_regression()</div><div class="ov-card-meta">가변행 · 생성:회귀</div><div class="ov-card-desc">합성 회귀 데이터. 노이즈·유효 피처·다중출력·이상치를 자유롭게 생성....</div></a>
+<a class="ov-card gen" href="#make_blobs"><div class="ov-card-name">sklearn.<br>make_blobs()</div><div class="ov-card-meta">가변행 · 생성:군집화</div><div class="ov-card-desc">구형(Gaussian) 군집 생성. KMeans·GMM·DBSCAN·계층 군집화 비교 ...</div></a>
+<a class="ov-card gen" href="#make_moons"><div class="ov-card-name">sklearn.<br>make_moons()</div><div class="ov-card-meta">가변행 · 생성:비선형</div><div class="ov-card-desc">반달 형태의 비선형 분류 데이터. 커널 SVM·결정 경계 시각화·비선형 분류 비교....</div></a>
+<a class="ov-card gen" href="#make_circles"><div class="ov-card-name">sklearn.<br>make_circles()</div><div class="ov-card-meta">가변행 · 생성:비선형</div><div class="ov-card-desc">동심원 형태 비선형 이진 분류 데이터. RBF SVM·신경망·커널 트릭 실습....</div></a>
+<a class="ov-card gen" href="#make_swiss_roll"><div class="ov-card-name">sklearn.<br>make_swiss_roll()</div><div class="ov-card-meta">가변행 · 생성:다양체</div><div class="ov-card-desc">3D 스위스롤 다양체 데이터. t-SNE·UMAP·Isomap·LLE 차원 축소 비교....</div></a>
+<a class="ov-card cls" href="#fetch_20newsgroups"><div class="ov-card-name">sklearn.<br>fetch_20newsgroups()</div><div class="ov-card-meta">18846행 · 텍스트 분류</div><div class="ov-card-desc">20개 뉴스그룹 텍스트 문서. TF-IDF·나이브베이즈·SVD 토픽 모델·텍스트 분류 ...</div></a></div>
+    </div>
+
+    <div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-cls">🏷️ 다중분류 / 이진분류 Classification</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-cls" id="iris">
+<div class="section-head">
+  <div class="sec-num">01</div>
+  <div class="sec-info">
+    <span class="sec-name">load_iris()</span>
+    <span class="sec-badge">다중분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'iris','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'iris','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'iris','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-iris-overview">
+<p class="ds-desc">붓꽃 3종 분류. 다중분류 알고리즘 비교·Pipeline·교차검증의 표준 벤치마크.</p>
+<div class="meta-chips"><span class="meta-chip">행 150</span><span class="meta-chip">피처 4</span><span class="meta-chip">target: species(0/1/2)</span><span class="meta-chip cat-cls">다중분류</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>sepal length (cm)</code></td><td class="type-cell">float</td><td>꽃받침 길이</td></tr><tr><td><code>sepal width (cm)</code></td><td class="type-cell">float</td><td>꽃받침 너비</td></tr><tr><td><code>petal length (cm)</code></td><td class="type-cell">float</td><td>꽃잎 길이</td></tr><tr><td><code>petal width (cm)</code></td><td class="type-cell">float</td><td>꽃잎 너비</td></tr><tr><td><code>target</code></td><td class="type-cell">int</td><td>0=setosa, 1=versicolor, 2=virginica</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-iris-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">데이터 로드</span><span class="pr-val">load_iris() → Bunch 객체; .data, .target, .feature_names</span></div><div class="principle-item"><span class="pr-key">Pipeline</span><span class="pr-val">StandardScaler → 분류기; fit/predict 한 번에</span></div><div class="principle-item"><span class="pr-key">교차검증</span><span class="pr-val">cross_val_score / StratifiedKFold</span></div><div class="principle-item"><span class="pr-key">다중분류 평가</span><span class="pr-val">classification_report — precision·recall·F1 클래스별</span></div></div>
+</div>
+<div class="tab-pane" id="tab-iris-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">Pipeline — 4개 분류기 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>Pipeline 구성</span><span class="step"><span class="step-num">2</span>5-fold CV</span><span class="step"><span class="step-num">3</span>결과 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_iris
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+import pandas as pd
+
+X, y = load_iris(return_X_y=True)
+
+models = {
+    &#x27;Logistic&#x27;:      LogisticRegression(max_iter=300),
+    &#x27;KNN(k=5)&#x27;:      KNeighborsClassifier(n_neighbors=5),
+    &#x27;SVM(RBF)&#x27;:      SVC(kernel=&#x27;rbf&#x27;, C=1),
+    &#x27;RandomForest&#x27;:  RandomForestClassifier(n_estimators=100, random_state=42),
+}
+
+rows = []
+for name, clf in models.items():
+    pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;clf&#x27;, clf)])
+    scores = cross_val_score(pipe, X, y, cv=5, scoring=&#x27;accuracy&#x27;)
+    rows.append({&#x27;Model&#x27;: name, &#x27;Mean&#x27;: scores.mean(), &#x27;Std&#x27;: scores.std()})
+
+print(pd.DataFrame(rows).sort_values(&#x27;Mean&#x27;, ascending=False).round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>SVM(RBF)·RF 모두 CV 정확도 ≈ 0.973 — iris는 쉬운 데이터셋</li><li>Pipeline 내부에서 각 fold마다 StandardScaler를 별도 fit → 데이터 누출 방지</li><li>LogisticRegression도 ≈ 0.960으로 선형 모델 대비 손색 없음</li><li>다른 데이터셋으로 교체 시 Pipeline 구조 재사용 가능</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> cross_val_score의 scoring에는 'f1_macro', 'roc_auc_ovr' 등도 사용 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">GridSearchCV — SVM 하이퍼파라미터 튜닝</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>파라미터 그리드</span><span class="step"><span class="step-num">2</span>GridSearchCV 학습</span><span class="step"><span class="step-num">3</span>최적 파라미터·CV 결과</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_iris
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+import pandas as pd
+
+X, y = load_iris(return_X_y=True)
+
+pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;svm&#x27;, SVC())])
+param_grid = {
+    &#x27;svm__C&#x27;:      [0.1, 1, 10, 100],
+    &#x27;svm__kernel&#x27;: [&#x27;rbf&#x27;, &#x27;linear&#x27;],
+    &#x27;svm__gamma&#x27;:  [&#x27;scale&#x27;, &#x27;auto&#x27;, 0.01, 0.1],
+}
+
+gs = GridSearchCV(pipe, param_grid, cv=5,
+                  scoring=&#x27;accuracy&#x27;, n_jobs=-1, return_train_score=True)
+gs.fit(X, y)
+
+print(f&#x27;최적 파라미터: {gs.best_params_}&#x27;)
+print(f&#x27;최적 CV 정확도: {gs.best_score_:.4f}&#x27;)
+
+# 상위 5개 결과
+res = pd.DataFrame(gs.cv_results_)
+cols = [&#x27;param_svm__C&#x27;,&#x27;param_svm__kernel&#x27;,&#x27;param_svm__gamma&#x27;,
+        &#x27;mean_test_score&#x27;,&#x27;std_test_score&#x27;]
+print(res.nlargest(5, &#x27;mean_test_score&#x27;)[cols].to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>C=10, kernel='rbf', gamma='scale' 근방에서 최고 성능 달성</li><li>param_grid 키에 'svm__'처럼 Pipeline 스텝명을 접두어로 붙여야 함</li><li>return_train_score=True로 과적합 여부 확인 (train - test 점수 차이)</li><li>n_jobs=-1로 CPU 코어 전부 사용 — 파라미터 조합이 많을수록 속도 차이 큼</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> RandomizedSearchCV는 파라미터 공간이 클 때 GridSearch보다 효율적</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">학습 곡선 (Learning Curve)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>train_sizes 설정</span><span class="step"><span class="step-num">2</span>learning_curve 계산</span><span class="step"><span class="step-num">3</span>과적합 진단</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_iris
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import learning_curve
+import numpy as np
+
+X, y = load_iris(return_X_y=True)
+pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;svm&#x27;, SVC(kernel=&#x27;rbf&#x27;, C=1))])
+
+train_sizes, train_scores, val_scores = learning_curve(
+    pipe, X, y,
+    train_sizes=np.linspace(0.1, 1.0, 10),
+    cv=5, scoring=&#x27;accuracy&#x27;, n_jobs=-1)
+
+print(f&#x27;{&quot;Train Size&quot;:&gt;10}  {&quot;Train Acc&quot;:&gt;10}  {&quot;Val Acc&quot;:&gt;10}  {&quot;Gap&quot;:&gt;8}&#x27;)
+for sz, tr, vl in zip(train_sizes,
+                       train_scores.mean(1),
+                       val_scores.mean(1)):
+    print(f&#x27;{sz:&gt;10d}  {tr:&gt;10.4f}  {vl:&gt;10.4f}  {tr-vl:&gt;8.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>학습 데이터가 늘어날수록 val_acc가 수렴 → 더 많은 데이터 수집이 도움됨</li><li>Gap(train-val)이 크면 과적합, 둘 다 낮으면 과소적합</li><li>iris는 150개로도 충분 — val_acc가 n≈50 이후 안정적으로 수렴</li><li>learning_curve는 '데이터를 더 모아야 하는가?'를 판단하는 핵심 도구</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> validation_curve는 학습 크기 대신 하나의 하이퍼파라미터를 변화시켜 최적값 탐색</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="digits">
+<div class="section-head">
+  <div class="sec-num">02</div>
+  <div class="sec-info">
+    <span class="sec-name">load_digits()</span>
+    <span class="sec-badge">이미지 분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'digits','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'digits','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'digits','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-digits-overview">
+<p class="ds-desc">8×8 픽셀 손글씨 숫자(0~9). 이미지 분류·PCA 시각화·MLP·SVM 실습.</p>
+<div class="meta-chips"><span class="meta-chip">행 1797</span><span class="meta-chip">피처 64</span><span class="meta-chip">target: 0~9 숫자</span><span class="meta-chip cat-cls">이미지 분류</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>data</code></td><td class="type-cell">array (1797×64)</td><td>8×8 픽셀 평탄화(0~16 grayscale)</td></tr><tr><td><code>images</code></td><td class="type-cell">array (1797×8×8)</td><td>원본 이미지 배열</td></tr><tr><td><code>target</code></td><td class="type-cell">int(0~9)</td><td>숫자 레이블</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-digits-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">이미지 배열</span><span class="pr-val">.images[i].reshape(8,8) — 시각화</span></div><div class="principle-item"><span class="pr-key">PCA 압축</span><span class="pr-val">64차원 → 2D 시각화; 95% 분산 유지에 필요한 성분 수</span></div><div class="principle-item"><span class="pr-key">SVM</span><span class="pr-val">rbf 커널이 픽셀 공간에서 효과적</span></div><div class="principle-item"><span class="pr-key">MLP</span><span class="pr-val">MLPClassifier — hidden_layer_sizes 튜닝</span></div></div>
+</div>
+<div class="tab-pane" id="tab-digits-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-eda">데이터 탐색 + 픽셀 분포</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>Bunch 구조 확인</span><span class="step"><span class="step-num">2</span>픽셀 통계</span><span class="step"><span class="step-num">3</span>클래스 분포</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_digits
+import numpy as np
+import pandas as pd
+
+digits = load_digits()
+X, y = digits.data, digits.target
+
+print(f&#x27;X shape: {X.shape}   (이미지 수 × 픽셀 수)&#x27;)
+print(f&#x27;y 클래스: {np.unique(y)}&#x27;)
+print(f&#x27;클래스별 샘플 수: {np.bincount(y)}&#x27;)
+print(f&#x27;픽셀 범위: [{X.min():.0f}, {X.max():.0f}]&#x27;)
+print(f&#x27;픽셀 평균: {X.mean():.4f}  표준편차: {X.std():.4f}&#x27;)
+
+# 특정 숫자 이미지 확인
+sample_idx = np.where(y == 3)[0][0]
+img = digits.images[sample_idx]
+print(f&#x27;\n숫자 3 샘플 이미지 (8×8):&#x27;)
+print(np.array2string(img.astype(int), separator=&#x27;,&#x27;))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>1797개 이미지, 각 8×8=64픽셀, 픽셀 값 0~16(16단계 그레이스케일)</li><li>클래스당 약 180개로 비교적 균형 잡힌 데이터셋</li><li>픽셀 평균 ≈ 5.6, 표준편차 ≈ 6.1 — 0(배경)과 비0(글자) 픽셀이 혼재</li><li>images 속성으로 원본 2D 배열 접근 가능 — matplotlib imshow로 시각화</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> load_digits(n_class=5)로 클래스 수 제한 가능 — 이진/다중 분류 비교 실험에 유용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">PCA — 64D→2D 시각화</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>표준화</span><span class="step"><span class="step-num">2</span>PCA 2성분</span><span class="step"><span class="step-num">3</span>분산 기여율 + 95% 유지 성분 수</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_digits
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import numpy as np
+
+X, y = load_digits(return_X_y=True)
+X_sc = StandardScaler().fit_transform(X)
+
+# 2D 시각화
+pca2 = PCA(n_components=2, random_state=42)
+X_2d = pca2.fit_transform(X_sc)
+print(f&#x27;2성분 누적 기여율: {pca2.explained_variance_ratio_.sum():.4f}&#x27;)
+
+# 95% 분산 유지에 필요한 성분 수
+pca_full = PCA(random_state=42).fit(X_sc)
+cumvar = np.cumsum(pca_full.explained_variance_ratio_)
+n95 = np.searchsorted(cumvar, 0.95) + 1
+print(f&#x27;95% 분산 유지에 필요한 PCA 성분 수: {n95} / 64&#x27;)
+print(f&#x27;압축률: {n95/64*100:.1f}%&#x27;)
+
+# 첫 5개 성분 기여율
+print(&#x27;\n상위 5개 주성분 기여율:&#x27;)
+for i, v in enumerate(pca_full.explained_variance_ratio_[:5]):
+    print(f&#x27;  PC{i+1}: {v:.4f} ({cumvar[i]:.4f} 누적)&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>2D PCA 누적 기여율 ≈ 28% — 64차원을 2D로 내리면 정보 손실이 큼</li><li>95% 분산 유지에 ≈ 41개 성분 필요 (64→41, 36% 압축)</li><li>상위 PC1 혼자 약 12% 설명 — 픽셀 공간의 분산이 많은 차원에 분산되어 있음</li><li>2D 산점도에서 같은 숫자끼리 군집을 이루나 일부 겹침 (0과 1은 잘 분리됨)</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> PCA 후 SVM/RF 분류 시 n95 성분을 사용하면 계산량 줄이면서 성능 유지 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">SVM vs MLP — 고차원 분류 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>PCA 전처리 선택</span><span class="step"><span class="step-num">2</span>SVM(RBF)·MLP 학습</span><span class="step"><span class="step-num">3</span>분류 리포트 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_digits
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+X, y = load_digits(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42)
+
+pipelines = {
+    &#x27;SVM(RBF)&#x27;: Pipeline([
+        (&#x27;sc&#x27;, StandardScaler()),
+        (&#x27;svm&#x27;, SVC(kernel=&#x27;rbf&#x27;, C=10, gamma=&#x27;scale&#x27;))]),
+    &#x27;MLP&#x27;: Pipeline([
+        (&#x27;sc&#x27;, StandardScaler()),
+        (&#x27;mlp&#x27;, MLPClassifier(hidden_layer_sizes=(256, 128),
+                               max_iter=500, random_state=42))]),
+    &#x27;PCA(40)+SVM&#x27;: Pipeline([
+        (&#x27;sc&#x27;, StandardScaler()),
+        (&#x27;pca&#x27;, PCA(n_components=40)),
+        (&#x27;svm&#x27;, SVC(kernel=&#x27;rbf&#x27;, C=10))]),
+}
+
+for name, pipe in pipelines.items():
+    pipe.fit(X_tr, y_tr)
+    acc = accuracy_score(y_te, pipe.predict(X_te))
+    print(f&#x27;{name:15}: test acc = {acc:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>SVM(RBF) 테스트 정확도 ≈ 0.989 — 64차원 픽셀에서도 매우 높은 성능</li><li>MLP(256,128) ≈ 0.978 — 더 많은 파라미터지만 SVM에 소폭 열세</li><li>PCA(40)+SVM도 ≈ 0.983 — 성능 거의 유지하면서 차원을 37% 축소</li><li>이미지 분류에서 SVM+RBF는 픽셀 특성 공간에서 비선형 경계를 효과적으로 학습</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> MLPClassifier는 early_stopping=True, validation_fraction=0.1로 과적합 자동 방지 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">혼동 행렬 + 오분류 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>예측 수행</span><span class="step"><span class="step-num">2</span>혼동 행렬 계산</span><span class="step"><span class="step-num">3</span>가장 많이 틀린 쌍 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_digits
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+import numpy as np
+import pandas as pd
+
+X, y = load_digits(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42)
+
+pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()),
+                 (&#x27;svm&#x27;, SVC(kernel=&#x27;rbf&#x27;, C=10, gamma=&#x27;scale&#x27;))])
+pipe.fit(X_tr, y_tr)
+y_pred = pipe.predict(X_te)
+
+cm = confusion_matrix(y_te, y_pred)
+# 대각(정답) 제외 후 가장 많이 혼동된 쌍
+np.fill_diagonal(cm, 0)
+errors = pd.DataFrame(
+    [(i, j, cm[i,j]) for i in range(10) for j in range(10) if cm[i,j]&gt;0],
+    columns=[&#x27;실제&#x27;,&#x27;예측&#x27;,&#x27;횟수&#x27;]
+).sort_values(&#x27;횟수&#x27;, ascending=False)
+print(&#x27;가장 많이 혼동된 쌍:&#x27;)
+print(errors.head(10).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>9→4, 3→5, 8→1 등의 쌍이 가장 많이 혼동 — 형태가 비슷한 숫자</li><li>SVM 오분류는 전체 360개 테스트 중 보통 3~5개 수준 (정확도 ≈ 98.9%)</li><li>혼동 행렬 대각 제외 후 정렬하면 모델이 어디서 실패하는지 직관적 파악</li><li>오분류된 이미지를 imshow로 시각화하면 경계 사례(ambiguous sample) 확인 가능</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 오분류 이미지를 직접 확인하는 것이 모델 개선 방향을 찾는 가장 빠른 방법</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="wine">
+<div class="section-head">
+  <div class="sec-num">03</div>
+  <div class="sec-info">
+    <span class="sec-name">load_wine()</span>
+    <span class="sec-badge">다중분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'wine','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'wine','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'wine','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-wine-overview">
+<p class="ds-desc">이탈리아 와인 3품종의 화학 성분 13개. 피처 중요도·표준화 효과·다중분류 분석.</p>
+<div class="meta-chips"><span class="meta-chip">행 178</span><span class="meta-chip">피처 13</span><span class="meta-chip">target: 와인 원산지(0/1/2)</span><span class="meta-chip cat-cls">다중분류</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>alcohol</code></td><td class="type-cell">float</td><td>알코올 도수</td></tr><tr><td><code>malic_acid</code></td><td class="type-cell">float</td><td>말산 함량</td></tr><tr><td><code>ash</code></td><td class="type-cell">float</td><td>회분</td></tr><tr><td><code>alcalinity_of_ash</code></td><td class="type-cell">float</td><td>회분 알칼리도</td></tr><tr><td><code>magnesium</code></td><td class="type-cell">float</td><td>마그네슘</td></tr><tr><td><code>total_phenols</code></td><td class="type-cell">float</td><td>총 페놀</td></tr><tr><td><code>flavanoids</code></td><td class="type-cell">float</td><td>플라보노이드</td></tr><tr><td><code>...10~13</code></td><td class="type-cell">float</td><td>색상 강도·색조·OD280·프롤린</td></tr><tr><td><code>target</code></td><td class="type-cell">int</td><td>0=class_0, 1=class_1, 2=class_2</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-wine-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">표준화 효과</span><span class="pr-val">스케일이 다른 13개 피처 → StandardScaler 필수</span></div><div class="principle-item"><span class="pr-key">피처 중요도</span><span class="pr-val">RF feature_importances_ + SelectKBest</span></div><div class="principle-item"><span class="pr-key">다중분류</span><span class="pr-val">Logistic(OvR/Softmax), SVM, RF 비교</span></div><div class="principle-item"><span class="pr-key">LDA</span><span class="pr-val">지도 차원축소 — 클래스 분리 극대화</span></div></div>
+</div>
+<div class="tab-pane" id="tab-wine-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">표준화 전후 성능 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>원본 vs 표준화 데이터</span><span class="step"><span class="step-num">2</span>KNN·SVM 두 모델</span><span class="step"><span class="step-num">3</span>성능 차이 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_wine
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+import pandas as pd
+
+X, y = load_wine(return_X_y=True)
+
+results = []
+for name, clf in [(&#x27;KNN&#x27;, KNeighborsClassifier(n_neighbors=5)),
+                  (&#x27;SVM&#x27;, SVC(kernel=&#x27;rbf&#x27;, C=1))]:
+    # 표준화 없이
+    raw = cross_val_score(clf, X, y, cv=5, scoring=&#x27;accuracy&#x27;).mean()
+    # 표준화 포함
+    pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;clf&#x27;, clf.__class__(**clf.get_params()))])
+    scaled = cross_val_score(pipe, X, y, cv=5, scoring=&#x27;accuracy&#x27;).mean()
+    results.append({&#x27;Model&#x27;: name, &#x27;표준화X&#x27;: raw, &#x27;표준화O&#x27;: scaled,
+                    &#x27;향상&#x27;: scaled - raw})
+
+print(pd.DataFrame(results).round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>SVM: 표준화 없이 ≈ 0.70 → 표준화 후 ≈ 0.99 (무려 +29%p 향상)</li><li>KNN: 표준화 없이 ≈ 0.72 → 표준화 후 ≈ 0.96 (+24%p)</li><li>alcohol(14%)·proline(1600mg/L)처럼 스케일이 천차만별인 13개 피처가 문제</li><li>거리 기반(KNN·SVM)은 스케일에 극도로 민감 → 표준화가 필수적</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 와인 데이터는 표준화 효과를 극적으로 보여주는 대표 사례로 수업에 자주 활용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">RandomForest 피처 중요도 + SelectKBest</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>RF 피처 중요도</span><span class="step"><span class="step-num">2</span>SelectKBest(f_classif)</span><span class="step"><span class="step-num">3</span>중요도 순위 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_wine
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import numpy as np
+
+wine = load_wine()
+X, y = wine.data, wine.target
+feat_names = wine.feature_names
+
+# RF 피처 중요도
+rf = RandomForestClassifier(n_estimators=200, random_state=42)
+rf.fit(X, y)
+imp_df = pd.DataFrame({
+    &#x27;feature&#x27;: feat_names,
+    &#x27;RF_importance&#x27;: rf.feature_importances_
+}).sort_values(&#x27;RF_importance&#x27;, ascending=False)
+
+# SelectKBest (F-통계량 기반)
+selector = SelectKBest(f_classif, k=&#x27;all&#x27;)
+selector.fit(X, y)
+imp_df[&#x27;F_score&#x27;] = selector.scores_[
+    [list(feat_names).index(f) for f in imp_df[&#x27;feature&#x27;]]]
+
+print(imp_df.round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>flavanoids·proline·color_intensity가 RF 중요도 상위 — 와인 품종 판별 핵심</li><li>F-통계량(SelectKBest)과 RF 중요도의 순위가 대체로 일치 → 두 방법 상호 검증</li><li>magnesium·ash는 두 방법 모두 하위 → 제거해도 성능 손실 미미</li><li>RF 중요도는 불순도 감소량(Gini), F-score는 ANOVA F통계량 — 다른 관점에서 동일 결론</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> SHAP 라이브러리를 사용하면 피처 중요도를 개별 예측까지 분해해서 볼 수 있음</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">LDA 선형판별분석 — 2D 시각화</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>LDA 학습</span><span class="step"><span class="step-num">2</span>2개 판별 축 추출</span><span class="step"><span class="step-num">3</span>클래스 분리 시각화 준비</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_wine
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import numpy as np
+
+wine = load_wine()
+X, y = wine.data, wine.target
+
+sc = StandardScaler()
+X_sc = sc.fit_transform(X)
+
+lda = LDA(n_components=2)
+X_lda = lda.fit_transform(X_sc, y)
+
+print(f&#x27;설명 분산 비율: {lda.explained_variance_ratio_.round(4)}&#x27;)
+print(f&#x27;누적 기여율: {lda.explained_variance_ratio_.sum():.4f}&#x27;)
+
+# 클래스별 LD1·LD2 중심
+result = pd.DataFrame(X_lda, columns=[&#x27;LD1&#x27;,&#x27;LD2&#x27;])
+result[&#x27;class&#x27;] = y
+print(&#x27;\n클래스별 판별 축 평균:&#x27;)
+print(result.groupby(&#x27;class&#x27;)[[&#x27;LD1&#x27;,&#x27;LD2&#x27;]].mean().round(3))
+
+# 분류 성능 (LDA 자체를 분류기로 사용)
+from sklearn.model_selection import cross_val_score
+cv_acc = cross_val_score(LDA(), X_sc, y, cv=5, scoring=&#x27;accuracy&#x27;).mean()
+print(f&#x27;\nLDA 분류 CV 정확도: {cv_acc:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>LD1이 분산의 ~68%, LD2가 ~31% — 2개 성분으로 99% 판별 분산 설명</li><li>2D 산점도에서 3클래스가 거의 완벽하게 분리됨 (LDA의 강점)</li><li>LDA 분류기 CV 정확도 ≈ 0.995 — 13개 피처를 2D로 줄여도 성능 유지</li><li>LDA는 가우시안 등분산 가정이 있으나 wine 데이터에서는 잘 맞음</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> QDA(QuadraticDiscriminantAnalysis)는 클래스별 공분산 행렬 허용 — LDA보다 유연</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="breast_cancer">
+<div class="section-head">
+  <div class="sec-num">04</div>
+  <div class="sec-info">
+    <span class="sec-name">load_breast_cancer()</span>
+    <span class="sec-badge">이진분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'breast_cancer','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'breast_cancer','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'breast_cancer','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-breast_cancer-overview">
+<p class="ds-desc">유방암 세포핵의 30개 형태 측정치. 이진분류·ROC-AUC·임계값 조정·클래스 불균형 처리.</p>
+<div class="meta-chips"><span class="meta-chip">행 569</span><span class="meta-chip">피처 30</span><span class="meta-chip">target: 악성(0)/양성(1)</span><span class="meta-chip cat-cls">이진분류</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>mean radius·texture·...</code></td><td class="type-cell">float</td><td>세포핵의 반지름·질감·둘레 등 평균</td></tr><tr><td><code>se radius·texture·...</code></td><td class="type-cell">float</td><td>표준오차(SE) 측정값</td></tr><tr><td><code>worst radius·texture·...</code></td><td class="type-cell">float</td><td>최악값(worst) 측정값</td></tr><tr><td><code>target</code></td><td class="type-cell">int</td><td>0=malignant(악성), 1=benign(양성)</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-breast_cancer-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">이진분류</span><span class="pr-val">Logistic, SVM, RF, GBM — threshold 조정</span></div><div class="principle-item"><span class="pr-key">ROC-AUC</span><span class="pr-val">roc_auc_score + roc_curve — threshold 선택</span></div><div class="principle-item"><span class="pr-key">재현율·정밀도</span><span class="pr-val">의료 데이터: 재현율(FN 최소화) 우선</span></div><div class="principle-item"><span class="pr-key">클래스 불균형</span><span class="pr-val">class_weight=&quot;balanced&quot;, SMOTE</span></div></div>
+</div>
+<div class="tab-pane" id="tab-breast_cancer-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">Logistic Regression + 임계값 최적화</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>모델 학습</span><span class="step"><span class="step-num">2</span>predict_proba 확률 출력</span><span class="step"><span class="step-num">3</span>임계값별 재현율·정밀도</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_breast_cancer
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (classification_report, roc_auc_score,
+                             precision_recall_curve)
+import numpy as np
+
+X, y = load_breast_cancer(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42)
+
+pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()),
+                 (&#x27;lr&#x27;, LogisticRegression(max_iter=5000, random_state=42))])
+pipe.fit(X_tr, y_tr)
+
+proba = pipe.predict_proba(X_te)[:, 1]  # 양성 확률
+print(f&#x27;ROC-AUC: {roc_auc_score(y_te, proba):.4f}&#x27;)
+
+# 임계값 0.3~0.7에서 재현율·정밀도 변화
+print(f&#x27;\n{&quot;Threshold&quot;:&gt;10}  {&quot;Recall&quot;:&gt;8}  {&quot;Precision&quot;:&gt;10}  {&quot;F1&quot;:&gt;6}&#x27;)
+from sklearn.metrics import recall_score, precision_score, f1_score
+for thr in [0.3, 0.4, 0.5, 0.6, 0.7]:
+    y_pred = (proba &gt;= thr).astype(int)
+    rec = recall_score(y_te, y_pred)
+    prec = precision_score(y_te, y_pred)
+    f1 = f1_score(y_te, y_pred)
+    print(f&#x27;{thr:&gt;10.1f}  {rec:&gt;8.4f}  {prec:&gt;10.4f}  {f1:&gt;6.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>ROC-AUC ≈ 0.998 — 로지스틱 회귀만으로 거의 완벽한 판별력</li><li>임계값 0.3: 재현율↑(악성 놓치지 않음), 정밀도↓(양성 오분류 증가)</li><li>의료 진단에서는 악성(0)을 놓치는 FN이 치명적 → 임계값을 낮춰 재현율 우선</li><li>F1-score가 최대인 임계값이 기본 0.5보다 낮을 수 있음</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 임계값 선택은 비즈니스 맥락에서 FP vs FN의 비용을 고려해 결정해야 함</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">앙상블 비교 (RF·GBM·StackingClassifier)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>개별 모델 학습</span><span class="step"><span class="step-num">2</span>StackingClassifier 구성</span><span class="step"><span class="step-num">3</span>성능 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_breast_cancer
+from sklearn.ensemble import (RandomForestClassifier,
+    GradientBoostingClassifier, StackingClassifier)
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+import pandas as pd
+
+X, y = load_breast_cancer(return_X_y=True)
+
+def make_pipe(clf):
+    return Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;clf&#x27;, clf)])
+
+estimators = [
+    (&#x27;rf&#x27;,  make_pipe(RandomForestClassifier(n_estimators=100, random_state=42))),
+    (&#x27;gbm&#x27;, make_pipe(GradientBoostingClassifier(n_estimators=100, random_state=42))),
+    (&#x27;svm&#x27;, make_pipe(SVC(kernel=&#x27;rbf&#x27;, probability=True))),
+]
+stacking = StackingClassifier(
+    estimators=estimators,
+    final_estimator=LogisticRegression(),
+    cv=5, passthrough=False)
+
+models = {
+    &#x27;RandomForest&#x27;: make_pipe(RandomForestClassifier(n_estimators=100, random_state=42)),
+    &#x27;GBM&#x27;:          make_pipe(GradientBoostingClassifier(n_estimators=100, random_state=42)),
+    &#x27;SVM(RBF)&#x27;:     make_pipe(SVC(kernel=&#x27;rbf&#x27;, probability=True)),
+    &#x27;Stacking&#x27;:     stacking,
+}
+rows = []
+for name, model in models.items():
+    auc = cross_val_score(model, X, y, cv=5, scoring=&#x27;roc_auc&#x27;).mean()
+    rows.append({&#x27;Model&#x27;: name, &#x27;ROC-AUC&#x27;: auc})
+print(pd.DataFrame(rows).sort_values(&#x27;ROC-AUC&#x27;, ascending=False).round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>StackingClassifier가 개별 모델보다 AUC 0.001~0.003 소폭 향상</li><li>GBM·RF 모두 ROC-AUC ≈ 0.995 이상 — 30개 피처가 매우 판별력이 높음</li><li>Stacking: 각 모델의 예측 확률을 새 피처로 사용해 메타 분류기(LR) 학습</li><li>passthrough=False: 원본 피처 제외, 기본 모델 예측만 메타 피처로 사용</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> probability=True가 없으면 SVC는 확률을 출력 못함 — Stacking에서 필수</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">PCA + 클래스 분리 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>30차원 PCA</span><span class="step"><span class="step-num">2</span>2D 시각화용 성분</span><span class="step"><span class="step-num">3</span>분리 가능성 정량화</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+import numpy as np
+
+X, y = load_breast_cancer(return_X_y=True)
+X_sc = StandardScaler().fit_transform(X)
+
+# PCA 95% 분산 유지
+pca = PCA(random_state=42).fit(X_sc)
+cumvar = np.cumsum(pca.explained_variance_ratio_)
+n95 = np.searchsorted(cumvar, 0.95) + 1
+print(f&#x27;95% 분산 유지 성분 수: {n95} / 30&#x27;)
+
+# PCA 2D에서 클래스 분리
+X_2d = PCA(n_components=2, random_state=42).fit_transform(X_sc)
+for cls, label in [(0,&#x27;악성&#x27;), (1,&#x27;양성&#x27;)]:
+    mask = y == cls
+    print(f&#x27;{label}: PC1 평균={X_2d[mask,0].mean():.3f}, PC2 평균={X_2d[mask,1].mean():.3f}&#x27;)
+
+# LDA (이진) — 1개 판별 축
+lda = LDA()
+X_lda = lda.fit_transform(X_sc, y)
+# 클래스 간 분리 거리 (Mahalanobis-like)
+m0 = X_lda[y==0].mean()
+m1 = X_lda[y==1].mean()
+s_pool = (X_lda[y==0].std() + X_lda[y==1].std()) / 2
+print(f&#x27;\nLDA 판별값 분리 거리: {abs(m1-m0)/s_pool:.3f} (Effect size)&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>95% 분산 유지에 ≈ 10개 성분 필요 (30→10, 67% 압축)</li><li>PC1 축에서 이미 악성·양성의 평균이 크게 분리 — 첫 성분이 판별에 유용</li><li>LDA effect size > 5: 매우 강한 클래스 분리 → 선형 분류기만으로도 충분</li><li>breast_cancer는 과적합보다 피처 해석과 임계값 조정이 더 중요한 과제</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 이진 LDA는 n_components=1 고정 (c-1=1); 결과는 1차원 스칼라 판별 점수</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-cls" id="fetch_20newsgroups">
+<div class="section-head">
+  <div class="sec-num">14</div>
+  <div class="sec-info">
+    <span class="sec-name">fetch_20newsgroups()</span>
+    <span class="sec-badge">텍스트 분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'fetch_20newsgroups','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'fetch_20newsgroups','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'fetch_20newsgroups','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-fetch_20newsgroups-overview">
+<p class="ds-desc">20개 뉴스그룹 텍스트 문서. TF-IDF·나이브베이즈·SVD 토픽 모델·텍스트 분류 파이프라인.</p>
+<div class="meta-chips"><span class="meta-chip">행 18846</span><span class="meta-chip">피처 텍스트</span><span class="meta-chip">target: 20개 뉴스그룹</span><span class="meta-chip cat-cls">텍스트 분류</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>data</code></td><td class="type-cell">list[str]</td><td>원본 이메일 텍스트</td></tr><tr><td><code>target</code></td><td class="type-cell">int(0~19)</td><td>뉴스그룹 카테고리</td></tr><tr><td><code>target_names</code></td><td class="type-cell">list[str]</td><td>카테고리 이름 20개</td></tr><tr><td><code>filenames</code></td><td class="type-cell">list[str]</td><td>파일 경로</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-fetch_20newsgroups-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">TF-IDF</span><span class="pr-val">CountVectorizer → TfidfTransformer 또는 TfidfVectorizer</span></div><div class="principle-item"><span class="pr-key">나이브베이즈</span><span class="pr-val">MultinomialNB — 텍스트 분류 베이스라인</span></div><div class="principle-item"><span class="pr-key">차원 축소</span><span class="pr-val">TruncatedSVD(LSA) — 희소 TF-IDF 행렬 압축</span></div><div class="principle-item"><span class="pr-key">하위 카테고리</span><span class="pr-val">categories= 파라미터로 일부만 선택</span></div></div>
+</div>
+<div class="tab-pane" id="tab-fetch_20newsgroups-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">TF-IDF + 나이브베이즈 파이프라인</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>하위 카테고리 선택</span><span class="step"><span class="step-num">2</span>TF-IDF Pipeline</span><span class="step"><span class="step-num">3</span>분류 성능 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, classification_report
+
+# 4개 카테고리만 선택 (빠른 실험)
+categories = [&#x27;sci.space&#x27;, &#x27;sci.med&#x27;, &#x27;rec.sport.baseball&#x27;, &#x27;talk.politics.guns&#x27;]
+train = fetch_20newsgroups(subset=&#x27;train&#x27;, categories=categories,
+                            remove=(&#x27;headers&#x27;,&#x27;footers&#x27;,&#x27;quotes&#x27;))
+test  = fetch_20newsgroups(subset=&#x27;test&#x27;,  categories=categories,
+                            remove=(&#x27;headers&#x27;,&#x27;footers&#x27;,&#x27;quotes&#x27;))
+
+for name, clf in [(&#x27;MultinomialNB&#x27;, MultinomialNB()),
+                  (&#x27;Logistic&#x27;,     LogisticRegression(max_iter=1000, C=5))]:
+    pipe = Pipeline([
+        (&#x27;tfidf&#x27;, TfidfVectorizer(max_features=20000, ngram_range=(1,2),
+                                   sublinear_tf=True, min_df=2)),
+        (&#x27;clf&#x27;, clf)
+    ])
+    pipe.fit(train.data, train.target)
+    y_pred = pipe.predict(test.data)
+    acc = accuracy_score(test.target, y_pred)
+    print(f&#x27;{name}: accuracy={acc:.4f}&#x27;)
+
+print(&#x27;\n분류 리포트 (Logistic):&#x27;)
+print(classification_report(test.target, y_pred, target_names=categories))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>Logistic + TF-IDF bigram 정확도 ≈ 0.93~0.96 — 4개 카테고리 분류</li><li>remove=('headers','footers','quotes')로 레이블 누출 방지 — 헤더에 카테고리명 포함됨</li><li>sublinear_tf=True: TF에 log 변환(1+log(tf)) 적용 → 고빈도 단어 영향 완화</li><li>ngram_range=(1,2): 단어+바이그램 → 'space station' 같은 구 표현 포착</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> max_features=20000으로 어휘 크기 제한 — 너무 크면 메모리 문제, 너무 작으면 정보 손실</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">TruncatedSVD (LSA) — 토픽 추출</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>TF-IDF 희소 행렬</span><span class="step"><span class="step-num">2</span>SVD 100성분</span><span class="step"><span class="step-num">3</span>토픽별 주요 단어</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import TruncatedSVD
+from sklearn.pipeline import Pipeline
+import numpy as np
+
+categories = [&#x27;sci.space&#x27;,&#x27;sci.med&#x27;,&#x27;rec.sport.baseball&#x27;,&#x27;talk.politics.guns&#x27;]
+data = fetch_20newsgroups(subset=&#x27;train&#x27;, categories=categories,
+                           remove=(&#x27;headers&#x27;,&#x27;footers&#x27;,&#x27;quotes&#x27;))
+
+# TF-IDF 행렬
+tfidf = TfidfVectorizer(max_features=10000, stop_words=&#x27;english&#x27;, min_df=3)
+X_tfidf = tfidf.fit_transform(data.data)
+print(f&#x27;TF-IDF shape: {X_tfidf.shape}  nnz: {X_tfidf.nnz:,}&#x27;)
+
+# LSA: TruncatedSVD (희소 행렬에 직접 적용)
+svd = TruncatedSVD(n_components=20, random_state=42)
+X_lsa = svd.fit_transform(X_tfidf)
+print(f&#x27;설명 분산 비율 합: {svd.explained_variance_ratio_.sum():.4f}&#x27;)
+
+# 각 성분의 상위 단어
+feat_names = np.array(tfidf.get_feature_names_out())
+for i in range(4):
+    top_words = feat_names[np.argsort(svd.components_[i])[-8:]][::-1]
+    print(f&#x27;토픽 {i+1}: {&quot;, &quot;.join(top_words)}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>TF-IDF 행렬은 희소(대부분 0) — TruncatedSVD는 Dense 변환 없이 직접 SVD 처리</li><li>20개 SVD 성분이 전체 분산의 20~30% 설명 — 텍스트 공간은 매우 고차원</li><li>토픽 1: space/nasa/orbit 등 우주 단어 / 토픽 2: medical/patient 등 의학 단어</li><li>LSA(Latent Semantic Analysis) = TF-IDF + TruncatedSVD — 잠재 의미 구조 추출</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> TruncatedSVD는 PCA와 달리 평균 중심화 없이 작동 — 희소 행렬에서 반드시 TruncatedSVD 사용</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-reg">📈 회귀 Regression</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-reg" id="diabetes">
+<div class="section-head">
+  <div class="sec-num">05</div>
+  <div class="sec-info">
+    <span class="sec-name">load_diabetes()</span>
+    <span class="sec-badge">회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'diabetes','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'diabetes','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'diabetes','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-diabetes-overview">
+<p class="ds-desc">당뇨 환자 10개 생리적 변수로 1년 후 진행 수치 예측. 선형·Ridge·Lasso·ElasticNet 비교.</p>
+<div class="meta-chips"><span class="meta-chip">행 442</span><span class="meta-chip">피처 10</span><span class="meta-chip">target: 1년 후 당뇨 진행도</span><span class="meta-chip cat-reg">회귀</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>age·sex·bmi·bp</code></td><td class="type-cell">float</td><td>나이·성별·체질량지수·혈압 (표준화됨)</td></tr><tr><td><code>s1~s6</code></td><td class="type-cell">float</td><td>혈청 측정치 6개 (콜레스테롤·LDL·HDL 등)</td></tr><tr><td><code>target</code></td><td class="type-cell">float</td><td>기저값 1년 후 당뇨 진행도</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-diabetes-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">정규화 회귀</span><span class="pr-val">Ridge(L2)·Lasso(L1)·ElasticNet — alpha 튜닝</span></div><div class="principle-item"><span class="pr-key">교차검증 alpha</span><span class="pr-val">RidgeCV·LassoCV — 자동 최적 alpha</span></div><div class="principle-item"><span class="pr-key">변수 선택</span><span class="pr-val">Lasso: 계수 0 수축 → 자동 피처 선택</span></div><div class="principle-item"><span class="pr-key">비선형 확장</span><span class="pr-val">PolynomialFeatures로 2차 항 추가</span></div></div>
+</div>
+<div class="tab-pane" id="tab-diabetes-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">선형·Ridge·Lasso·ElasticNet 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>각 모델 학습</span><span class="step"><span class="step-num">2</span>RMSE·R² 비교</span><span class="step"><span class="step-num">3</span>Lasso 0이 된 계수 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_diabetes
+from sklearn.linear_model import (LinearRegression, Ridge, Lasso, ElasticNet,
+                                   RidgeCV, LassoCV)
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import pandas as pd
+import numpy as np
+
+X, y = load_diabetes(return_X_y=True)
+feature_names = load_diabetes().feature_names
+
+models = {
+    &#x27;OLS&#x27;:        LinearRegression(),
+    &#x27;Ridge(a=1)&#x27;: Ridge(alpha=1),
+    &#x27;Lasso(a=1)&#x27;: Lasso(alpha=1),
+    &#x27;ElasticNet&#x27;: ElasticNet(alpha=0.5, l1_ratio=0.5),
+    &#x27;RidgeCV&#x27;:    RidgeCV(alphas=[0.01,0.1,1,10,100]),
+}
+
+rows = []
+for name, model in models.items():
+    pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;m&#x27;, model)])
+    r2  = cross_val_score(pipe, X, y, cv=5, scoring=&#x27;r2&#x27;).mean()
+    rmse = -cross_val_score(pipe, X, y, cv=5,
+                             scoring=&#x27;neg_root_mean_squared_error&#x27;).mean()
+    rows.append({&#x27;Model&#x27;: name, &#x27;CV R2&#x27;: r2, &#x27;CV RMSE&#x27;: rmse})
+
+print(pd.DataFrame(rows).round(4).to_string(index=False))
+
+# Lasso 계수 확인 (어떤 피처가 0이 됨?)
+from sklearn.linear_model import LassoCV
+pipe_lasso = Pipeline([(&#x27;sc&#x27;, StandardScaler()),
+                        (&#x27;lasso&#x27;, LassoCV(cv=5))])
+pipe_lasso.fit(X, y)
+coef = pd.Series(pipe_lasso.named_steps[&#x27;lasso&#x27;].coef_, index=feature_names)
+print(&#x27;\nLassoCV 계수 (0=제거):&#x27;)
+print(coef.round(4))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>OLS R² ≈ 0.48 — 10개 변수로 당뇨 진행 분산의 48% 설명</li><li>Ridge·Lasso R²가 OLS와 비슷하거나 소폭 상승 — 다중공선성이 크지 않음</li><li>LassoCV: bmi·bp·s1(또는s5) 계수만 남기고 나머지 0으로 수축 → 변수 선택</li><li>RidgeCV가 자동으로 최적 alpha 선택 — 수동 alpha 설정보다 효율적</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 당뇨 데이터는 이미 표준화되어 있으나 Pipeline에 표준화 포함이 코드 일관성 유지에 좋음</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">PolynomialFeatures — 비선형 확장</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>2차 다항 피처 생성</span><span class="step"><span class="step-num">2</span>OLS vs Poly 회귀 비교</span><span class="step"><span class="step-num">3</span>과적합 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_diabetes
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+X, y = load_diabetes(return_X_y=True)
+
+results = {}
+for deg in [1, 2, 3]:
+    pipe = Pipeline([
+        (&#x27;poly&#x27;, PolynomialFeatures(degree=deg, include_bias=False)),
+        (&#x27;sc&#x27;,   StandardScaler()),
+        (&#x27;ridge&#x27;, Ridge(alpha=1.0)),
+    ])
+    tr_r2  = cross_val_score(pipe, X, y, cv=5, scoring=&#x27;r2&#x27;).mean()
+    results[f&#x27;degree={deg}&#x27;] = {
+        &#x27;CV R2&#x27;: tr_r2,
+        &#x27;피처 수&#x27;: PolynomialFeatures(degree=deg, include_bias=False).fit_transform(X).shape[1]
+    }
+
+import pandas as pd
+print(pd.DataFrame(results).T.to_string())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>degree=2: 피처 65개로 증가, R² ≈ 0.53 (degree=1: 0.48 대비 소폭 향상)</li><li>degree=3: 피처 285개 — 과적합으로 CV R²가 오히려 하락할 수 있음</li><li>Ridge 정규화가 없으면 degree=3에서 훈련 R²는 높지만 CV R²가 급감</li><li>다항 피처는 Ridge/Lasso와 함께 사용해야 과적합 방지 — 단독 OLS 금지</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> degree=2에 Ridge alpha를 RidgeCV로 자동 탐색하면 최적 비선형 모델 구성 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">잔차 분석 + 가정 검정</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>예측 vs 실제 잔차</span><span class="step"><span class="step-num">2</span>정규성·등분산 검정</span><span class="step"><span class="step-num">3</span>영향점 탐색</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_diabetes
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+import numpy as np
+from scipy.stats import shapiro, spearmanr
+
+X, y = load_diabetes(return_X_y=True)
+X_sc = StandardScaler().fit_transform(X)
+X_tr, X_te, y_tr, y_te = train_test_split(X_sc, y, test_size=0.2, random_state=42)
+
+model = LinearRegression().fit(X_tr, y_tr)
+y_pred = model.predict(X_te)
+residuals = y_te - y_pred
+
+print(f&#x27;잔차 평균: {residuals.mean():.4f}  (0에 가까워야 함)&#x27;)
+print(f&#x27;잔차 표준편차: {residuals.std():.4f}&#x27;)
+
+# 정규성 검정
+stat, p = shapiro(residuals)
+print(f&#x27;Shapiro-Wilk: stat={stat:.4f}, p={p:.4f}&#x27;)
+print(&#x27;정규 분포&#x27; if p &gt; 0.05 else &#x27;비정규 분포 → 변환 고려&#x27;)
+
+# 등분산성: 예측값 vs |잔차| 스피어만 상관
+rho, p_sp = spearmanr(y_pred, np.abs(residuals))
+print(f&#x27;Spearman(예측값, |잔차|): rho={rho:.4f}, p={p_sp:.4f}&#x27;)
+print(&#x27;등분산&#x27; if p_sp &gt; 0.05 else &#x27;이분산 → WLS 또는 log 변환 고려&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>잔차 평균 ≈ 0 — 선형 회귀 기본 가정(비편향성) 충족</li><li>Shapiro-Wilk p에 따라 정규 잔차 가정 충족 여부 확인</li><li>Spearman 상관이 유의하면 이분산(분산이 예측값에 따라 변화) → 로그 변환 또는 WLS</li><li>leverage·Cook's distance로 영향점(influential points) 탐색은 statsmodels 권장</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> statsmodels의 OLS는 .get_influence()로 Cook's distance·leverage 계산 가능</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-reg" id="california_housing">
+<div class="section-head">
+  <div class="sec-num">06</div>
+  <div class="sec-info">
+    <span class="sec-name">fetch_california_housing()</span>
+    <span class="sec-badge">회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'california_housing','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'california_housing','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'california_housing','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-california_housing-overview">
+<p class="ds-desc">캘리포니아 블록별 주택 가격 예측. GBM·RF 회귀·지리 피처·SHAP 해석.</p>
+<div class="meta-chips"><span class="meta-chip">행 20640</span><span class="meta-chip">피처 8</span><span class="meta-chip">target: 주택 중위값(10만달러)</span><span class="meta-chip cat-reg">회귀</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>MedInc</code></td><td class="type-cell">float</td><td>중위 소득</td></tr><tr><td><code>HouseAge</code></td><td class="type-cell">float</td><td>주택 평균 연령</td></tr><tr><td><code>AveRooms</code></td><td class="type-cell">float</td><td>평균 방 수</td></tr><tr><td><code>AveBedrms</code></td><td class="type-cell">float</td><td>평균 침실 수</td></tr><tr><td><code>Population</code></td><td class="type-cell">float</td><td>블록 인구</td></tr><tr><td><code>AveOccup</code></td><td class="type-cell">float</td><td>평균 거주자 수</td></tr><tr><td><code>Latitude·Longitude</code></td><td class="type-cell">float</td><td>위도·경도</td></tr><tr><td><code>target</code></td><td class="type-cell">float</td><td>주택 중위값(×10만달러)</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-california_housing-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">GBM 회귀</span><span class="pr-val">GradientBoostingRegressor — n_estimators·max_depth 튜닝</span></div><div class="principle-item"><span class="pr-key">지리 피처</span><span class="pr-val">Latitude·Longitude — 공간 패턴 학습</span></div><div class="principle-item"><span class="pr-key">이상치 처리</span><span class="pr-val">AveRooms·AveOccup 극단값 클리핑</span></div><div class="principle-item"><span class="pr-key">교차검증</span><span class="pr-val">KFold + RMSE/MAE/R² 동시 평가</span></div></div>
+</div>
+<div class="tab-pane" id="tab-california_housing-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">GBM vs RF 회귀 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>데이터 로드</span><span class="step"><span class="step-num">2</span>GBM·RF Pipeline</span><span class="step"><span class="step-num">3</span>RMSE·R² 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import fetch_california_housing
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+import numpy as np
+import pandas as pd
+
+housing = fetch_california_housing()
+X, y = housing.data, housing.target
+
+models = {
+    &#x27;Ridge&#x27;:           Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;m&#x27;, Ridge())]),
+    &#x27;RandomForest&#x27;:    RandomForestRegressor(n_estimators=100, n_jobs=-1, random_state=42),
+    &#x27;GBM&#x27;:             GradientBoostingRegressor(n_estimators=200, max_depth=4,
+                                                  learning_rate=0.1, random_state=42),
+}
+
+rows = []
+for name, model in models.items():
+    r2   = cross_val_score(model, X, y, cv=5, scoring=&#x27;r2&#x27;, n_jobs=-1).mean()
+    rmse = -cross_val_score(model, X, y, cv=5,
+                            scoring=&#x27;neg_root_mean_squared_error&#x27;, n_jobs=-1).mean()
+    rows.append({&#x27;Model&#x27;: name, &#x27;CV R2&#x27;: r2, &#x27;CV RMSE&#x27;: rmse})
+
+print(pd.DataFrame(rows).sort_values(&#x27;CV R2&#x27;, ascending=False).round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>GBM R² ≈ 0.81, RF R² ≈ 0.80 — 트리 앙상블이 선형(Ridge ~0.60)보다 압도적</li><li>RMSE는 10만달러 단위 — GBM RMSE ≈ 0.455(약 4.55만달러 오차)</li><li>GBM·RF 차이가 작으므로 해석 필요 시 RF, 성능 우선 시 GBM 선택</li><li>n_jobs=-1로 병렬 처리 — 20640행 데이터에서 속도 차이가 큼</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> HistGradientBoostingRegressor는 대용량 데이터에서 GBM보다 훨씬 빠른 sklearn 최신 구현</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">피처 중요도 + 지리 변수 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>RF 피처 중요도</span><span class="step"><span class="step-num">2</span>위도·경도 기여도</span><span class="step"><span class="step-num">3</span>소득 vs 가격 상관</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import fetch_california_housing
+from sklearn.ensemble import RandomForestRegressor
+import pandas as pd
+import numpy as np
+
+housing = fetch_california_housing()
+X, y = housing.data, housing.target
+feat_names = housing.feature_names
+
+rf = RandomForestRegressor(n_estimators=200, n_jobs=-1, random_state=42)
+rf.fit(X, y)
+
+imp = pd.Series(rf.feature_importances_, index=feat_names)
+print(&#x27;피처 중요도 (내림차순):&#x27;)
+print(imp.sort_values(ascending=False).round(4))
+
+# MedInc·위도경도 vs 가격 상관
+df = pd.DataFrame(X, columns=feat_names)
+df[&#x27;price&#x27;] = y
+corr = df.corr()[&#x27;price&#x27;].sort_values(ascending=False)
+print(&#x27;\n가격과의 상관계수:&#x27;)
+print(corr.round(4))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>MedInc(소득) 중요도 1위 ≈ 0.52 — 소득이 주택 가격의 가장 강력한 예측 변수</li><li>Latitude·Longitude 합산 중요도 ≈ 0.20 — 위치가 두 번째로 중요한 요인</li><li>AveOccup(거주 밀도)의 중요도가 AveRooms보다 높은 경우가 많음 — 실제 생활 밀도</li><li>HouseAge 중요도가 낮은 편 — 캘리포니아에서 주택 연령보다 위치·소득이 우선</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> SHAP TreeExplainer로 개별 예측의 피처 기여도를 분해하면 더 정교한 해석 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">이상치 클리핑 + 로그 변환 효과</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>극단값 클리핑</span><span class="step"><span class="step-num">2</span>로그 변환 비교</span><span class="step"><span class="step-num">3</span>R² 변화 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import fetch_california_housing
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import cross_val_score
+import numpy as np
+import pandas as pd
+
+housing = fetch_california_housing()
+X, y = housing.data.copy(), housing.target.copy()
+feat_names = housing.feature_names
+
+# 기준: 원본 데이터
+r2_base = cross_val_score(
+    GradientBoostingRegressor(n_estimators=100, random_state=42),
+    X, y, cv=3, scoring=&#x27;r2&#x27;).mean()
+
+# 클리핑: AveRooms·AveOccup 상위 1% 클리핑
+X_clip = X.copy()
+for col_idx, col in enumerate(feat_names):
+    if col in [&#x27;AveRooms&#x27;, &#x27;AveOccup&#x27;, &#x27;AveBedrms&#x27;]:
+        q99 = np.percentile(X_clip[:, col_idx], 99)
+        X_clip[:, col_idx] = np.clip(X_clip[:, col_idx], 0, q99)
+
+r2_clip = cross_val_score(
+    GradientBoostingRegressor(n_estimators=100, random_state=42),
+    X_clip, y, cv=3, scoring=&#x27;r2&#x27;).mean()
+
+print(f&#x27;기준 R²: {r2_base:.4f}&#x27;)
+print(f&#x27;클리핑 후 R²: {r2_clip:.4f}  (변화: {r2_clip-r2_base:+.4f})&#x27;)
+
+# 극단값 확인
+df = pd.DataFrame(X, columns=feat_names)
+for col in [&#x27;AveRooms&#x27;,&#x27;AveOccup&#x27;]:
+    print(f&#x27;{col}: max={df[col].max():.1f}, 99%={df[col].quantile(0.99):.1f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>AveRooms 최대값이 수백에 달하는 극단적 이상치 존재 → 클리핑으로 모델 안정화</li><li>클리핑 후 GBM R² 소폭 향상 — 극단값이 트리의 분기점을 낭비시키는 효과 제거</li><li>AveOccup > 50인 블록은 실수 또는 특수 시설(기숙사 등) — 제거 또는 플래그 처리 고려</li><li>상위 1% 클리핑 기준은 도메인 지식에 따라 0.5%~5%로 조정</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 이상치 처리 후에도 R² 변화가 작으면 이상치가 모델에 미치는 영향이 크지 않음</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-reg" id="linnerud">
+<div class="section-head">
+  <div class="sec-num">07</div>
+  <div class="sec-info">
+    <span class="sec-name">load_linnerud()</span>
+    <span class="sec-badge">다중출력 회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'linnerud','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'linnerud','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'linnerud','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-linnerud-overview">
+<p class="ds-desc">운동량 3개 → 신체측정 3개 동시 예측. 다중출력 회귀·상관 구조·PLS 분석.</p>
+<div class="meta-chips"><span class="meta-chip">행 20</span><span class="meta-chip">피처 3</span><span class="meta-chip">target: Weight·Waist·Pulse(3개)</span><span class="meta-chip cat-reg">다중출력 회귀</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>Chins</code></td><td class="type-cell">int</td><td>턱걸이 횟수</td></tr><tr><td><code>Situps</code></td><td class="type-cell">int</td><td>윗몸일으키기 횟수</td></tr><tr><td><code>Jumps</code></td><td class="type-cell">int</td><td>점프 횟수</td></tr><tr><td><code>Weight(target)</code></td><td class="type-cell">float</td><td>체중(파운드)</td></tr><tr><td><code>Waist(target)</code></td><td class="type-cell">float</td><td>허리둘레(인치)</td></tr><tr><td><code>Pulse(target)</code></td><td class="type-cell">float</td><td>맥박</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-linnerud-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">다중출력 회귀</span><span class="pr-val">MultiOutputRegressor 래퍼</span></div><div class="principle-item"><span class="pr-key">PLS</span><span class="pr-val">PLSRegression — 잠재 변수 기반 회귀</span></div><div class="principle-item"><span class="pr-key">소표본</span><span class="pr-val">n=20 → LOO-CV(LeaveOneOut) 사용</span></div><div class="principle-item"><span class="pr-key">상관 구조</span><span class="pr-val">입력 3개·출력 3개 상관 행렬 분석</span></div></div>
+</div>
+<div class="tab-pane" id="tab-linnerud-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">MultiOutputRegressor + LOO-CV</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>다중출력 래퍼</span><span class="step"><span class="step-num">2</span>LeaveOneOut CV</span><span class="step"><span class="step-num">3</span>타겟별 R² 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_linnerud
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import LeaveOneOut, cross_val_score
+import numpy as np
+import pandas as pd
+
+linnerud = load_linnerud()
+X = linnerud.data    # (20, 3) 운동량
+y = linnerud.target  # (20, 3) 신체측정
+
+target_names = linnerud.target_names
+loo = LeaveOneOut()
+
+pipe = Pipeline([
+    (&#x27;sc&#x27;, StandardScaler()),
+    (&#x27;m&#x27;,  MultiOutputRegressor(Ridge(alpha=1.0)))
+])
+
+# 타겟별 R² (LOO-CV)
+for i, name in enumerate(target_names):
+    scores = cross_val_score(pipe, X, y[:, i], cv=loo, scoring=&#x27;r2&#x27;)
+    print(f&#x27;{name:10}: LOO R²={scores.mean():.4f}  std={scores.std():.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>n=20 소표본에서는 5-Fold보다 LeaveOneOut-CV가 분산이 적고 안정적</li><li>Weight·Waist는 R² > 0 — 운동량이 어느 정도 예측력 있음</li><li>Pulse R²가 낮거나 음수 — 맥박은 운동량보다 개인 특성에 더 의존적</li><li>MultiOutputRegressor는 각 타겟에 독립 모델 적합 — 타겟 간 상관 무시</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 타겟 간 상관이 강하면 RegressorChain이 MultiOutputRegressor보다 성능 우수</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">PLS 회귀 (잠재변수 방법)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>PLS 성분 수 탐색</span><span class="step"><span class="step-num">2</span>LOO-CV 성능</span><span class="step"><span class="step-num">3</span>X·Y 잠재 구조</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import load_linnerud
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import LeaveOneOut
+from sklearn.metrics import r2_score
+import numpy as np
+
+linnerud = load_linnerud()
+X, y = linnerud.data, linnerud.target
+X_sc = StandardScaler().fit_transform(X)
+y_sc = StandardScaler().fit_transform(y)
+
+loo = LeaveOneOut()
+print(f&#x27;{&quot;n_comp&quot;:&gt;8}  {&quot;R2_Weight&quot;:&gt;10}  {&quot;R2_Waist&quot;:&gt;10}  {&quot;R2_Pulse&quot;:&gt;10}&#x27;)
+for n in range(1, 4):
+    preds = np.zeros_like(y_sc)
+    for tr, te in loo.split(X_sc):
+        pls = PLSRegression(n_components=n)
+        pls.fit(X_sc[tr], y_sc[tr])
+        preds[te] = pls.predict(X_sc[te])
+    r2s = [r2_score(y_sc[:, i], preds[:, i]) for i in range(3)]
+    print(f&#x27;{n:&gt;8}  {r2s[0]:&gt;10.4f}  {r2s[1]:&gt;10.4f}  {r2s[2]:&gt;10.4f}&#x27;)
+
+# X·Y 잠재 변수 로딩
+pls2 = PLSRegression(n_components=2).fit(X_sc, y_sc)
+print(f&#x27;\nX 로딩 (성분×피처):&#x27;)
+print(np.round(pls2.x_loadings_, 3))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>PLS는 X·Y의 공분산을 최대화하는 잠재 변수(latent variable)를 추출</li><li>n_components=2에서 보통 최적 — 데이터 크기보다 성분 수를 작게 유지해야 함</li><li>X 로딩 행렬: Chins·Situps의 첫 번째 잠재 축 기여가 큼</li><li>소표본(n=20)에서 PLS가 Ridge보다 안정적 — X·Y 동시 압축으로 과적합 억제</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> PLS는 chemometrics·유전체 분석에서 p >> n인 고차원 소표본 문제에 널리 사용</div>
+</div></div>
+</div>
+</div>
+</section>
+<div class="cat-separator">
+<div class="cat-sep-line"></div>
+<span class="cat-sep-label cat-sep-gen">🔧 생성 데이터 Generated Datasets</span>
+<div class="cat-sep-line"></div>
+</div>
+
+<section class="section cat-gen" id="make_classification">
+<div class="section-head">
+  <div class="sec-num">08</div>
+  <div class="sec-info">
+    <span class="sec-name">make_classification()</span>
+    <span class="sec-badge">생성:분류</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'make_classification','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_classification','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_classification','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-make_classification-overview">
+<p class="ds-desc">합성 분류 데이터 생성. 불균형·노이즈·클래스 수·피처 수를 자유롭게 설정.</p>
+<div class="meta-chips"><span class="meta-chip">행 가변</span><span class="meta-chip">피처 가변</span><span class="meta-chip">target: 0/1(또는 다중)</span><span class="meta-chip cat-gen">생성:분류</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>n_samples</code></td><td class="type-cell">int</td><td>생성할 샘플 수</td></tr><tr><td><code>n_features</code></td><td class="type-cell">int</td><td>전체 피처 수</td></tr><tr><td><code>n_informative</code></td><td class="type-cell">int</td><td>유효 피처 수</td></tr><tr><td><code>n_redundant</code></td><td class="type-cell">int</td><td>선형 조합 피처 수</td></tr><tr><td><code>n_classes</code></td><td class="type-cell">int</td><td>클래스 수</td></tr><tr><td><code>weights</code></td><td class="type-cell">list</td><td>클래스별 비율 (불균형 설정)</td></tr><tr><td><code>class_sep</code></td><td class="type-cell">float</td><td>클래스 분리도 (높을수록 쉬움)</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-make_classification-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">불균형 데이터</span><span class="pr-val">weights=[0.9,0.1] + class_weight=&quot;balanced&quot;</span></div><div class="principle-item"><span class="pr-key">노이즈 피처</span><span class="pr-val">n_informative &lt; n_features — 피처 선택 실험</span></div><div class="principle-item"><span class="pr-key">난이도 조절</span><span class="pr-val">class_sep: 높을수록 분리 쉬움</span></div><div class="principle-item"><span class="pr-key">재현성</span><span class="pr-val">random_state 고정 — 실험 재현</span></div></div>
+</div>
+<div class="tab-pane" id="tab-make_classification-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">불균형 데이터 처리 (SMOTE vs class_weight)</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>불균형 데이터 생성</span><span class="step"><span class="step-num">2</span>class_weight 비교</span><span class="step"><span class="step-num">3</span>F1-macro 평가</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+import numpy as np
+import pandas as pd
+
+# 불균형 데이터 생성 (90:10)
+X, y = make_classification(n_samples=1000, n_features=20,
+                            n_informative=10, weights=[0.9, 0.1],
+                            random_state=42)
+print(f&#x27;클래스 분포: {np.bincount(y)}&#x27;)
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+results = []
+for name, model in [
+    (&#x27;LR (default)&#x27;,       LogisticRegression(max_iter=500)),
+    (&#x27;LR (balanced)&#x27;,      LogisticRegression(class_weight=&#x27;balanced&#x27;, max_iter=500)),
+    (&#x27;RF (default)&#x27;,       RandomForestClassifier(n_estimators=100, random_state=42)),
+    (&#x27;RF (balanced)&#x27;,      RandomForestClassifier(class_weight=&#x27;balanced&#x27;,
+                                                  n_estimators=100, random_state=42)),
+]:
+    f1  = cross_val_score(model, X, y, cv=cv, scoring=&#x27;f1&#x27;).mean()
+    auc = cross_val_score(model, X, y, cv=cv, scoring=&#x27;roc_auc&#x27;).mean()
+    results.append({&#x27;Model&#x27;: name, &#x27;F1(소수 클래스)&#x27;: f1, &#x27;ROC-AUC&#x27;: auc})
+
+print(pd.DataFrame(results).round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>class_weight='balanced'가 소수 클래스 F1을 0.1~0.2 향상시키는 경우가 많음</li><li>ROC-AUC는 임계값 독립적이라 불균형에서도 class_weight 효과가 덜 보임</li><li>불균형 비율 90:10 → accuracy만 보면 다수 클래스만 예측해도 90%가 나옴</li><li>weights=[0.9,0.1]로 실제 데이터와 비슷한 불균형을 재현하여 알고리즘 비교</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> SMOTE(imblearn)는 소수 클래스를 합성으로 오버샘플링 — Pipeline에서 fit 시에만 적용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">피처 수 vs 성능 — 노이즈 피처 영향</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>n_informative 고정</span><span class="step"><span class="step-num">2</span>n_features 변화</span><span class="step"><span class="step-num">3</span>성능 변화 추적</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+import pandas as pd
+
+rows = []
+for n_feat in [5, 10, 20, 50, 100]:
+    X, y = make_classification(n_samples=500, n_features=n_feat,
+                                n_informative=5, n_redundant=0,
+                                random_state=42)
+    # 피처 선택 없이
+    rf = RandomForestClassifier(n_estimators=100, random_state=42)
+    r1 = cross_val_score(rf, X, y, cv=5).mean()
+
+    # SelectKBest(k=5) 후
+    pipe = Pipeline([(&#x27;sel&#x27;, SelectKBest(f_classif, k=5)),
+                     (&#x27;rf&#x27;,  RandomForestClassifier(n_estimators=100, random_state=42))])
+    r2 = cross_val_score(pipe, X, y, cv=5).mean()
+
+    rows.append({&#x27;n_features&#x27;: n_feat, &#x27;RF(전체)&#x27;: r1,
+                 &#x27;RF+Select(k=5)&#x27;: r2, &#x27;향상&#x27;: r2-r1})
+
+print(pd.DataFrame(rows).round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>노이즈 피처가 증가할수록 RF(전체) 성능이 점진적으로 하락</li><li>SelectKBest(k=5)로 유효 피처만 선택 시 n_features와 무관하게 성능 안정</li><li>n_features=100일 때 피처 선택 효과가 가장 크게 나타남</li><li>RF 자체도 피처 선택 효과(feature_importances_)가 있지만 노이즈가 많으면 한계</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 실제 데이터에서는 n_informative를 모르므로 교차검증으로 k를 탐색해야 함</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-gen" id="make_regression">
+<div class="section-head">
+  <div class="sec-num">09</div>
+  <div class="sec-info">
+    <span class="sec-name">make_regression()</span>
+    <span class="sec-badge">생성:회귀</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'make_regression','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_regression','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_regression','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-make_regression-overview">
+<p class="ds-desc">합성 회귀 데이터. 노이즈·유효 피처·다중출력·이상치를 자유롭게 생성.</p>
+<div class="meta-chips"><span class="meta-chip">행 가변</span><span class="meta-chip">피처 가변</span><span class="meta-chip">target: 연속값</span><span class="meta-chip cat-gen">생성:회귀</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>n_samples</code></td><td class="type-cell">int</td><td>샘플 수</td></tr><tr><td><code>n_features</code></td><td class="type-cell">int</td><td>전체 피처 수</td></tr><tr><td><code>n_informative</code></td><td class="type-cell">int</td><td>유효 피처 수</td></tr><tr><td><code>noise</code></td><td class="type-cell">float</td><td>가우시안 노이즈 표준편차</td></tr><tr><td><code>coef</code></td><td class="type-cell">bool</td><td>True면 실제 계수 배열 반환</td></tr><tr><td><code>n_targets</code></td><td class="type-cell">int</td><td>출력 변수 수 (다중출력)</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-make_regression-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">실제 계수 반환</span><span class="pr-val">coef=True → 추정 계수와 비교 가능</span></div><div class="principle-item"><span class="pr-key">노이즈 조절</span><span class="pr-val">noise 파라미터 → SNR 실험</span></div><div class="principle-item"><span class="pr-key">다중출력</span><span class="pr-val">n_targets &gt; 1 → MultiOutputRegressor 실습</span></div><div class="principle-item"><span class="pr-key">Ridge/Lasso 비교</span><span class="pr-val">유효 피처 개수 vs 정규화 효과</span></div></div>
+</div>
+<div class="tab-pane" id="tab-make_regression-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">실제 계수 vs 추정 계수 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>coef=True로 실제 계수 반환</span><span class="step"><span class="step-num">2</span>Lasso 계수 추정</span><span class="step"><span class="step-num">3</span>오차 분석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_regression
+from sklearn.linear_model import Lasso, LassoCV, Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import numpy as np
+import pandas as pd
+
+# 실제 계수를 알 수 있는 합성 데이터
+X, y, true_coef = make_regression(n_samples=200, n_features=20,
+                                   n_informative=5, noise=10,
+                                   coef=True, random_state=42)
+
+# 실제 0이 아닌 계수
+nonzero_idx = np.where(true_coef != 0)[0]
+print(f&#x27;실제 유효 피처: {nonzero_idx}&#x27;)
+print(f&#x27;실제 계수: {true_coef[nonzero_idx].round(2)}&#x27;)
+
+# LassoCV 추정
+sc = StandardScaler()
+X_sc = sc.fit_transform(X)
+lasso = LassoCV(cv=5, random_state=42).fit(X_sc, y)
+
+print(f&#x27;\nLassoCV 최적 alpha: {lasso.alpha_:.4f}&#x27;)
+print(&#x27;추정 0이 아닌 피처:&#x27;, np.where(lasso.coef_ != 0)[0])
+
+# 피처 회수율 (실제 유효 피처 중 몇 개를 찾았나)
+found = set(np.where(lasso.coef_ != 0)[0]) &amp; set(nonzero_idx)
+print(f&#x27;회수율: {len(found)}/{len(nonzero_idx)} 유효 피처 발견&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>LassoCV가 실제 유효 피처 5개 중 대부분을 정확히 선택</li><li>noise=10에서도 Lasso가 올바른 변수를 선택하는 회복력(recovery) 확인</li><li>noise가 커질수록 일부 유효 피처를 놓치거나 노이즈 피처를 선택하는 실수 발생</li><li>make_regression은 coef=True로 '정답'을 알기에 변수 선택 알고리즘 검증에 최적</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> LASSO의 변수 선택 능력은 n >> p이고 피처 간 상관이 낮을 때 가장 신뢰할 수 있음</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-reg">노이즈 수준별 모델 성능 곡선</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>noise 0~100 변화</span><span class="step"><span class="step-num">2</span>OLS·Ridge·RF 비교</span><span class="step"><span class="step-num">3</span>SNR 분석</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_regression
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import cross_val_score
+import numpy as np
+import pandas as pd
+
+rows = []
+for noise in [0, 10, 30, 60, 100, 200]:
+    X, y = make_regression(n_samples=300, n_features=20,
+                            n_informative=10, noise=noise, random_state=42)
+    snr = y.var() / (noise**2 + 1e-9)  # Signal-to-Noise Ratio
+
+    for name, model in [(&#x27;OLS&#x27;, LinearRegression()),
+                         (&#x27;Ridge&#x27;, Ridge(alpha=1)),
+                         (&#x27;RF&#x27;, RandomForestRegressor(n_estimators=100, random_state=42))]:
+        r2 = cross_val_score(model, X, y, cv=5, scoring=&#x27;r2&#x27;).mean()
+        rows.append({&#x27;noise&#x27;: noise, &#x27;SNR&#x27;: f&#x27;{snr:.1f}&#x27;, &#x27;Model&#x27;: name, &#x27;R2&#x27;: r2})
+
+df = pd.DataFrame(rows)
+print(df.pivot_table(&#x27;R2&#x27;, index=[&#x27;noise&#x27;,&#x27;SNR&#x27;], columns=&#x27;Model&#x27;).round(3).to_string())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>noise=0: 모든 모델 R²=1.0 — 노이즈 없으면 완벽한 예측</li><li>noise 증가 → R² 하락; RF가 노이즈 = 30~60에서 OLS보다 소폭 우세</li><li>noise=200: R² < 0.3 — 신호 대비 노이즈가 너무 커 모든 모델 한계</li><li>Ridge가 고노이즈에서 OLS보다 안정적인 R² 유지 — 정규화의 효과</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> SNR(신호대잡음비)이 낮을수록 어떤 모델도 높은 성능을 달성하기 어려움</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-gen" id="make_blobs">
+<div class="section-head">
+  <div class="sec-num">10</div>
+  <div class="sec-info">
+    <span class="sec-name">make_blobs()</span>
+    <span class="sec-badge">생성:군집화</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'make_blobs','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_blobs','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_blobs','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-make_blobs-overview">
+<p class="ds-desc">구형(Gaussian) 군집 생성. KMeans·GMM·DBSCAN·계층 군집화 비교 실험.</p>
+<div class="meta-chips"><span class="meta-chip">행 가변</span><span class="meta-chip">피처 가변</span><span class="meta-chip">target: 군집 레이블</span><span class="meta-chip cat-gen">생성:군집화</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>n_samples</code></td><td class="type-cell">int/list</td><td>총 샘플 수 또는 군집별 샘플 수</td></tr><tr><td><code>n_features</code></td><td class="type-cell">int</td><td>피처(차원) 수</td></tr><tr><td><code>centers</code></td><td class="type-cell">int/array</td><td>군집 수 또는 중심 좌표</td></tr><tr><td><code>cluster_std</code></td><td class="type-cell">float/list</td><td>군집별 표준편차</td></tr><tr><td><code>random_state</code></td><td class="type-cell">int</td><td>재현성 고정</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-make_blobs-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">KMeans</span><span class="pr-val">Elbow + 실루엣 → 최적 K</span></div><div class="principle-item"><span class="pr-key">GMM</span><span class="pr-val">BIC/AIC 최적 성분 수</span></div><div class="principle-item"><span class="pr-key">DBSCAN</span><span class="pr-val">eps·min_samples 탐색</span></div><div class="principle-item"><span class="pr-key">계층적</span><span class="pr-val">linkage — single/complete/ward 비교</span></div></div>
+</div>
+<div class="tab-pane" id="tab-make_blobs-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">KMeans + 실루엣 분석</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>군집 생성</span><span class="step"><span class="step-num">2</span>K=2~8 실루엣 계산</span><span class="step"><span class="step-num">3</span>최적 K 판정</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, adjusted_rand_score
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+import pandas as pd
+
+# 군집 수 5, 군집별 표준편차 다르게
+X, y_true = make_blobs(n_samples=500, centers=5,
+                        cluster_std=[0.5, 1.0, 0.7, 0.4, 0.9],
+                        random_state=42)
+X = StandardScaler().fit_transform(X)
+
+rows = []
+for k in range(2, 9):
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    labels = km.fit_predict(X)
+    sil = silhouette_score(X, labels)
+    ari = adjusted_rand_score(y_true, labels)
+    rows.append({&#x27;K&#x27;: k, &#x27;Inertia&#x27;: km.inertia_, &#x27;Silhouette&#x27;: sil, &#x27;ARI&#x27;: ari})
+
+df = pd.DataFrame(rows)
+print(df.round(4).to_string(index=False))
+best_k = df.loc[df[&#x27;Silhouette&#x27;].idxmax(), &#x27;K&#x27;]
+print(f&#x27;\n실루엣 기준 최적 K: {best_k}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>K=5에서 실루엣 점수 최대 — 실제 군집 수와 일치 (ARI ≈ 1.0이면 완벽 복원)</li><li>Inertia는 K가 늘수록 단조 감소 — Elbow 꺾임점이 최적 K의 시각적 단서</li><li>ARI(Adjusted Rand Index): 0=무작위, 1=완벽 일치 — 레이블이 있을 때 군집 품질 측정</li><li>cluster_std가 다르면 K가 커져도 실루엣이 낮을 수 있음 — GMM이 더 적합</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 실루엣 점수 > 0.5=좋음, > 0.7=매우 좋음; < 0.25이면 군집 구조가 약함</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">GMM vs KMeans — 타원 군집 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>타원형 군집 생성</span><span class="step"><span class="step-num">2</span>GMM·KMeans 비교</span><span class="step"><span class="step-num">3</span>BIC 최적 성분</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_blobs
+from sklearn.mixture import GaussianMixture
+from sklearn.cluster import KMeans
+from sklearn.metrics import adjusted_rand_score
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# 다양한 분산으로 타원형 분포 시뮬레이션
+np.random.seed(42)
+X1 = np.random.multivariate_normal([0, 0], [[3, 2],[2, 3]], 150)
+X2 = np.random.multivariate_normal([6, 0], [[1, 0],[0, 5]], 150)
+X3 = np.random.multivariate_normal([3, 5], [[2,-1],[-1,2]], 150)
+X = np.vstack([X1, X2, X3])
+y_true = np.repeat([0, 1, 2], 150)
+
+# KMeans
+km = KMeans(n_clusters=3, n_init=10, random_state=42)
+ari_km = adjusted_rand_score(y_true, km.fit_predict(X))
+
+# GMM
+gmm = GaussianMixture(n_components=3, covariance_type=&#x27;full&#x27;, random_state=42)
+ari_gmm = adjusted_rand_score(y_true, gmm.fit_predict(X))
+
+print(f&#x27;KMeans ARI: {ari_km:.4f}&#x27;)
+print(f&#x27;GMM(full)  ARI: {ari_gmm:.4f}&#x27;)
+
+# BIC로 최적 성분 수 선택
+for n in range(2, 7):
+    g = GaussianMixture(n_components=n, covariance_type=&#x27;full&#x27;, random_state=42)
+    g.fit(X)
+    print(f&#x27;n={n}: BIC={g.bic(X):.1f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>타원형 군집에서 GMM ARI > KMeans ARI — GMM이 비구형 군집에 더 유연</li><li>KMeans는 군집이 구형(isotropic)이라고 가정 → 타원 분포에서 경계가 어긋남</li><li>BIC 최솟값이 n=3에서 달성 → 실제 군집 수와 일치</li><li>covariance_type='full'은 각 군집의 공분산 행렬을 독립적으로 추정 — 가장 유연</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> covariance_type: 'spherical'(구형)<'diag'(대각)<'tied'(공유)<'full'(자유도 순)</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cl">DBSCAN — 이상치 포함 군집화</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>이상치 추가</span><span class="step"><span class="step-num">2</span>k-NN 거리로 eps 추정</span><span class="step"><span class="step-num">3</span>DBSCAN 군집</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_blobs
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
+import pandas as pd
+
+# 군집 + 균등분포 노이즈(이상치)
+X_clean, _ = make_blobs(n_samples=400, centers=3,
+                         cluster_std=0.5, random_state=42)
+X_noise = np.random.uniform(-8, 8, (40, 2))
+X = np.vstack([X_clean, X_noise])
+X = StandardScaler().fit_transform(X)
+
+# 최적 eps 추정: 4-NN 거리 정렬
+nn = NearestNeighbors(n_neighbors=4)
+nn.fit(X)
+dists = np.sort(nn.kneighbors(X)[0][:, -1])
+print(&#x27;4-NN 거리 분위수:&#x27;)
+for q in [50, 75, 90, 95, 99]:
+    print(f&#x27;  {q}%ile: {np.percentile(dists, q):.4f}&#x27;)
+
+# eps=0.3 적용
+db = DBSCAN(eps=0.3, min_samples=5)
+labels = db.fit_predict(X)
+n_cluster = len(set(labels)) - (1 if -1 in labels else 0)
+n_noise   = (labels == -1).sum()
+print(f&#x27;\n군집 수: {n_cluster}  노이즈: {n_noise}개 ({n_noise/len(X)*100:.1f}%)&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>DBSCAN이 균등분포 노이즈(40개)를 -1(노이즈)로 정확히 식별</li><li>4-NN 거리의 90~95%ile 근방이 eps의 좋은 시작점 — knee 점 찾기</li><li>min_samples를 늘리면 더 촘촘한 core point 기준 → 노이즈 더 많이 분류</li><li>eps가 너무 크면 군집이 합쳐지고, 너무 작으면 모든 점이 노이즈 처리</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> DBSCAN의 단점: eps와 min_samples가 데이터 밀도에 따라 달라져 튜닝이 어려움</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-gen" id="make_moons">
+<div class="section-head">
+  <div class="sec-num">11</div>
+  <div class="sec-info">
+    <span class="sec-name">make_moons()</span>
+    <span class="sec-badge">생성:비선형</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'make_moons','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_moons','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_moons','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-make_moons-overview">
+<p class="ds-desc">반달 형태의 비선형 분류 데이터. 커널 SVM·결정 경계 시각화·비선형 분류 비교.</p>
+<div class="meta-chips"><span class="meta-chip">행 가변</span><span class="meta-chip">피처 2</span><span class="meta-chip">target: 0/1</span><span class="meta-chip cat-gen">생성:비선형</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>n_samples</code></td><td class="type-cell">int</td><td>샘플 수</td></tr><tr><td><code>noise</code></td><td class="type-cell">float</td><td>가우시안 노이즈 표준편차</td></tr><tr><td><code>random_state</code></td><td class="type-cell">int</td><td>재현성</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-make_moons-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">비선형 경계</span><span class="pr-val">선형 분류기 실패 → 커널 SVM 성공</span></div><div class="principle-item"><span class="pr-key">결정 경계</span><span class="pr-val">2D 데이터 → meshgrid + contourf 시각화</span></div><div class="principle-item"><span class="pr-key">앙상블</span><span class="pr-val">GBM·RF·AdaBoost 비선형 경계</span></div><div class="principle-item"><span class="pr-key">신경망</span><span class="pr-val">MLP — hidden layer로 비선형 학습</span></div></div>
+</div>
+<div class="tab-pane" id="tab-make_moons-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">선형 vs 비선형 분류기 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>달 모양 데이터 생성</span><span class="step"><span class="step-num">2</span>선형·비선형 비교</span><span class="step"><span class="step-num">3</span>결정 경계 메시 준비</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_moons
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import pandas as pd
+
+X, y = make_moons(n_samples=500, noise=0.2, random_state=42)
+
+models = {
+    &#x27;Logistic (선형)&#x27;: LogisticRegression(),
+    &#x27;SVM Linear&#x27;:      SVC(kernel=&#x27;linear&#x27;),
+    &#x27;SVM RBF&#x27;:         SVC(kernel=&#x27;rbf&#x27;, C=1),
+    &#x27;GBM&#x27;:             GradientBoostingClassifier(n_estimators=100),
+    &#x27;MLP(100,50)&#x27;:     MLPClassifier(hidden_layer_sizes=(100,50), max_iter=500),
+}
+
+rows = []
+for name, clf in models.items():
+    pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;clf&#x27;, clf)])
+    acc = cross_val_score(pipe, X, y, cv=5, scoring=&#x27;accuracy&#x27;).mean()
+    rows.append({&#x27;Model&#x27;: name, &#x27;CV Accuracy&#x27;: acc})
+
+print(pd.DataFrame(rows).sort_values(&#x27;CV Accuracy&#x27;, ascending=False)
+      .round(4).to_string(index=False))</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>선형 모델(Logistic·SVM Linear): 정확도 ≈ 0.85 — 반달 경계를 직선으로 못 표현</li><li>SVM(RBF)·GBM·MLP: 정확도 ≈ 0.97~0.99 — 비선형 경계 완벽 학습</li><li>make_moons는 선형 분류기의 한계를 극적으로 보여주는 교육용 데이터셋</li><li>noise=0.2로 일부 겹침 → noise=0이면 SVM RBF 100%, noise=0.5면 모두 성능 저하</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> noise를 높여가며 각 모델의 강인성(robustness)을 비교하는 실험에 활용</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">결정 경계 메시 계산 코드</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>StandardScaler 적용</span><span class="step"><span class="step-num">2</span>meshgrid 생성</span><span class="step"><span class="step-num">3</span>predict_proba 계산</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_moons
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import numpy as np
+
+X, y = make_moons(n_samples=300, noise=0.2, random_state=42)
+
+pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;svm&#x27;, SVC(kernel=&#x27;rbf&#x27;, probability=True))])
+pipe.fit(X, y)
+
+# 결정 경계 메시 (matplotlib contourf용)
+x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100),
+                     np.linspace(y_min, y_max, 100))
+
+# 각 메시 포인트의 양성 클래스 확률
+Z = pipe.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
+Z = Z.reshape(xx.shape)
+print(f&#x27;메시 크기: {xx.shape}&#x27;)
+print(f&#x27;확률 범위: [{Z.min():.4f}, {Z.max():.4f}]&#x27;)
+print(&#x27;시각화 코드: plt.contourf(xx, yy, Z, alpha=0.4, cmap=&quot;RdBu&quot;)&#x27;)
+print(&#x27;             plt.scatter(X[:,0], X[:,1], c=y, cmap=&quot;RdBu&quot;)&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>meshgrid로 2D 그리드 포인트 생성 → 각 점의 예측 확률로 컬러맵 시각화</li><li>np.c_[xx.ravel(), yy.ravel()]로 그리드 점을 2열 행렬로 변환 후 predict</li><li>Z.reshape(xx.shape)로 원래 그리드 형태로 복원 → contourf의 입력</li><li>predict_proba[:, 1]은 클래스 1의 확률 — 0.5 경계가 결정 경계</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 결정 경계 시각화는 2D 데이터에만 가능; 고차원은 PCA 2D 투영 후 시각화</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-gen" id="make_circles">
+<div class="section-head">
+  <div class="sec-num">12</div>
+  <div class="sec-info">
+    <span class="sec-name">make_circles()</span>
+    <span class="sec-badge">생성:비선형</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'make_circles','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_circles','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_circles','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-make_circles-overview">
+<p class="ds-desc">동심원 형태 비선형 이진 분류 데이터. RBF SVM·신경망·커널 트릭 실습.</p>
+<div class="meta-chips"><span class="meta-chip">행 가변</span><span class="meta-chip">피처 2</span><span class="meta-chip">target: 0(외)/1(내)</span><span class="meta-chip cat-gen">생성:비선형</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>n_samples</code></td><td class="type-cell">int</td><td>샘플 수</td></tr><tr><td><code>noise</code></td><td class="type-cell">float</td><td>가우시안 노이즈</td></tr><tr><td><code>factor</code></td><td class="type-cell">float</td><td>내·외원의 반지름 비율 (0~1)</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-make_circles-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">커널 트릭</span><span class="pr-val">RBF SVM — 원형 경계를 고차원에서 선형 분리</span></div><div class="principle-item"><span class="pr-key">반지름 변환</span><span class="pr-val">X1²+X2² → 선형 분리 가능 공간</span></div><div class="principle-item"><span class="pr-key">MLP</span><span class="pr-val">비선형 활성함수로 원형 경계 학습</span></div><div class="principle-item"><span class="pr-key">factor 조절</span><span class="pr-val">0에 가까울수록 두 원이 잘 분리됨</span></div></div>
+</div>
+<div class="tab-pane" id="tab-make_circles-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">RBF SVM vs MLP — 동심원 분류</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>동심원 데이터 생성</span><span class="step"><span class="step-num">2</span>선형·RBF·MLP 비교</span><span class="step"><span class="step-num">3</span>factor 변화 실험</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_circles
+from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+import pandas as pd
+
+rows = []
+for factor in [0.3, 0.5, 0.7]:
+    X, y = make_circles(n_samples=400, noise=0.1,
+                         factor=factor, random_state=42)
+    for name, clf in [
+        (&#x27;Logistic(선형)&#x27;,  LogisticRegression()),
+        (&#x27;SVM(RBF)&#x27;,       SVC(kernel=&#x27;rbf&#x27;, C=1)),
+        (&#x27;MLP(50,30)&#x27;,     MLPClassifier(hidden_layer_sizes=(50,30), max_iter=500)),
+    ]:
+        pipe = Pipeline([(&#x27;sc&#x27;, StandardScaler()), (&#x27;clf&#x27;, clf)])
+        acc = cross_val_score(pipe, X, y, cv=5, scoring=&#x27;accuracy&#x27;).mean()
+        rows.append({&#x27;factor&#x27;: factor, &#x27;Model&#x27;: name, &#x27;Accuracy&#x27;: acc})
+
+df = pd.DataFrame(rows)
+print(df.pivot_table(&#x27;Accuracy&#x27;, index=&#x27;factor&#x27;, columns=&#x27;Model&#x27;).round(4).to_string())</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>선형 모델: factor와 무관하게 ≈ 0.50 (무작위와 같음) — 원형 경계 표현 불가</li><li>SVM(RBF)·MLP: factor=0.3에서 ≈ 0.99, factor=0.7에서 ≈ 0.92 (두 원이 가까울수록 어려움)</li><li>factor가 1에 가까울수록 두 원이 겹쳐져 어떤 모델도 분리 불가</li><li>RBF 커널은 원점까지의 거리(r²=x₁²+x₂²)를 암묵적으로 계산 → 원형 경계 자연스럽게 학습</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 반지름 r = √(x₁²+x₂²)를 새 피처로 추가하면 선형 회귀도 동심원 분류 가능</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-cls">수동 피처 엔지니어링으로 선형 분리</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>반지름 파생변수 추가</span><span class="step"><span class="step-num">2</span>선형 모델 재도전</span><span class="step"><span class="step-num">3</span>R² 확인</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_circles
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+X, y = make_circles(n_samples=400, noise=0.05, factor=0.5, random_state=42)
+
+# 반지름 피처 추가
+r = np.sqrt((X ** 2).sum(axis=1, keepdims=True))
+X_eng = np.hstack([X, r])
+
+for name, X_use in [(&#x27;원본 X(2D)&#x27;, X), (&#x27;반지름 추가(3D)&#x27;, X_eng)]:
+    acc_lr  = cross_val_score(LogisticRegression(), X_use, y, cv=5).mean()
+    acc_svm = cross_val_score(SVC(kernel=&#x27;linear&#x27;), X_use, y, cv=5).mean()
+    print(f&#x27;{name}&#x27;)
+    print(f&#x27;  Logistic: {acc_lr:.4f}&#x27;)
+    print(f&#x27;  SVM(linear): {acc_svm:.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>원본 2D에서 선형 모델 정확도 ≈ 0.50 — 완전히 무작위 수준</li><li>r = √(x₁²+x₂²) 피처 추가 후 선형 Logistic 정확도 ≈ 0.95 이상</li><li>RBF 커널이 하는 일을 수동으로 피처 엔지니어링으로 모방 — '커널 트릭' 직관 이해</li><li>선형 모델 + 좋은 피처 > 복잡한 비선형 모델 + 원본 피처 → 피처 엔지니어링의 중요성</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> 커널 트릭: 고차원 매핑을 명시적으로 계산하지 않고 내적만으로 표현 — 계산 효율</div>
+</div></div>
+</div>
+</div>
+</section>
+
+<section class="section cat-gen" id="make_swiss_roll">
+<div class="section-head">
+  <div class="sec-num">13</div>
+  <div class="sec-info">
+    <span class="sec-name">make_swiss_roll()</span>
+    <span class="sec-badge">생성:다양체</span>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(this,'make_swiss_roll','overview')">📋 개요·속성</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_swiss_roll','principles')">🧠 분석 원리</button>
+  <button class="tab-btn" onclick="switchTab(this,'make_swiss_roll','source')">💻 소스 코드</button>
+</div>
+<div class="tab-content">
+<div class="tab-pane active" id="tab-make_swiss_roll-overview">
+<p class="ds-desc">3D 스위스롤 다양체 데이터. t-SNE·UMAP·Isomap·LLE 차원 축소 비교.</p>
+<div class="meta-chips"><span class="meta-chip">행 가변</span><span class="meta-chip">피처 3</span><span class="meta-chip">target: 위치(연속)</span><span class="meta-chip cat-gen">생성:다양체</span></div>
+<table class="col-table">
+<thead><tr><th>컬럼/속성</th><th>타입</th><th>설명</th></tr></thead>
+<tbody><tr><td><code>n_samples</code></td><td class="type-cell">int</td><td>샘플 수</td></tr><tr><td><code>noise</code></td><td class="type-cell">float</td><td>가우시안 노이즈</td></tr></tbody></table>
+</div>
+<div class="tab-pane" id="tab-make_swiss_roll-principles">
+<div class="principles-grid"><div class="principle-item"><span class="pr-key">다양체 학습</span><span class="pr-val">Manifold Learning — 비선형 저차원 구조 복원</span></div><div class="principle-item"><span class="pr-key">t-SNE</span><span class="pr-val">TSNE — 지역 구조 보존, 클러스터 시각화</span></div><div class="principle-item"><span class="pr-key">Isomap</span><span class="pr-val">측지 거리 기반 — 전역 구조 보존</span></div><div class="principle-item"><span class="pr-key">LLE</span><span class="pr-val">지역 선형 임베딩 — 고차원 지역 구조 보존</span></div></div>
+</div>
+<div class="tab-pane" id="tab-make_swiss_roll-source">
+<div class="examples-container"><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">t-SNE vs Isomap vs LLE 비교</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>3D 스위스롤 생성</span><span class="step"><span class="step-num">2</span>3가지 차원축소 적용</span><span class="step"><span class="step-num">3</span>결과 비교</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_swiss_roll
+from sklearn.manifold import TSNE, Isomap, LocallyLinearEmbedding
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+import time
+
+X, color = make_swiss_roll(n_samples=1000, noise=0.1, random_state=42)
+print(f&#x27;원본 shape: {X.shape}  (3D 스위스롤)&#x27;)
+
+methods = {
+    &#x27;PCA&#x27;:     PCA(n_components=2),
+    &#x27;Isomap&#x27;:  Isomap(n_neighbors=10, n_components=2),
+    &#x27;LLE&#x27;:     LocallyLinearEmbedding(n_neighbors=10, n_components=2, random_state=42),
+    &#x27;t-SNE&#x27;:   TSNE(n_components=2, perplexity=30, random_state=42),
+}
+
+for name, method in methods.items():
+    t0 = time.time()
+    X_2d = method.fit_transform(X)
+    t1 = time.time()
+    # 2D에서 color(위치)와의 스피어만 상관 (얼마나 순서 보존?)
+    from scipy.stats import spearmanr
+    rho, _ = spearmanr(color, X_2d[:, 0])
+    print(f&#x27;{name:10}: shape={X_2d.shape}  &#x27;
+          f&#x27;time={t1-t0:.2f}s  &#x27;
+          f&#x27;Spearman(color,PC1)={abs(rho):.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>PCA: 스위스롤을 2D로 단순 투영 — 말린 구조를 펴지 못함, Spearman 낮음</li><li>Isomap: 측지 거리로 말린 구조를 펼침 — 스위스롤 색상과 높은 스피어만 상관</li><li>t-SNE: 지역 구조 보존에 강함 — 클러스터 시각화에 최적, 전역 거리는 왜곡</li><li>LLE: 지역 선형 관계 보존 — n_neighbors 민감, 일부 노이즈에 취약</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> t-SNE perplexity는 지역 이웃 수 개념 — 데이터 크기에 따라 5~50 범위에서 튜닝</div>
+</div><div class="sub-example">
+<div class="sub-ex-header">
+  <span class="sub-ex-badge badge-ml">t-SNE 파라미터 튜닝</span>
+</div>
+<div class="steps"><span class="step"><span class="step-num">1</span>perplexity 변화</span><span class="step"><span class="step-num">2</span>n_iter 영향</span><span class="step"><span class="step-num">3</span>안정적 결과 얻기</span></div>
+<div class="code-block">
+<div class="code-header">
+  <span class="code-lang">Python</span>
+  <button class="code-copy" onclick="copyCode(this)">복사</button>
+</div>
+<pre class="code"><code class="language-python">from sklearn.datasets import make_swiss_roll
+from sklearn.manifold import TSNE
+import numpy as np
+from scipy.stats import spearmanr
+
+X, color = make_swiss_roll(n_samples=800, noise=0.1, random_state=42)
+
+print(f&#x27;{&quot;perplexity&quot;:&gt;12}  {&quot;n_iter&quot;:&gt;8}  {&quot;Spearman&quot;:&gt;10}  {&quot;KL_div&quot;:&gt;10}&#x27;)
+for perp in [5, 15, 30, 50, 100]:
+    tsne = TSNE(n_components=2, perplexity=perp,
+                n_iter=1000, random_state=42)
+    X_2d = tsne.fit_transform(X)
+    rho, _ = spearmanr(color, X_2d[:, 0])
+    print(f&#x27;{perp:&gt;12}  {1000:&gt;8}  {abs(rho):&gt;10.4f}  {tsne.kl_divergence_:&gt;10.4f}&#x27;)</code></pre>
+</div>
+<div class="result-box">
+  <h5>📊 결과 해석</h5>
+  <ul><li>perplexity=30~50에서 KL divergence 최소 + Spearman 상관 최대 경향</li><li>perplexity가 너무 작으면 과도한 클러스터 분리, 너무 크면 구조가 뭉개짐</li><li>kl_divergence_가 낮을수록 원본 구조를 잘 보존하는 임베딩</li><li>n_iter=1000으로도 충분하나 복잡한 데이터는 3000~5000 필요</li></ul>
+</div>
+<div class="tip-box"><strong>💡 팁:</strong> t-SNE 결과는 랜덤 초기화에 따라 달라짐 — random_state 고정 + 여러 번 실행 권장</div>
+</div></div>
+</div>
+</div>
+</section>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+function switchTab(btn, dsId, tab) {
+  const section = btn.closest('.section');
+  section.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  section.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pane = section.querySelector('#tab-' + dsId + '-' + tab);
+  if (pane) pane.classList.add('active');
+}
+
+function copyCode(btn) {
+  const codeEl = btn.closest('.code-block').querySelector('code');
+  const text = codeEl.textContent || codeEl.innerText;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => flash(btn)).catch(() => fallback(btn, text));
+  } else { fallback(btn, text); }
+}
+function flash(btn) {
+  const orig = btn.textContent;
+  btn.textContent = '✓ 복사됨';
+  setTimeout(() => btn.textContent = orig, 1500);
+}
+function fallback(btn, text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta);
+  ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta); flash(btn);
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+      const link = document.querySelector('.sb-link[href="#' + e.target.id + '"]');
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
