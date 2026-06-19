@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>빅데이터분석기사 작업형2 — 머신러닝 모델링 총정리</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&family=Bebas+Neue&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #ffffff;
+    --bg2:    #f5f4fb;
+    --bg3:    #eceaf8;
+    --border: #dcdaf0;
+    --text:   #17152e;
+    --muted:  #6b6899;
+
+    --p1: #4c3bc8;   /* 분류 메인 */
+    --p2: #7c3aed;   /* 분류 서브 */
+    --r1: #c8533b;   /* 회귀 메인 */
+    --r2: #e87040;   /* 회귀 서브 */
+    --e1: #1f8f6e;   /* 평가지표 */
+    --e2: #16a58a;   /* 평가 서브 */
+    --c1: #1a5fa8;   /* 교차검증 */
+    --h1: #8b2eb0;   /* 하이퍼파라미터 */
+    --f1: #4a7a20;   /* 특성중요도 */
+    --w1: #c8872a;   /* 주의사항 */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  .top-header {
+    background: #17152e;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header-accent {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 15% 50%, rgba(76,59,200,0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 30%, rgba(124,58,237,0.25) 0%, transparent 50%);
+  }
+  .header-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .header-inner {
+    position: relative; z-index: 2;
+    padding: 30px 48px 26px;
+  }
+  .hbadge-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+  .hbadge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(76,59,200,0.2);
+    border: 1px solid rgba(76,59,200,0.45);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 11px; font-weight: 600;
+    color: #a89df0; letter-spacing: 0.04em;
+  }
+  .top-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px; letter-spacing: 0.04em;
+    color: white; margin-bottom: 5px;
+    line-height: 1.1;
+  }
+  .top-header h1 em {
+    color: #8b78f8; font-style: normal;
+  }
+  .top-header p { font-size: 13px; color: #8a88b0; }
+
+  /* ── LAYOUT ── */
+  .wrap { display: flex; }
+
+  .sidebar {
+    width: 215px; min-width: 215px;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+    background: #f5f4fb;
+    border-right: 1px solid var(--border);
+    padding: 18px 13px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .nav-lbl {
+    font-size: 9.5px; font-weight: 800;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    color: #9a98c0; padding: 4px 8px;
+    margin: 14px 0 4px;
+  }
+  .nav-lbl:first-child { margin-top: 0; }
+
+  .sidebar a {
+    display: flex; align-items: center; gap: 7px;
+    text-decoration: none; color: var(--text);
+    font-size: 12px; padding: 5px 8px;
+    border-radius: 6px; margin-bottom: 1px;
+    border-left: 2px solid transparent;
+    transition: all 0.13s;
+  }
+  .sidebar a:hover { background: var(--bg3); color: var(--p1); }
+  .sidebar a.active {
+    background: #edeaff; color: var(--p1);
+    border-left-color: var(--p1); font-weight: 600;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  .main {
+    flex: 1; padding: 30px 40px;
+    max-width: calc(100% - 215px);
+    overflow-x: hidden;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 52px; }
+  .sa { scroll-margin-top: 20px; }
+
+  .sh {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px; padding-bottom: 11px;
+    border-bottom: 2px solid var(--border);
+  }
+  .si {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .sh h2 { font-size: 18px; font-weight: 700; }
+  .sh-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  /* ── CODE BLOCKS ── */
+  .cb {
+    background: #0f0e1e;
+    border-radius: 10px; overflow: hidden;
+    margin-bottom: 14px;
+    border: 1px solid #1e1c38;
+  }
+  .cb-head {
+    background: #1a1830;
+    padding: 6px 14px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: #7c6ff0;
+    border-bottom: 1px solid #1e1c38;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cb-body {
+    padding: 14px 18px;
+    font-family: 'Fira Code', monospace;
+    font-size: 12.5px;
+    color: #d8d6f8;
+    overflow-x: auto; line-height: 1.75;
+    white-space: pre;
+  }
+  /* 구문 색상 */
+  .kw  { color: #9d8df8; }   /* import from def class if else for return */
+  .fn  { color: #7ecfed; }   /* 함수명 */
+  .st  { color: #a6dba0; }   /* 문자열 */
+  .nm  { color: #ffc87a; }   /* 숫자 */
+  .cm  { color: #44405a; font-style: italic; }
+  .at  { color: #d4a4f0; }   /* .속성 */
+  .cls { color: #ffcc88; }   /* 클래스 */
+  .op  { color: #e8a87c; }   /* 연산자 */
+
+  /* ── TABLES ── */
+  .tw {
+    overflow-x: auto; margin-bottom: 14px;
+    border-radius: 9px; border: 1px solid var(--border);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--bg2); }
+  th {
+    padding: 9px 13px; text-align: left;
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.05em; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 13px; border-bottom: 1px solid #f0eef8;
+    vertical-align: middle; line-height: 1.5;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #faf9ff; }
+  td code {
+    font-family: 'Fira Code', monospace; font-size: 11px;
+    background: var(--bg3); padding: 1px 5px;
+    border-radius: 4px; color: var(--p1);
+  }
+
+  /* ── CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px,1fr)); gap: 11px; margin-bottom: 16px; }
+  .card {
+    border-radius: 10px; padding: 14px 15px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+  }
+  .card-tag { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .card-val { font-family: 'Crimson Pro', serif; font-size: 22px; font-weight: 700; margin-bottom: 3px; }
+  .card-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* ── HL BOX ── */
+  .hl {
+    border-left: 3px solid;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 15px; margin-bottom: 12px;
+    font-size: 13px; background: var(--bg2);
+    line-height: 1.6;
+  }
+  .hl b { font-weight: 700; }
+  .hl code {
+    font-family: 'Fira Code', monospace; font-size: 11px;
+    background: rgba(0,0,0,0.07); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ── CHIP ── */
+  .chip {
+    display: inline-block;
+    font-family: 'Fira Code', monospace; font-size: 11px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; color: var(--p1);
+  }
+
+  /* ── GRID ── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width:1020px){ .g2{grid-template-columns:1fr;} .g3{grid-template-columns:1fr 1fr;} }
+
+  /* ── SVG WRAP ── */
+  .sw {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .sw-title {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); margin-bottom: 12px;
+  }
+
+  /* ── FLOW ── */
+  .flow { display: flex; align-items: stretch; margin-bottom: 16px; flex-wrap: wrap; }
+  .fstep {
+    flex: 1; min-width: 110px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-right: none; padding: 11px 12px;
+    text-align: center; position: relative;
+  }
+  .fstep:first-child { border-radius: 8px 0 0 8px; }
+  .fstep:last-child  { border-radius: 0 8px 8px 0; border-right: 1px solid var(--border); }
+  .fstep::after {
+    content: '▶'; position: absolute; right: -9px; top: 50%;
+    transform: translateY(-50%); color: var(--muted); font-size: 11px; z-index: 1;
+  }
+  .fstep:last-child::after { display: none; }
+  .fnum {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--p1); color: white;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 5px;
+  }
+  .ftitle { font-size: 11px; font-weight: 700; }
+  .fsub   { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* ── TAG ── */
+  .tag {
+    display: inline-block; padding: 1px 7px;
+    border-radius: 20px; font-size: 10px; font-weight: 700;
+  }
+  .t-clf  { background: #ede9ff; color: var(--p1); }
+  .t-reg  { background: #fff1ec; color: var(--r1); }
+  .t-both { background: #e8fff8; color: var(--e1); }
+  .t-must { background: #ffd6d6; color: #b30000; }
+  .t-imp  { background: #fff0cc; color: #8a5000; }
+
+  /* row color */
+  .rp td:first-child { border-left: 3px solid var(--p1); }
+  .rr td:first-child { border-left: 3px solid var(--r1); }
+  .re td:first-child { border-left: 3px solid var(--e1); }
+  .rc td:first-child { border-left: 3px solid var(--c1); }
+
+  /* 분류/회귀 뱃지 */
+  .model-card {
+    border-radius: 10px; padding: 13px 15px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    margin-bottom: 10px;
+  }
+  .model-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .model-para { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .model-para code {
+    font-family: 'Fira Code', monospace; font-size: 10.5px;
+    background: rgba(0,0,0,0.06); padding: 1px 4px; border-radius: 3px;
+    color: var(--p1);
+  }
+
+  /* confusion matrix 표 스타일 */
+  .cm-table td { text-align: center; font-weight: 600; font-size: 13px; }
+  .cm-tp { background: #d0ffd8; color: #0a5c1a; }
+  .cm-tn { background: #d0e8ff; color: #0a2c5c; }
+  .cm-fp { background: #ffe4d0; color: #8c2a00; }
+  .cm-fn { background: #fff3c0; color: #7a4800; }
+
+  /* 구분 박스 */
+  .type-box {
+    border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 12px;
+    border: 1px solid;
+  }
+  .type-box h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="top-header">
+  <div class="header-accent"></div>
+  <div class="header-grid"></div>
+  <div class="header-inner">
+    <div class="hbadge-row">
+      <span class="hbadge">🤖 sklearn</span>
+      <span class="hbadge">🌲 RandomForest</span>
+      <span class="hbadge">⚡ XGBoost</span>
+      <span class="hbadge">📐 LinearModel</span>
+      <span class="hbadge">📊 Metrics</span>
+    </div>
+    <h1>빅분기 <em>작업형 2</em></h1>
+    <p>머신러닝 모델 구축 · 평가 · 튜닝 — 분류 &amp; 회귀 완전 정복</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-lbl">기본 흐름</div>
+    <a href="#s-flow"><span class="dot" style="background:var(--p1)"></span>모델링 전체 흐름</a>
+    <a href="#s-split"><span class="dot" style="background:var(--p1)"></span>데이터 분할</a>
+
+    <div class="nav-lbl">분류 모델</div>
+    <a href="#s-clf"><span class="dot" style="background:var(--p2)"></span>분류 모델 종류</a>
+    <a href="#s-clf-metric"><span class="dot" style="background:var(--p2)"></span>분류 평가지표</a>
+    <a href="#s-confusion"><span class="dot" style="background:var(--p2)"></span>혼동행렬</a>
+    <a href="#s-roc"><span class="dot" style="background:var(--p2)"></span>ROC · AUC</a>
+
+    <div class="nav-lbl">회귀 모델</div>
+    <a href="#s-reg"><span class="dot" style="background:var(--r1)"></span>회귀 모델 종류</a>
+    <a href="#s-reg-metric"><span class="dot" style="background:var(--r2)"></span>회귀 평가지표</a>
+
+    <div class="nav-lbl">고급 기법</div>
+    <a href="#s-cv"><span class="dot" style="background:var(--c1)"></span>교차검증</a>
+    <a href="#s-hyper"><span class="dot" style="background:var(--h1)"></span>하이퍼파라미터</a>
+    <a href="#s-pipe"><span class="dot" style="background:var(--e1)"></span>Pipeline</a>
+    <a href="#s-feat"><span class="dot" style="background:var(--f1)"></span>특성 중요도</a>
+
+    <div class="nav-lbl">실전</div>
+    <a href="#s-pattern"><span class="dot" style="background:var(--w1)"></span>출제 패턴 코드</a>
+    <a href="#s-params"><span class="dot" style="background:var(--muted)"></span>주요 파라미터표</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ══════════════════ 모델링 전체 흐름 ══════════════════ -->
+    <section id="s-flow" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edeaff">🗺️</div>
+        <div><h2>작업형 2 — 모델링 전체 흐름</h2>
+        <div class="sh-sub">sklearn 기반 표준 파이프라인</div></div>
+      </div>
+
+      <div class="flow">
+        <div class="fstep"><div class="fnum">1</div><div class="ftitle">데이터 준비</div><div class="fsub">전처리 완료 df</div></div>
+        <div class="fstep"><div class="fnum">2</div><div class="ftitle">X / y 분리</div><div class="fsub">feature / target</div></div>
+        <div class="fstep"><div class="fnum">3</div><div class="ftitle">Train/Test 분할</div><div class="fsub">train_test_split</div></div>
+        <div class="fstep"><div class="fnum">4</div><div class="ftitle">전처리</div><div class="fsub">스케일링·인코딩</div></div>
+        <div class="fstep"><div class="fnum">5</div><div class="ftitle">모델 학습</div><div class="fsub">fit(X_train)</div></div>
+        <div class="fstep"><div class="fnum">6</div><div class="ftitle">예측</div><div class="fsub">predict(X_test)</div></div>
+        <div class="fstep"><div class="fnum">7</div><div class="ftitle">평가</div><div class="fsub">metrics 계산</div></div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">🔰 작업형2 기본 뼈대 코드 (분류)</div>
+        <div class="cb-body"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.preprocessing  <span class="kw">import</span> StandardScaler, LabelEncoder
+<span class="kw">from</span> sklearn.ensemble        <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.metrics         <span class="kw">import</span> accuracy_score, f1_score, roc_auc_score
+
+<span class="cm"># ① 데이터 로드</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>)
+
+<span class="cm"># ② X / y 분리</span>
+X = df<span class="at">.drop</span>(columns=[<span class="st">'target'</span>])
+y = df[<span class="st">'target'</span>]
+
+<span class="cm"># ③ 학습/테스트 분할</span>
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=<span class="nm">0.2</span>, random_state=<span class="nm">42</span>, stratify=y  <span class="cm"># 분류 시 stratify</span>
+)
+
+<span class="cm"># ④ 전처리 (필요 시)</span>
+scaler = StandardScaler()
+X_train = scaler<span class="at">.fit_transform</span>(X_train)   <span class="cm"># fit은 train에만!</span>
+X_test  = scaler<span class="at">.transform</span>(X_test)
+
+<span class="cm"># ⑤ 모델 학습</span>
+model = <span class="cls">RandomForestClassifier</span>(n_estimators=<span class="nm">100</span>, random_state=<span class="nm">42</span>)
+model<span class="at">.fit</span>(X_train, y_train)
+
+<span class="cm"># ⑥ 예측</span>
+y_pred      = model<span class="at">.predict</span>(X_test)
+y_pred_prob = model<span class="at">.predict_proba</span>(X_test)[:, <span class="nm">1</span>]  <span class="cm"># 이진분류 양성 확률</span>
+
+<span class="cm"># ⑦ 평가</span>
+<span class="kw">print</span>(<span class="fn">round</span>(accuracy_score(y_test, y_pred), <span class="nm">4</span>))
+<span class="kw">print</span>(<span class="fn">round</span>(f1_score(y_test, y_pred), <span class="nm">4</span>))
+<span class="kw">print</span>(<span class="fn">round</span>(roc_auc_score(y_test, y_pred_prob), <span class="nm">4</span>))</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 데이터 분할 ══════════════════ -->
+    <section id="s-split" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edeaff">✂️</div>
+        <div><h2>데이터 분할</h2>
+        <div class="sh-sub">train_test_split · KFold · StratifiedKFold</div></div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">train_test_split 핵심 옵션</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=<span class="nm">0.2</span>,       <span class="cm"># 테스트 비율 (기본 0.25)</span>
+    random_state=<span class="nm">42</span>,    <span class="cm"># 재현성 고정 ★ 시험에서 지정값 사용</span>
+    stratify=y,          <span class="cm"># 분류 시 클래스 비율 유지 (★ 필수)</span>
+    shuffle=<span class="nm">True</span>         <span class="cm"># 섞기 (기본 True)</span>
+)
+
+<span class="kw">print</span>(X_train<span class="at">.shape</span>, X_test<span class="at">.shape</span>)  <span class="cm"># 크기 확인</span>
+<span class="kw">print</span>(y_train<span class="at">.value_counts</span>())         <span class="cm"># 클래스 비율 확인</span></div>
+      </div>
+
+      <div class="hl" style="border-color:var(--p1)">
+        💡 <b>stratify=y</b>: 불균형 클래스에서 train/test에 동일 비율로 분포시킴. 분류 문제에서 <b>항상</b> 사용 권장.
+      </div>
+    </section>
+
+    <!-- ══════════════════ 분류 모델 ══════════════════ -->
+    <section id="s-clf" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edeaff">🏷️</div>
+        <div><h2>분류 모델 (Classification)</h2>
+        <div class="sh-sub">LogisticRegression · DecisionTree · RandomForest · GBM · XGBoost · LGBM · SVM · KNN</div></div>
+      </div>
+
+      <!-- 분류모델 SVG 비교 -->
+      <div class="sw">
+        <div class="sw-title">분류 모델 특성 비교</div>
+        <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;">
+          <rect width="720" height="200" fill="#f5f4fb" rx="10"/>
+          <!-- 헤더 -->
+          <rect x="10" y="10" width="700" height="28" rx="6" fill="#4c3bc8"/>
+          <text x="85"  y="29" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="white">모델</text>
+          <text x="210" y="29" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="white">속도</text>
+          <text x="310" y="29" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="white">해석력</text>
+          <text x="410" y="29" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="white">과적합</text>
+          <text x="520" y="29" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="white">스케일링필요</text>
+          <text x="635" y="29" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="white">주 용도</text>
+
+          <!-- 행 데이터 -->
+          <g font-family="Noto Sans KR" font-size="11">
+            <!-- Logistic -->
+            <rect x="10" y="38" width="700" height="26" fill="white"/>
+            <text x="85"  y="55" text-anchor="middle" fill="#17152e" font-weight="600">Logistic Regression</text>
+            <text x="210" y="55" text-anchor="middle" fill="#1f8f6e">빠름 ●●●●</text>
+            <text x="310" y="55" text-anchor="middle" fill="#1f8f6e">높음 ●●●●</text>
+            <text x="410" y="55" text-anchor="middle" fill="#1f8f6e">낮음</text>
+            <text x="520" y="55" text-anchor="middle" fill="#c8533b">✔ 필요</text>
+            <text x="635" y="55" text-anchor="middle" fill="#4c3bc8">이진/다중 분류</text>
+            <!-- DecisionTree -->
+            <rect x="10" y="64" width="700" height="26" fill="#faf9ff"/>
+            <text x="85"  y="81" text-anchor="middle" fill="#17152e" font-weight="600">Decision Tree</text>
+            <text x="210" y="81" text-anchor="middle" fill="#1f8f6e">빠름 ●●●</text>
+            <text x="310" y="81" text-anchor="middle" fill="#1f8f6e">매우높음 ●●●●●</text>
+            <text x="410" y="81" text-anchor="middle" fill="#c8533b">높음</text>
+            <text x="520" y="81" text-anchor="middle" fill="#1f8f6e">✘ 불필요</text>
+            <text x="635" y="81" text-anchor="middle" fill="#4c3bc8">규칙 기반</text>
+            <!-- RandomForest -->
+            <rect x="10" y="90" width="700" height="26" fill="white"/>
+            <text x="85"  y="107" text-anchor="middle" fill="#17152e" font-weight="600">Random Forest</text>
+            <text x="210" y="107" text-anchor="middle" fill="#e87040">중간 ●●</text>
+            <text x="310" y="107" text-anchor="middle" fill="#e87040">중간 ●●●</text>
+            <text x="410" y="107" text-anchor="middle" fill="#1f8f6e">낮음</text>
+            <text x="520" y="107" text-anchor="middle" fill="#1f8f6e">✘ 불필요</text>
+            <text x="635" y="107" text-anchor="middle" fill="#4c3bc8">범용 ★ 자주 출제</text>
+            <!-- GBM -->
+            <rect x="10" y="116" width="700" height="26" fill="#faf9ff"/>
+            <text x="85"  y="133" text-anchor="middle" fill="#17152e" font-weight="600">GradientBoosting</text>
+            <text x="210" y="133" text-anchor="middle" fill="#c8533b">느림 ●</text>
+            <text x="310" y="133" text-anchor="middle" fill="#e87040">중간 ●●●</text>
+            <text x="410" y="133" text-anchor="middle" fill="#e87040">중간</text>
+            <text x="520" y="133" text-anchor="middle" fill="#1f8f6e">✘ 불필요</text>
+            <text x="635" y="133" text-anchor="middle" fill="#4c3bc8">고성능 분류</text>
+            <!-- XGBoost -->
+            <rect x="10" y="142" width="700" height="26" fill="white"/>
+            <text x="85"  y="159" text-anchor="middle" fill="#17152e" font-weight="600">XGBoost / LGBM</text>
+            <text x="210" y="159" text-anchor="middle" fill="#1f8f6e">빠름 ●●●</text>
+            <text x="310" y="159" text-anchor="middle" fill="#e87040">중간 ●●●</text>
+            <text x="410" y="159" text-anchor="middle" fill="#1f8f6e">낮음(규제)</text>
+            <text x="520" y="159" text-anchor="middle" fill="#1f8f6e">✘ 불필요</text>
+            <text x="635" y="159" text-anchor="middle" fill="#4c3bc8">경진대회 기본 ★</text>
+            <!-- SVM -->
+            <rect x="10" y="168" width="700" height="26" fill="#faf9ff"/>
+            <text x="85"  y="185" text-anchor="middle" fill="#17152e" font-weight="600">SVM / KNN</text>
+            <text x="210" y="185" text-anchor="middle" fill="#c8533b">느림 ●</text>
+            <text x="310" y="185" text-anchor="middle" fill="#c8533b">낮음 ●●</text>
+            <text x="410" y="185" text-anchor="middle" fill="#e87040">중간</text>
+            <text x="520" y="185" text-anchor="middle" fill="#c8533b">✔ 필수</text>
+            <text x="635" y="185" text-anchor="middle" fill="#4c3bc8">소규모/특수</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">분류 모델 코드 모음</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.linear_model  <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.tree           <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.ensemble       <span class="kw">import</span> (RandomForestClassifier,
+                                       GradientBoostingClassifier,
+                                       AdaBoostClassifier,
+                                       BaggingClassifier)
+<span class="kw">from</span> sklearn.neighbors      <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.svm            <span class="kw">import</span> SVC
+<span class="kw">from</span> xgboost               <span class="kw">import</span> XGBClassifier
+<span class="kw">from</span> lightgbm              <span class="kw">import</span> LGBMClassifier
+
+<span class="cm"># ── 로지스틱 회귀 ──────────────────────────────────────────</span>
+model = <span class="cls">LogisticRegression</span>(
+    C=<span class="nm">1.0</span>,           <span class="cm"># 규제 강도 역수 (작을수록 강한 규제)</span>
+    max_iter=<span class="nm">1000</span>,  <span class="cm"># 수렴 실패 방지 (기본 100이면 경고)</span>
+    solver=<span class="st">'lbfgs'</span>, <span class="cm"># 최적화 알고리즘</span>
+    multi_class=<span class="st">'auto'</span>,
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── 결정 트리 ─────────────────────────────────────────────</span>
+model = <span class="cls">DecisionTreeClassifier</span>(
+    max_depth=<span class="nm">5</span>,        <span class="cm"># 과적합 방지 핵심</span>
+    min_samples_split=<span class="nm">10</span>,
+    min_samples_leaf=<span class="nm">5</span>,
+    criterion=<span class="st">'gini'</span>,  <span class="cm"># 'gini' or 'entropy'</span>
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── 랜덤 포레스트 (★ 가장 자주 출제) ────────────────────</span>
+model = <span class="cls">RandomForestClassifier</span>(
+    n_estimators=<span class="nm">100</span>, <span class="cm"># 트리 수</span>
+    max_depth=<span class="nm">None</span>,   <span class="cm"># None이면 완전 성장</span>
+    max_features=<span class="st">'sqrt'</span>, <span class="cm"># 분류: sqrt, 회귀: 1.0</span>
+    n_jobs=<span class="nm">-1</span>,        <span class="cm"># 모든 CPU 사용</span>
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── GradientBoosting ─────────────────────────────────────</span>
+model = <span class="cls">GradientBoostingClassifier</span>(
+    n_estimators=<span class="nm">100</span>,
+    learning_rate=<span class="nm">0.1</span>,
+    max_depth=<span class="nm">3</span>,
+    subsample=<span class="nm">0.8</span>,
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── XGBoost ──────────────────────────────────────────────</span>
+model = <span class="cls">XGBClassifier</span>(
+    n_estimators=<span class="nm">100</span>,
+    learning_rate=<span class="nm">0.1</span>,
+    max_depth=<span class="nm">6</span>,
+    use_label_encoder=<span class="nm">False</span>,
+    eval_metric=<span class="st">'logloss'</span>,
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── LightGBM ─────────────────────────────────────────────</span>
+model = <span class="cls">LGBMClassifier</span>(
+    n_estimators=<span class="nm">100</span>,
+    learning_rate=<span class="nm">0.1</span>,
+    num_leaves=<span class="nm">31</span>,
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── SVM ──────────────────────────────────────────────────</span>
+model = <span class="cls">SVC</span>(kernel=<span class="st">'rbf'</span>, C=<span class="nm">1.0</span>,
+            probability=<span class="nm">True</span>,  <span class="cm"># predict_proba 사용 시 필수!</span>
+            random_state=<span class="nm">42</span>)
+
+<span class="cm"># ── KNN ───────────────────────────────────────────────────</span>
+model = <span class="cls">KNeighborsClassifier</span>(n_neighbors=<span class="nm">5</span>)  <span class="cm"># 스케일링 필수!</span>
+
+<span class="cm"># ── 공통 학습/예측 ────────────────────────────────────────</span>
+model<span class="at">.fit</span>(X_train, y_train)
+y_pred      = model<span class="at">.predict</span>(X_test)
+y_pred_prob = model<span class="at">.predict_proba</span>(X_test)[:, <span class="nm">1</span>]</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 분류 평가지표 ══════════════════ -->
+    <section id="s-clf-metric" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edeaff">📐</div>
+        <div><h2>분류 평가지표</h2>
+        <div class="sh-sub">accuracy · precision · recall · F1 · ROC-AUC</div></div>
+      </div>
+
+      <div class="cards">
+        <div class="card" style="--c:var(--p1)">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--p1)"></div>
+          <div class="card-tag">Accuracy</div>
+          <div class="card-val" style="color:var(--p1)">(TP+TN)/전체</div>
+          <div class="card-desc">전체 중 맞은 비율<br>불균형 데이터에 부적합</div>
+        </div>
+        <div class="card">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#7c3aed"></div>
+          <div class="card-tag">Precision</div>
+          <div class="card-val" style="color:#7c3aed">TP/(TP+FP)</div>
+          <div class="card-desc">예측 양성 중 진짜 양성<br>FP 최소화 중요 시</div>
+        </div>
+        <div class="card">
+          <div style="position:absolute;top:0;left:0;height:100%;width:3px;background:#1f8f6e;left:0;right:auto;top:0;bottom:0"></div>
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#1f8f6e"></div>
+          <div class="card-tag">Recall (민감도)</div>
+          <div class="card-val" style="color:#1f8f6e">TP/(TP+FN)</div>
+          <div class="card-desc">실제 양성 중 맞춘 비율<br>FN 최소화 중요 시 (암진단)</div>
+        </div>
+        <div class="card">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#c8533b"></div>
+          <div class="card-tag">F1-Score</div>
+          <div class="card-val" style="color:#c8533b">2·P·R/(P+R)</div>
+          <div class="card-desc">Precision과 Recall 조화평균<br>불균형 데이터에 적합</div>
+        </div>
+        <div class="card">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#1a5fa8"></div>
+          <div class="card-tag">ROC-AUC</div>
+          <div class="card-val" style="color:#1a5fa8">0 ~ 1</div>
+          <div class="card-desc">임계값 불문 모델 성능<br>1에 가까울수록 좋음</div>
+        </div>
+        <div class="card">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#8b2eb0"></div>
+          <div class="card-tag">특이도</div>
+          <div class="card-val" style="color:#8b2eb0">TN/(TN+FP)</div>
+          <div class="card-desc">실제 음성 중 음성 예측<br>= 1 − FPR</div>
+        </div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">분류 평가지표 코드</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
+    accuracy_score, precision_score, recall_score,
+    f1_score, roc_auc_score, classification_report,
+    confusion_matrix
+)
+
+<span class="cm"># 기본 지표</span>
+acc  = accuracy_score(y_test, y_pred)
+prec = precision_score(y_test, y_pred)                  <span class="cm"># 이진</span>
+rec  = recall_score(y_test, y_pred)
+f1   = f1_score(y_test, y_pred)
+auc  = roc_auc_score(y_test, y_pred_prob)               <span class="cm"># 확률값 필요!</span>
+
+<span class="cm"># 다중 분류</span>
+f1_macro  = f1_score(y_test, y_pred, average=<span class="st">'macro'</span>)   <span class="cm"># 클래스 균등 가중</span>
+f1_micro  = f1_score(y_test, y_pred, average=<span class="st">'micro'</span>)   <span class="cm"># 전체 TP/FP/FN 합산</span>
+f1_weight = f1_score(y_test, y_pred, average=<span class="st">'weighted'</span>) <span class="cm"># 샘플 수 가중</span>
+
+<span class="cm"># 종합 리포트</span>
+<span class="kw">print</span>(classification_report(y_test, y_pred))
+
+<span class="cm"># 모든 지표 출력</span>
+<span class="kw">for</span> name, val <span class="kw">in</span> <span class="fn">zip</span>(
+    [<span class="st">'Accuracy','Precision','Recall','F1','AUC'</span>],
+    [acc, prec, rec, f1, auc]
+):
+    <span class="kw">print</span>(<span class="st">f"{name}: {val:.4f}"</span>)</div>
+      </div>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>지표</th><th>average 옵션</th><th>설명</th><th>언제 사용</th></tr></thead>
+          <tbody>
+            <tr class="rp"><td><b>macro</b></td><td><code>average='macro'</code></td><td>각 클래스 F1 단순 평균</td><td>클래스 균등하게 중요할 때</td></tr>
+            <tr class="rp"><td><b>micro</b></td><td><code>average='micro'</code></td><td>전체 TP/FP/FN 합산 후 계산</td><td>샘플 수 기준 성능</td></tr>
+            <tr class="rp"><td><b>weighted</b></td><td><code>average='weighted'</code></td><td>샘플 수로 가중 평균</td><td>클래스 불균형 다중 분류</td></tr>
+            <tr class="rp"><td><b>binary</b></td><td><code>average='binary'</code></td><td>이진 분류 기본값</td><td>이진 분류</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 혼동행렬 ══════════════════ -->
+    <section id="s-confusion" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edeaff">🔲</div>
+        <div><h2>혼동행렬 (Confusion Matrix)</h2>
+        <div class="sh-sub">TP · TN · FP · FN 완벽 이해</div></div>
+      </div>
+
+      <div class="g2">
+        <div>
+          <div class="sw" style="margin:0">
+            <div class="sw-title">혼동행렬 구조</div>
+            <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:320px;">
+              <rect width="320" height="220" fill="#f5f4fb" rx="10"/>
+              <!-- 축 레이블 -->
+              <text x="200" y="22" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#17152e">실제 (Actual)</text>
+              <text x="200" y="38" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#6b6899">Positive (1)      Negative (0)</text>
+              <text x="28" y="120" text-anchor="middle" font-family="Noto Sans KR" font-size="10" font-weight="700" fill="#17152e" transform="rotate(-90 28 120)">예측 (Predicted)</text>
+
+              <!-- TP -->
+              <rect x="90" y="48" width="100" height="75" fill="#d0ffd8" stroke="#0a5c1a" stroke-width="1.5"/>
+              <text x="140" y="82" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#0a5c1a">TP</text>
+              <text x="140" y="96" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#0a5c1a">진양성</text>
+              <text x="140" y="110" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#0a5c1a">맞춤 ✓</text>
+
+              <!-- FP -->
+              <rect x="190" y="48" width="110" height="75" fill="#ffe4d0" stroke="#8c2a00" stroke-width="1.5"/>
+              <text x="245" y="82" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#8c2a00">FP</text>
+              <text x="245" y="96" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#8c2a00">위양성</text>
+              <text x="245" y="110" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#8c2a00">1종오류 α</text>
+
+              <!-- FN -->
+              <rect x="90" y="123" width="100" height="75" fill="#fff3c0" stroke="#7a4800" stroke-width="1.5"/>
+              <text x="140" y="157" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#7a4800">FN</text>
+              <text x="140" y="171" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#7a4800">위음성</text>
+              <text x="140" y="185" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#7a4800">2종오류 β</text>
+
+              <!-- TN -->
+              <rect x="190" y="123" width="110" height="75" fill="#d0e8ff" stroke="#0a2c5c" stroke-width="1.5"/>
+              <text x="245" y="157" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#0a2c5c">TN</text>
+              <text x="245" y="171" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#0a2c5c">진음성</text>
+              <text x="245" y="185" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#0a2c5c">맞춤 ✓</text>
+
+              <!-- 예측 레이블 -->
+              <text x="70" y="93" text-anchor="end" font-family="Noto Sans KR" font-size="10" fill="#6b6899">P(1)</text>
+              <text x="70" y="165" text-anchor="end" font-family="Noto Sans KR" font-size="10" fill="#6b6899">N(0)</text>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="tw" style="margin:0;height:100%">
+            <table>
+              <thead><tr><th>약어</th><th>한국어</th><th>의미</th><th>관련 지표</th></tr></thead>
+              <tbody>
+                <tr><td><b style="color:#0a5c1a">TP</b></td><td>진양성</td><td>양성→양성 예측 (정답)</td><td>Precision, Recall</td></tr>
+                <tr><td><b style="color:#8c2a00">FP</b></td><td>위양성</td><td>음성→양성 예측 (오답)</td><td>Precision, FPR, 1종오류</td></tr>
+                <tr><td><b style="color:#7a4800">FN</b></td><td>위음성</td><td>양성→음성 예측 (오답)</td><td>Recall, 2종오류</td></tr>
+                <tr><td><b style="color:#0a2c5c">TN</b></td><td>진음성</td><td>음성→음성 예측 (정답)</td><td>특이도, TNR</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="cb" style="margin-top:14px">
+        <div class="cb-head">혼동행렬 코드</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> confusion_matrix, ConfusionMatrixDisplay
+
+cm = confusion_matrix(y_test, y_pred)
+<span class="kw">print</span>(cm)
+<span class="cm"># [[TN FP]</span>
+<span class="cm">#  [FN TP]]  ← sklearn 기본 순서</span>
+
+TN, FP, FN, TP = cm<span class="at">.ravel</span>()  <span class="cm"># 이진 분류 시</span>
+
+precision  = TP / (TP + FP)
+recall     = TP / (TP + FN)
+specificity= TN / (TN + FP)
+f1         = <span class="nm">2</span> * precision * recall / (precision + recall)</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ ROC · AUC ══════════════════ -->
+    <section id="s-roc" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edeaff">📉</div>
+        <div><h2>ROC 곡선 · AUC</h2>
+        <div class="sh-sub">Receiver Operating Characteristic · Area Under Curve</div></div>
+      </div>
+
+      <div class="g2">
+        <div class="sw" style="margin:0">
+          <div class="sw-title">ROC 곡선 개념</div>
+          <svg viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;">
+            <rect width="300" height="260" fill="#f5f4fb" rx="10"/>
+            <!-- 축 -->
+            <line x1="50" y1="200" x2="260" y2="200" stroke="#aaa" stroke-width="1.5"/>
+            <line x1="50" y1="20"  x2="50"  y2="200" stroke="#aaa" stroke-width="1.5"/>
+            <!-- 대각선 (랜덤) -->
+            <line x1="50" y1="200" x2="260" y2="20" stroke="#aaa" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="180" y="135" font-family="Noto Sans KR" font-size="9" fill="#aaa" transform="rotate(-43 155 120)">AUC=0.5 (랜덤)</text>
+            <!-- 좋은 모델 ROC -->
+            <path d="M50,200 Q60,80 100,50 Q140,30 200,25 Q240,22 260,20" fill="none" stroke="#4c3bc8" stroke-width="2.5"/>
+            <!-- AUC 면적 -->
+            <path d="M50,200 Q60,80 100,50 Q140,30 200,25 Q240,22 260,20 L260,200 Z" fill="#4c3bc8" opacity="0.12"/>
+            <!-- 완벽한 모델 ROC -->
+            <path d="M50,200 L50,20 L260,20" fill="none" stroke="#1f8f6e" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <!-- AUC 레이블 -->
+            <text x="155" y="130" text-anchor="middle" font-family="Noto Sans KR" font-size="12" font-weight="700" fill="#4c3bc8">AUC</text>
+            <text x="155" y="145" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#4c3bc8">≈ 0.85</text>
+            <!-- 축 레이블 -->
+            <text x="155" y="218" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#6b6899">FPR (1 - 특이도)</text>
+            <text x="15" y="115" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#6b6899" transform="rotate(-90 15 115)">TPR (민감도·Recall)</text>
+            <text x="50"  y="212" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#6b6899">0</text>
+            <text x="260" y="212" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#6b6899">1</text>
+            <text x="38"  y="200" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#6b6899">0</text>
+            <text x="38"  y="20"  text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#6b6899">1</text>
+            <!-- 범례 -->
+            <line x1="55" y1="240" x2="75" y2="240" stroke="#4c3bc8" stroke-width="2.5"/>
+            <text x="78" y="244" font-family="Noto Sans KR" font-size="9" fill="#4c3bc8">모델 ROC</text>
+            <line x1="150" y1="240" x2="170" y2="240" stroke="#1f8f6e" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="173" y="244" font-family="Noto Sans KR" font-size="9" fill="#1f8f6e">완벽(AUC=1)</text>
+          </svg>
+        </div>
+        <div>
+          <div class="tw" style="margin:0 0 10px">
+            <table>
+              <thead><tr><th>AUC 값</th><th>해석</th></tr></thead>
+              <tbody>
+                <tr><td>AUC = 1.0</td><td>완벽한 분류기</td></tr>
+                <tr><td>0.9 ~ 1.0</td><td>매우 우수 ★</td></tr>
+                <tr><td>0.8 ~ 0.9</td><td>우수</td></tr>
+                <tr><td>0.7 ~ 0.8</td><td>보통</td></tr>
+                <tr><td>0.5 ~ 0.7</td><td>나쁨</td></tr>
+                <tr><td>AUC = 0.5</td><td>랜덤 (무의미)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cb" style="margin:0">
+            <div class="cb-head">ROC-AUC 코드</div>
+            <div class="cb-body" style="font-size:11.5px"><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
+    roc_auc_score, roc_curve)
+
+<span class="cm"># AUC 점수</span>
+auc = roc_auc_score(
+    y_test, y_pred_prob)
+
+<span class="cm"># 다중분류 AUC</span>
+auc_multi = roc_auc_score(
+    y_test, y_pred_prob_all,
+    multi_class=<span class="st">'ovr'</span>)
+
+<span class="cm"># ROC 곡선 데이터</span>
+fpr, tpr, thresholds = roc_curve(
+    y_test, y_pred_prob)
+
+<span class="kw">print</span>(<span class="fn">round</span>(auc, <span class="nm">4</span>))</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 회귀 모델 ══════════════════ -->
+    <section id="s-reg" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#fff1ec">📈</div>
+        <div><h2>회귀 모델 (Regression)</h2>
+        <div class="sh-sub">Linear · Ridge · Lasso · ElasticNet · Tree기반</div></div>
+      </div>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>모델</th><th>특징</th><th>규제</th><th>주요 파라미터</th></tr></thead>
+          <tbody>
+            <tr class="rr"><td><b>Linear Regression</b></td><td>OLS 최소제곱법, 해석 용이</td><td>없음</td><td>fit_intercept</td></tr>
+            <tr class="rr"><td><b>Ridge</b></td><td>L2 규제, 계수 크기 축소</td><td>L2 (α)</td><td>alpha (기본 1.0)</td></tr>
+            <tr class="rr"><td><b>Lasso</b></td><td>L1 규제, 일부 계수 0 (변수선택)</td><td>L1 (α)</td><td>alpha, max_iter</td></tr>
+            <tr class="rr"><td><b>ElasticNet</b></td><td>L1+L2 혼합</td><td>L1+L2</td><td>alpha, l1_ratio</td></tr>
+            <tr class="rr"><td><b>RandomForest Reg</b></td><td>배깅, 비선형, 과적합 저항</td><td>없음</td><td>n_estimators, max_depth</td></tr>
+            <tr class="rr"><td><b>GBM / XGB / LGBM Reg</b></td><td>부스팅, 고성능</td><td>규제 파라미터</td><td>learning_rate, n_estimators</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">회귀 모델 코드 모음</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> (LinearRegression,
+    Ridge, Lasso, ElasticNet)
+<span class="kw">from</span> sklearn.tree     <span class="kw">import</span> DecisionTreeRegressor
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> (RandomForestRegressor,
+    GradientBoostingRegressor)
+<span class="kw">from</span> xgboost          <span class="kw">import</span> XGBRegressor
+<span class="kw">from</span> lightgbm         <span class="kw">import</span> LGBMRegressor
+
+<span class="cm"># ── 선형 회귀 ─────────────────────────────────────────────</span>
+model = <span class="cls">LinearRegression</span>()
+model<span class="at">.fit</span>(X_train, y_train)
+<span class="kw">print</span>(<span class="st">'계수:'</span>, model<span class="at">.coef_</span>)        <span class="cm"># 회귀 계수</span>
+<span class="kw">print</span>(<span class="st">'절편:'</span>, model<span class="at">.intercept_</span>)   <span class="cm"># y절편</span>
+
+<span class="cm"># ── Ridge (L2) ────────────────────────────────────────────</span>
+model = <span class="cls">Ridge</span>(alpha=<span class="nm">1.0</span>)
+<span class="cm"># alpha=0: 선형회귀와 동일 | alpha↑: 규제 강화</span>
+
+<span class="cm"># ── Lasso (L1) ────────────────────────────────────────────</span>
+model = <span class="cls">Lasso</span>(alpha=<span class="nm">0.1</span>, max_iter=<span class="nm">10000</span>)
+<span class="cm"># 일부 계수가 정확히 0 → 자동 변수 선택 효과</span>
+
+<span class="cm"># ── ElasticNet ────────────────────────────────────────────</span>
+model = <span class="cls">ElasticNet</span>(alpha=<span class="nm">0.1</span>, l1_ratio=<span class="nm">0.5</span>)
+<span class="cm"># l1_ratio=0: Ridge, l1_ratio=1: Lasso</span>
+
+<span class="cm"># ── RandomForest Regressor ────────────────────────────────</span>
+model = <span class="cls">RandomForestRegressor</span>(
+    n_estimators=<span class="nm">100</span>,
+    max_depth=<span class="nm">None</span>,
+    random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># ── 공통 예측/평가 흐름 ───────────────────────────────────</span>
+model<span class="at">.fit</span>(X_train, y_train)
+y_pred = model<span class="at">.predict</span>(X_test)    <span class="cm"># 회귀는 predict만 (확률 없음)</span></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 회귀 평가지표 ══════════════════ -->
+    <section id="s-reg-metric" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#fff1ec">📏</div>
+        <div><h2>회귀 평가지표</h2>
+        <div class="sh-sub">MSE · RMSE · MAE · MAPE · R²</div></div>
+      </div>
+
+      <div class="sw">
+        <div class="sw-title">회귀 지표 공식 비교</div>
+        <svg viewBox="0 0 720 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;">
+          <rect width="720" height="160" fill="#f5f4fb" rx="10"/>
+
+          <!-- MSE -->
+          <rect x="10" y="15" width="135" height="130" rx="9" fill="white" stroke="#c8533b" stroke-width="1.5"/>
+          <rect x="10" y="15" width="135" height="26" rx="9" fill="#c8533b"/>
+          <rect x="10" y="29" width="135" height="12" fill="#c8533b"/>
+          <text x="78" y="31" text-anchor="middle" font-family="Bebas Neue" font-size="14" fill="white" letter-spacing="1">MSE</text>
+          <text x="78" y="54" text-anchor="middle" font-family="Fira Code" font-size="11" fill="#333">Σ(y−ŷ)²/n</text>
+          <text x="78" y="72" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">이상치에 민감</text>
+          <text x="78" y="88" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">↓ 작을수록 좋음</text>
+          <text x="78" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#c8533b">단위: 원본²</text>
+          <text x="78" y="130" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#c8533b">mean_squared_error</text>
+
+          <!-- RMSE -->
+          <rect x="155" y="15" width="135" height="130" rx="9" fill="white" stroke="#e87040" stroke-width="1.5"/>
+          <rect x="155" y="15" width="135" height="26" rx="9" fill="#e87040"/>
+          <rect x="155" y="29" width="135" height="12" fill="#e87040"/>
+          <text x="222" y="31" text-anchor="middle" font-family="Bebas Neue" font-size="14" fill="white" letter-spacing="1">RMSE</text>
+          <text x="222" y="54" text-anchor="middle" font-family="Fira Code" font-size="11" fill="#333">√MSE</text>
+          <text x="222" y="72" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">MSE의 제곱근</text>
+          <text x="222" y="88" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">↓ 작을수록 좋음</text>
+          <text x="222" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#e87040">단위: 원본과 같음</text>
+          <text x="222" y="120" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#e87040">mean_squared_error</text>
+          <text x="222" y="133" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#e87040">(squared=False)</text>
+
+          <!-- MAE -->
+          <rect x="300" y="15" width="135" height="130" rx="9" fill="white" stroke="#8b2eb0" stroke-width="1.5"/>
+          <rect x="300" y="15" width="135" height="26" rx="9" fill="#8b2eb0"/>
+          <rect x="300" y="29" width="135" height="12" fill="#8b2eb0"/>
+          <text x="367" y="31" text-anchor="middle" font-family="Bebas Neue" font-size="14" fill="white" letter-spacing="1">MAE</text>
+          <text x="367" y="54" text-anchor="middle" font-family="Fira Code" font-size="11" fill="#333">Σ|y−ŷ|/n</text>
+          <text x="367" y="72" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">이상치에 강건</text>
+          <text x="367" y="88" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">↓ 작을수록 좋음</text>
+          <text x="367" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#8b2eb0">단위: 원본과 같음</text>
+          <text x="367" y="130" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#8b2eb0">mean_absolute_error</text>
+
+          <!-- MAPE -->
+          <rect x="445" y="15" width="135" height="130" rx="9" fill="white" stroke="#1a5fa8" stroke-width="1.5"/>
+          <rect x="445" y="15" width="135" height="26" rx="9" fill="#1a5fa8"/>
+          <rect x="445" y="29" width="135" height="12" fill="#1a5fa8"/>
+          <text x="512" y="31" text-anchor="middle" font-family="Bebas Neue" font-size="14" fill="white" letter-spacing="1">MAPE</text>
+          <text x="512" y="54" text-anchor="middle" font-family="Fira Code" font-size="10" fill="#333">Σ|y−ŷ|/|y|/n·100</text>
+          <text x="512" y="72" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">비율(%) 오차</text>
+          <text x="512" y="88" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">↓ 작을수록 좋음</text>
+          <text x="512" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#1a5fa8">단위: %</text>
+          <text x="512" y="130" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#1a5fa8">mean_absolute_percentage</text>
+
+          <!-- R2 -->
+          <rect x="590" y="15" width="120" height="130" rx="9" fill="white" stroke="#1f8f6e" stroke-width="1.5"/>
+          <rect x="590" y="15" width="120" height="26" rx="9" fill="#1f8f6e"/>
+          <rect x="590" y="29" width="120" height="12" fill="#1f8f6e"/>
+          <text x="650" y="31" text-anchor="middle" font-family="Bebas Neue" font-size="14" fill="white" letter-spacing="1">R²</text>
+          <text x="650" y="54" text-anchor="middle" font-family="Fira Code" font-size="11" fill="#333">1-SS_res/SS_tot</text>
+          <text x="650" y="72" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">결정계수</text>
+          <text x="650" y="88" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#666">↑ 1에 가까울수록</text>
+          <text x="650" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#1f8f6e">범위: (-∞, 1]</text>
+          <text x="650" y="120" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#1f8f6e">r2_score</text>
+          <text x="650" y="133" text-anchor="middle" font-family="Noto Sans KR" font-size="8" fill="#1f8f6e">단위 무관</text>
+        </svg>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">회귀 평가지표 코드</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
+    mean_squared_error, mean_absolute_error,
+    mean_absolute_percentage_error, r2_score
+)
+
+mse  = mean_squared_error(y_test, y_pred)
+rmse = mean_squared_error(y_test, y_pred, squared=<span class="nm">False</span>)  <span class="cm"># squared=False → RMSE</span>
+mae  = mean_absolute_error(y_test, y_pred)
+mape = mean_absolute_percentage_error(y_test, y_pred) * <span class="nm">100</span>  <span class="cm"># %로 변환</span>
+r2   = r2_score(y_test, y_pred)
+
+<span class="kw">print</span>(<span class="st">f"MSE : {mse:.4f}"</span>)
+<span class="kw">print</span>(<span class="st">f"RMSE: {rmse:.4f}"</span>)
+<span class="kw">print</span>(<span class="st">f"MAE : {mae:.4f}"</span>)
+<span class="kw">print</span>(<span class="st">f"MAPE: {mape:.2f}%"</span>)
+<span class="kw">print</span>(<span class="st">f"R²  : {r2:.4f}"</span>)
+
+<span class="cm"># RMSE 직접 계산 (np 이용)</span>
+rmse_np = np<span class="at">.sqrt</span>(mse)
+
+<span class="cm"># ★ 시험 출제 포인트: RMSE는 squared=False 사용</span></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 교차검증 ══════════════════ -->
+    <section id="s-cv" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#dce8ff">🔁</div>
+        <div><h2>교차검증 (Cross Validation)</h2>
+        <div class="sh-sub">KFold · StratifiedKFold · cross_val_score</div></div>
+      </div>
+
+      <div class="sw">
+        <div class="sw-title">K-Fold 교차검증 구조 (K=5)</div>
+        <svg viewBox="0 0 660 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:660px;">
+          <rect width="660" height="130" fill="#f5f4fb" rx="10"/>
+          <!-- 레이블 -->
+          <text x="15" y="40"  font-family="Noto Sans KR" font-size="10" fill="#6b6899">Fold 1</text>
+          <text x="15" y="62"  font-family="Noto Sans KR" font-size="10" fill="#6b6899">Fold 2</text>
+          <text x="15" y="84"  font-family="Noto Sans KR" font-size="10" fill="#6b6899">Fold 3</text>
+          <text x="15" y="106" font-family="Noto Sans KR" font-size="10" fill="#6b6899">Fold 4</text>
+          <text x="15" y="128" font-family="Noto Sans KR" font-size="10" fill="#6b6899">Fold 5</text>
+
+          <!-- Train/Test 블록 -->
+          <g>
+            <!-- Fold1: Test=1번 -->
+            <rect x="60" y="26" width="108" height="18" rx="3" fill="#c8533b" opacity="0.85"/>
+            <text x="114" y="39" text-anchor="middle" font-family="Noto Sans KR" font-size="9" font-weight="700" fill="white">TEST</text>
+            <rect x="168" y="26" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="276" y="26" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="384" y="26" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="492" y="26" width="110" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <!-- Fold2 -->
+            <rect x="60" y="48" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="168" y="48" width="108" height="18" rx="3" fill="#c8533b" opacity="0.85"/>
+            <text x="222" y="61" text-anchor="middle" font-family="Noto Sans KR" font-size="9" font-weight="700" fill="white">TEST</text>
+            <rect x="276" y="48" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="384" y="48" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="492" y="48" width="110" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <!-- Fold3 -->
+            <rect x="60" y="70" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="168" y="70" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="276" y="70" width="108" height="18" rx="3" fill="#c8533b" opacity="0.85"/>
+            <text x="330" y="83" text-anchor="middle" font-family="Noto Sans KR" font-size="9" font-weight="700" fill="white">TEST</text>
+            <rect x="384" y="70" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="492" y="70" width="110" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <!-- Fold4 -->
+            <rect x="60" y="92" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="168" y="92" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="276" y="92" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="384" y="92" width="108" height="18" rx="3" fill="#c8533b" opacity="0.85"/>
+            <text x="438" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="9" font-weight="700" fill="white">TEST</text>
+            <rect x="492" y="92" width="110" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <!-- Fold5 -->
+            <rect x="60" y="114" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="168" y="114" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="276" y="114" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="384" y="114" width="108" height="18" rx="3" fill="#4c3bc8" opacity="0.5"/>
+            <rect x="492" y="114" width="110" height="18" rx="3" fill="#c8533b" opacity="0.85"/>
+            <text x="547" y="127" text-anchor="middle" font-family="Noto Sans KR" font-size="9" font-weight="700" fill="white">TEST</text>
+          </g>
+          <!-- 범례 -->
+          <rect x="60" y="8" width="14" height="10" rx="2" fill="#4c3bc8" opacity="0.5"/>
+          <text x="77" y="17" font-family="Noto Sans KR" font-size="9" fill="#4c3bc8">TRAIN</text>
+          <rect x="130" y="8" width="14" height="10" rx="2" fill="#c8533b" opacity="0.85"/>
+          <text x="147" y="17" font-family="Noto Sans KR" font-size="9" fill="#c8533b">TEST → 평균 = CV Score</text>
+        </svg>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">교차검증 코드</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> (
+    KFold, StratifiedKFold, cross_val_score, cross_validate
+)
+
+<span class="cm"># ── cross_val_score (가장 간단) ───────────────────────────</span>
+scores = cross_val_score(
+    model, X, y,
+    cv=<span class="nm">5</span>,                    <span class="cm"># fold 수</span>
+    scoring=<span class="st">'accuracy'</span>     <span class="cm"># 평가 지표</span>
+)
+<span class="kw">print</span>(<span class="st">f"CV 평균: {scores.mean():.4f} ± {scores.std():.4f}"</span>)
+
+<span class="cm"># ── 분류용 (클래스 비율 유지) ────────────────────────────</span>
+skf = <span class="cls">StratifiedKFold</span>(n_splits=<span class="nm">5</span>, shuffle=<span class="nm">True</span>, random_state=<span class="nm">42</span>)
+scores = cross_val_score(model, X, y, cv=skf, scoring=<span class="st">'f1'</span>)
+
+<span class="cm"># ── 회귀용 ───────────────────────────────────────────────</span>
+kf = <span class="cls">KFold</span>(n_splits=<span class="nm">5</span>, shuffle=<span class="nm">True</span>, random_state=<span class="nm">42</span>)
+scores = cross_val_score(model, X, y, cv=kf,
+                         scoring=<span class="st">'neg_mean_squared_error'</span>)
+rmse_cv = np<span class="at">.sqrt</span>(-scores<span class="at">.mean</span>())        <span class="cm"># neg → 부호 반전</span>
+
+<span class="cm"># ── 주요 scoring 문자열 목록 ─────────────────────────────</span>
+<span class="cm"># 분류: 'accuracy','f1','precision','recall',</span>
+<span class="cm">#        'roc_auc','f1_macro','f1_weighted'</span>
+<span class="cm"># 회귀: 'r2','neg_mean_squared_error',</span>
+<span class="cm">#        'neg_mean_absolute_error','neg_rmse'</span></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 하이퍼파라미터 ══════════════════ -->
+    <section id="s-hyper" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#f8e8ff">🎛️</div>
+        <div><h2>하이퍼파라미터 튜닝</h2>
+        <div class="sh-sub">GridSearchCV · RandomizedSearchCV</div></div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">GridSearchCV · RandomizedSearchCV</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> GridSearchCV, RandomizedSearchCV
+
+<span class="cm"># ── GridSearchCV (전수 탐색) ──────────────────────────────</span>
+param_grid = {
+    <span class="st">'n_estimators'</span>: [<span class="nm">50</span>, <span class="nm">100</span>, <span class="nm">200</span>],
+    <span class="st">'max_depth'</span>:    [<span class="nm">3</span>, <span class="nm">5</span>, <span class="nm">10</span>, <span class="nm">None</span>],
+    <span class="st">'min_samples_split'</span>: [<span class="nm">2</span>, <span class="nm">5</span>, <span class="nm">10</span>]
+}
+
+grid_search = <span class="cls">GridSearchCV</span>(
+    estimator = <span class="cls">RandomForestClassifier</span>(random_state=<span class="nm">42</span>),
+    param_grid = param_grid,
+    cv         = <span class="nm">5</span>,
+    scoring    = <span class="st">'f1'</span>,
+    n_jobs     = <span class="nm">-1</span>,
+    verbose    = <span class="nm">1</span>
+)
+grid_search<span class="at">.fit</span>(X_train, y_train)
+
+<span class="kw">print</span>(<span class="st">'최적 파라미터:'</span>, grid_search<span class="at">.best_params_</span>)
+<span class="kw">print</span>(<span class="st">'최적 CV 점수:'</span>, <span class="fn">round</span>(grid_search<span class="at">.best_score_</span>, <span class="nm">4</span>))
+
+best_model = grid_search<span class="at">.best_estimator_</span>
+y_pred = best_model<span class="at">.predict</span>(X_test)
+
+<span class="cm"># ── RandomizedSearchCV (랜덤 샘플링, 빠름) ───────────────</span>
+<span class="kw">from</span> scipy.stats <span class="kw">import</span> randint, uniform
+
+param_dist = {
+    <span class="st">'n_estimators'</span>: <span class="fn">randint</span>(<span class="nm">50</span>, <span class="nm">300</span>),
+    <span class="st">'max_depth'</span>:    <span class="fn">randint</span>(<span class="nm">3</span>, <span class="nm">20</span>),
+    <span class="st">'learning_rate'</span>: <span class="fn">uniform</span>(<span class="nm">0.01</span>, <span class="nm">0.3</span>)
+}
+
+rand_search = <span class="cls">RandomizedSearchCV</span>(
+    estimator  = <span class="cls">XGBClassifier</span>(random_state=<span class="nm">42</span>),
+    param_distributions = param_dist,
+    n_iter     = <span class="nm">50</span>,      <span class="cm"># 탐색 횟수</span>
+    cv         = <span class="nm">5</span>,
+    scoring    = <span class="st">'roc_auc'</span>,
+    random_state=<span class="nm">42</span>,
+    n_jobs     = <span class="nm">-1</span>
+)
+rand_search<span class="at">.fit</span>(X_train, y_train)
+<span class="kw">print</span>(rand_search<span class="at">.best_params_</span>)</div>
+      </div>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>방법</th><th>장점</th><th>단점</th><th>권장 상황</th></tr></thead>
+          <tbody>
+            <tr class="rc"><td><b>GridSearchCV</b></td><td>최적값 보장</td><td>파라미터 수↑ → 매우 느림</td><td>파라미터 적을 때</td></tr>
+            <tr class="rc"><td><b>RandomizedSearchCV</b></td><td>빠름, 넓은 범위 탐색</td><td>최적값 미보장</td><td>파라미터 많을 때</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════ Pipeline ══════════════════ -->
+    <section id="s-pipe" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#e0fff5">🔧</div>
+        <div><h2>Pipeline</h2>
+        <div class="sh-sub">전처리 + 모델 하나로 묶기 · 데이터 누수 방지</div></div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">Pipeline 구성 · 활용</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.pipeline         <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.preprocessing    <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.impute           <span class="kw">import</span> SimpleImputer
+<span class="kw">from</span> sklearn.ensemble         <span class="kw">import</span> RandomForestClassifier
+
+<span class="cm"># ── 기본 Pipeline ─────────────────────────────────────────</span>
+pipe = <span class="cls">Pipeline</span>([
+    (<span class="st">'imputer'</span>, <span class="cls">SimpleImputer</span>(strategy=<span class="st">'mean'</span>)),  <span class="cm"># 결측치 처리</span>
+    (<span class="st">'scaler'</span>,  <span class="cls">StandardScaler</span>()),                  <span class="cm"># 스케일링</span>
+    (<span class="st">'model'</span>,   <span class="cls">RandomForestClassifier</span>(random_state=<span class="nm">42</span>))
+])
+
+pipe<span class="at">.fit</span>(X_train, y_train)           <span class="cm"># fit_transform → transform 자동</span>
+y_pred = pipe<span class="at">.predict</span>(X_test)
+
+<span class="cm"># Pipeline과 GridSearchCV 연계</span>
+param_grid = {
+    <span class="st">'model__n_estimators'</span>: [<span class="nm">50</span>, <span class="nm">100</span>],    <span class="cm"># 단계명__파라미터명</span>
+    <span class="st">'model__max_depth'</span>:    [<span class="nm">3</span>, <span class="nm">5</span>],
+    <span class="st">'imputer__strategy'</span>:   [<span class="st">'mean'</span>, <span class="st">'median'</span>]
+}
+gs = <span class="cls">GridSearchCV</span>(pipe, param_grid, cv=<span class="nm">5</span>, scoring=<span class="st">'accuracy'</span>)
+gs<span class="at">.fit</span>(X_train, y_train)
+
+<span class="cm"># ── ColumnTransformer (컬럼 유형별 전처리) ──────────────</span>
+<span class="kw">from</span> sklearn.compose     <span class="kw">import</span> ColumnTransformer
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> OneHotEncoder
+
+num_cols = [<span class="st">'age'</span>, <span class="st">'salary'</span>]
+cat_cols = [<span class="st">'gender'</span>, <span class="st">'city'</span>]
+
+preprocessor = <span class="cls">ColumnTransformer</span>([
+    (<span class="st">'num'</span>, <span class="cls">StandardScaler</span>(), num_cols),
+    (<span class="st">'cat'</span>, <span class="cls">OneHotEncoder</span>(handle_unknown=<span class="st">'ignore'</span>), cat_cols)
+])
+
+pipe2 = <span class="cls">Pipeline</span>([
+    (<span class="st">'prep'</span>,  preprocessor),
+    (<span class="st">'model'</span>, <span class="cls">RandomForestClassifier</span>(random_state=<span class="nm">42</span>))
+])</div>
+      </div>
+
+      <div class="hl" style="border-color:var(--e1)">
+        🛡️ <b>데이터 누수(Data Leakage) 방지:</b> Pipeline 사용 시 <code>fit_transform</code>은 X_train에만 적용되고, X_test에는 <code>transform</code>만 자동 적용됨. <b>테스트 데이터가 학습에 영향을 주는 것을 원천 차단.</b>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 특성 중요도 ══════════════════ -->
+    <section id="s-feat" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#edfae0">🌿</div>
+        <div><h2>특성 중요도 (Feature Importance)</h2>
+        <div class="sh-sub">트리 기반 모델 · permutation importance · 상관계수</div></div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">특성 중요도 추출 · 시각화</div>
+        <div class="cb-body"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+<span class="cm"># ── 트리 기반 (RF, GBM, XGB, LGBM) ─────────────────────</span>
+importances = model<span class="at">.feature_importances_</span>  <span class="cm"># numpy array</span>
+feat_df = pd<span class="at">.DataFrame</span>({
+    <span class="st">'feature'</span>   : X_train<span class="at">.columns</span>,
+    <span class="st">'importance'</span>: importances
+})<span class="at">.sort_values</span>(<span class="st">'importance'</span>, ascending=<span class="nm">False</span>)
+
+<span class="kw">print</span>(feat_df<span class="at">.head</span>(<span class="nm">10</span>))
+<span class="kw">print</span>(<span class="st">'가장 중요한 특성:'</span>, feat_df<span class="at">.iloc</span>[<span class="nm">0</span>][<span class="st">'feature'</span>])
+
+<span class="cm"># ── 로지스틱 회귀 계수 ────────────────────────────────────</span>
+coef_df = pd<span class="at">.DataFrame</span>({
+    <span class="st">'feature'</span>: X_train<span class="at">.columns</span>,
+    <span class="st">'coef'</span>   : model<span class="at">.coef_</span>[<span class="nm">0</span>]
+})<span class="at">.sort_values</span>(<span class="st">'coef'</span>, key=abs, ascending=<span class="nm">False</span>)
+
+<span class="cm"># ── 상관계수 기반 특성 선택 ──────────────────────────────</span>
+corr = df<span class="at">.corr</span>()[<span class="st">'target'</span>]<span class="at">.abs</span>()<span class="at">.sort_values</span>(ascending=<span class="nm">False</span>)
+top_features = corr[corr > <span class="nm">0.3</span>]<span class="at">.index</span><span class="at">.tolist</span>()
+
+<span class="cm"># ── SelectKBest (분산분석/카이제곱 기반) ─────────────────</span>
+<span class="kw">from</span> sklearn.feature_selection <span class="kw">import</span> SelectKBest, f_classif
+
+selector = <span class="cls">SelectKBest</span>(score_func=f_classif, k=<span class="nm">10</span>)
+X_new = selector<span class="at">.fit_transform</span>(X_train, y_train)
+selected = X_train<span class="at">.columns</span>[selector<span class="at">.get_support</span>()]
+<span class="kw">print</span>(<span class="st">'선택된 변수:'</span>, selected<span class="at">.tolist</span>())</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 실전 출제 패턴 ══════════════════ -->
+    <section id="s-pattern" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#fff8e0">🏆</div>
+        <div><h2>시험 출제 패턴 코드</h2>
+        <div class="sh-sub">빅분기 작업형2 단골 코드 패턴 총집합</div></div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">🥇 패턴 1 — 분류 전체 흐름 (불균형 포함)</div>
+        <div class="cb-body"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.ensemble        <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.metrics         <span class="kw">import</span> f1_score, roc_auc_score
+<span class="kw">from</span> sklearn.preprocessing  <span class="kw">import</span> LabelEncoder
+
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>)
+df = df<span class="at">.dropna</span>()
+
+<span class="cm"># 범주형 인코딩</span>
+<span class="kw">for</span> col <span class="kw">in</span> df<span class="at">.select_dtypes</span>(include=<span class="st">'object'</span>)<span class="at">.columns</span>:
+    <span class="kw">if</span> col != <span class="st">'target'</span>:
+        df[col] = <span class="cls">LabelEncoder</span>()<span class="at">.fit_transform</span>(df[col])
+
+X = df<span class="at">.drop</span>(columns=[<span class="st">'target'</span>])
+y = df[<span class="st">'target'</span>]
+
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=<span class="nm">0.2</span>, stratify=y, random_state=<span class="nm">42</span>)
+
+model = <span class="cls">RandomForestClassifier</span>(
+    n_estimators=<span class="nm">100</span>, random_state=<span class="nm">42</span>,
+    class_weight=<span class="st">'balanced'</span>  <span class="cm"># 불균형 클래스 대응</span>
+)
+model<span class="at">.fit</span>(X_tr, y_tr)
+
+y_pred  = model<span class="at">.predict</span>(X_te)
+y_prob  = model<span class="at">.predict_proba</span>(X_te)[:, <span class="nm">1</span>]
+
+<span class="kw">print</span>(<span class="fn">round</span>(f1_score(y_te, y_pred), <span class="nm">4</span>))
+<span class="kw">print</span>(<span class="fn">round</span>(roc_auc_score(y_te, y_prob), <span class="nm">4</span>))</div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">🥈 패턴 2 — 회귀 전체 흐름 (교차검증 포함)</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.linear_model   <span class="kw">import</span> Ridge
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score, KFold
+<span class="kw">from</span> sklearn.metrics         <span class="kw">import</span> mean_squared_error, r2_score
+<span class="kw">from</span> sklearn.preprocessing  <span class="kw">import</span> StandardScaler
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>)
+X = df<span class="at">.drop</span>(columns=[<span class="st">'price'</span>])
+y = df[<span class="st">'price'</span>]
+
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=<span class="nm">0.2</span>, random_state=<span class="nm">42</span>)
+
+scaler = StandardScaler()
+X_tr_s = scaler<span class="at">.fit_transform</span>(X_tr)
+X_te_s = scaler<span class="at">.transform</span>(X_te)
+
+model = <span class="cls">Ridge</span>(alpha=<span class="nm">1.0</span>)
+model<span class="at">.fit</span>(X_tr_s, y_tr)
+y_pred = model<span class="at">.predict</span>(X_te_s)
+
+rmse = mean_squared_error(y_te, y_pred, squared=<span class="nm">False</span>)
+r2   = r2_score(y_te, y_pred)
+<span class="kw">print</span>(<span class="fn">round</span>(rmse, <span class="nm">4</span>))
+<span class="kw">print</span>(<span class="fn">round</span>(r2,   <span class="nm">4</span>))
+
+<span class="cm"># 교차검증 RMSE</span>
+kf = <span class="cls">KFold</span>(n_splits=<span class="nm">5</span>, shuffle=<span class="nm">True</span>, random_state=<span class="nm">42</span>)
+cv_scores = cross_val_score(
+    model, X_tr_s, y_tr,
+    cv=kf, scoring=<span class="st">'neg_mean_squared_error'</span>)
+<span class="kw">print</span>(<span class="fn">round</span>(np<span class="at">.sqrt</span>(-cv_scores<span class="at">.mean</span>()), <span class="nm">4</span>))</div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">🥉 패턴 3 — XGBoost 분류 (early stopping)</div>
+        <div class="cb-body"><span class="kw">from</span> xgboost <span class="kw">import</span> XGBClassifier
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> accuracy_score, classification_report
+
+model = <span class="cls">XGBClassifier</span>(
+    n_estimators=<span class="nm">500</span>,
+    learning_rate=<span class="nm">0.05</span>,
+    max_depth=<span class="nm">4</span>,
+    subsample=<span class="nm">0.8</span>,
+    colsample_bytree=<span class="nm">0.8</span>,
+    eval_metric=<span class="st">'logloss'</span>,
+    early_stopping_rounds=<span class="nm">20</span>,   <span class="cm"># 조기종료</span>
+    random_state=<span class="nm">42</span>
+)
+model<span class="at">.fit</span>(X_tr, y_tr,
+          eval_set=[(X_te, y_te)],
+          verbose=<span class="nm">False</span>)
+
+y_pred = model<span class="at">.predict</span>(X_te)
+<span class="kw">print</span>(<span class="fn">round</span>(accuracy_score(y_te, y_pred), <span class="nm">4</span>))
+<span class="kw">print</span>(classification_report(y_te, y_pred))</div>
+      </div>
+
+      <div class="cb">
+        <div class="cb-head">⭐ 패턴 4 — GridSearchCV + 최적 모델 평가</div>
+        <div class="cb-body"><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> GridSearchCV
+<span class="kw">from</span> sklearn.ensemble        <span class="kw">import</span> GradientBoostingClassifier
+<span class="kw">from</span> sklearn.metrics         <span class="kw">import</span> f1_score
+
+param_grid = {
+    <span class="st">'n_estimators'</span> : [<span class="nm">50</span>, <span class="nm">100</span>],
+    <span class="st">'max_depth'</span>    : [<span class="nm">3</span>, <span class="nm">5</span>],
+    <span class="st">'learning_rate'</span>: [<span class="nm">0.05</span>, <span class="nm">0.1</span>]
+}
+gs = <span class="cls">GridSearchCV</span>(
+    <span class="cls">GradientBoostingClassifier</span>(random_state=<span class="nm">42</span>),
+    param_grid, cv=<span class="nm">5</span>, scoring=<span class="st">'f1'</span>, n_jobs=<span class="nm">-1</span>
+)
+gs<span class="at">.fit</span>(X_tr, y_tr)
+
+<span class="kw">print</span>(<span class="st">'최적 파라미터:'</span>, gs<span class="at">.best_params_</span>)
+<span class="kw">print</span>(<span class="st">'CV F1     :'</span>, <span class="fn">round</span>(gs<span class="at">.best_score_</span>, <span class="nm">4</span>))
+
+best = gs<span class="at">.best_estimator_</span>
+y_pred = best<span class="at">.predict</span>(X_te)
+<span class="kw">print</span>(<span class="st">'Test F1   :'</span>, <span class="fn">round</span>(f1_score(y_te, y_pred), <span class="nm">4</span>))</div>
+      </div>
+
+      <div class="hl" style="border-color:var(--w1);background:#fffbf0">
+        🚨 <b>시험 주의사항</b><br>
+        • <code>predict_proba(X_test)[:, 1]</code> — AUC 계산 시 확률값 필요 (이진분류 양성 클래스)<br>
+        • <code>stratify=y</code> — 분류 시 train_test_split에 필수 (클래스 비율 유지)<br>
+        • <code>mean_squared_error(..., squared=False)</code> → RMSE<br>
+        • <code>f1_score</code> 다중분류: <code>average='macro'</code> 또는 <code>'weighted'</code> 명시<br>
+        • <code>class_weight='balanced'</code> — 불균형 데이터에서 분류 성능 향상<br>
+        • <code>SVC(probability=True)</code> — SVM에서 predict_proba 사용 시 필수<br>
+        • 최종 답 출력: <code>print(round(answer, 4))</code> — 소수점 자리수 지시 확인!
+      </div>
+    </section>
+
+    <!-- ══════════════════ 주요 파라미터표 ══════════════════ -->
+    <section id="s-params" class="sa">
+      <div class="sh">
+        <div class="si" style="background:#f5f4fb">📋</div>
+        <div><h2>주요 하이퍼파라미터 빠른 참조</h2>
+        <div class="sh-sub">트리 기반 모델 파라미터 암기</div></div>
+      </div>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>파라미터</th><th>적용 모델</th><th>기본값</th><th>역할</th><th>조정 방향</th></tr>
+          </thead>
+          <tbody>
+            <tr class="rp"><td><code>n_estimators</code></td><td>RF, GBM, XGB</td><td>100</td><td>트리 수</td><td>↑ 성능↑ 속도↓</td></tr>
+            <tr class="rp"><td><code>max_depth</code></td><td>모든 트리</td><td>None/3</td><td>트리 최대 깊이</td><td>↑ 과적합↑</td></tr>
+            <tr class="rp"><td><code>learning_rate</code></td><td>GBM, XGB, LGBM</td><td>0.1</td><td>학습률</td><td>↓ 시 n_estimators↑ 필요</td></tr>
+            <tr class="rp"><td><code>min_samples_split</code></td><td>DT, RF</td><td>2</td><td>분할 최소 샘플수</td><td>↑ 과적합↓</td></tr>
+            <tr class="rp"><td><code>min_samples_leaf</code></td><td>DT, RF</td><td>1</td><td>리프 최소 샘플수</td><td>↑ 과적합↓</td></tr>
+            <tr class="rp"><td><code>max_features</code></td><td>RF</td><td>'sqrt'</td><td>분할 시 고려 특성수</td><td>'sqrt'(분류),'log2'</td></tr>
+            <tr class="rp"><td><code>subsample</code></td><td>GBM, XGB</td><td>1.0</td><td>행 샘플링 비율</td><td>0.6~0.9 권장</td></tr>
+            <tr class="rp"><td><code>colsample_bytree</code></td><td>XGB, LGBM</td><td>1.0</td><td>열 샘플링 비율</td><td>0.6~0.9 권장</td></tr>
+            <tr class="re"><td><code>C</code></td><td>LR, SVM</td><td>1.0</td><td>규제 강도 역수</td><td>↑ 규제↓ (복잡)</td></tr>
+            <tr class="re"><td><code>alpha</code></td><td>Ridge, Lasso</td><td>1.0</td><td>규제 강도</td><td>↑ 규제↑ (단순)</td></tr>
+            <tr class="re"><td><code>n_neighbors</code></td><td>KNN</td><td>5</td><td>K값</td><td>↑ 경계 부드러움</td></tr>
+            <tr class="re"><td><code>kernel</code></td><td>SVM</td><td>'rbf'</td><td>커널 함수</td><td>'linear','poly','rbf','sigmoid'</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>목적</th><th>분류 지표</th><th>회귀 지표</th><th>sklearn scoring 문자열</th></tr></thead>
+          <tbody>
+            <tr><td>기본 정확도</td><td><span class="tag t-clf">accuracy</span></td><td><span class="tag t-reg">r2</span></td><td><code>'accuracy'</code> / <code>'r2'</code></td></tr>
+            <tr><td>오차 절대값</td><td>—</td><td><span class="tag t-reg">MAE</span></td><td><code>'neg_mean_absolute_error'</code></td></tr>
+            <tr><td>오차 제곱</td><td>—</td><td><span class="tag t-reg">MSE/RMSE</span></td><td><code>'neg_mean_squared_error'</code></td></tr>
+            <tr><td>불균형 대응</td><td><span class="tag t-clf">F1</span></td><td><span class="tag t-reg">MAE</span></td><td><code>'f1'</code> / <code>'f1_weighted'</code></td></tr>
+            <tr><td>전체 성능 곡선</td><td><span class="tag t-clf">ROC-AUC</span></td><td>—</td><td><code>'roc_auc'</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- footer -->
+      <div style="margin-top:32px;padding:16px 20px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);text-align:center;">
+        <p style="font-size:12px;color:var(--muted);">빅데이터분석기사 작업형2 머신러닝 참조 | sklearn · xgboost · lightgbm · 분류 · 회귀 · 평가지표</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// 스크롤 스파이
+const sections = document.querySelectorAll('section[id]');
+const links    = document.querySelectorAll('.sidebar a[href^="#"]');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.sidebar a[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.2, rootMargin: '0px 0px -55% 0px' });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

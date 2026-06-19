@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일원분산분석 수치 계산 과정</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,700;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$']], displayMath: [['$$','$$']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+:root{
+  --bg:#ffffff;
+  --ink:#1a1d24;
+  --ink-soft:#4a4f5a;
+  --line:#e7e3da;
+  --line-strong:#d6d1c6;
+  --paper:#fbfaf7;
+  --accent:#7c1f2e;        /* deep burgundy */
+  --accent-soft:#f3e8ea;
+  --navy:#1f3a5f;          /* ink blue */
+  --navy-soft:#eaf0f7;
+  --gold:#a8852c;
+  --code-bg:#f7f5f0;
+  --ok:#2f6b46;
+  --ok-soft:#e6f1ea;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Pretendard',system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- Layout ---------- */
+.wrap{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* ---------- Sidebar TOC ---------- */
+.toc{
+  position:sticky;
+  top:0;
+  align-self:start;
+  height:100vh;
+  overflow-y:auto;
+  padding:36px 22px 40px;
+  border-right:1px solid var(--line);
+  background:var(--paper);
+}
+.toc .brand{
+  font-family:'Spectral',serif;
+  font-weight:700;
+  font-size:1.15rem;
+  letter-spacing:-.01em;
+  margin-bottom:4px;
+  color:var(--ink);
+}
+.toc .brand-sub{
+  font-size:.72rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:600;
+  margin-bottom:26px;
+}
+.toc nav a{
+  display:block;
+  text-decoration:none;
+  color:var(--ink-soft);
+  font-size:.9rem;
+  padding:7px 12px;
+  border-radius:7px;
+  border-left:2px solid transparent;
+  transition:all .18s ease;
+}
+.toc nav a:hover{ background:#fff; color:var(--accent); }
+.toc nav a.active{
+  color:var(--accent);
+  background:#fff;
+  border-left:2px solid var(--accent);
+  font-weight:600;
+}
+.toc nav a .num{
+  display:inline-block;
+  width:20px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.78rem;
+  color:var(--gold);
+  font-weight:500;
+}
+
+/* ---------- Main ---------- */
+main{ padding:56px 60px 120px; min-width:0; }
+
+header.page-head{
+  border-bottom:2px solid var(--ink);
+  padding-bottom:28px;
+  margin-bottom:48px;
+}
+.eyebrow{
+  font-size:.74rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:700;
+  margin-bottom:14px;
+}
+header.page-head h1{
+  font-family:'Spectral',serif;
+  font-weight:700;
+  font-size:2.5rem;
+  line-height:1.15;
+  margin:0 0 10px;
+  letter-spacing:-.02em;
+}
+header.page-head .sub{
+  color:var(--ink-soft);
+  font-size:1.02rem;
+  margin:0;
+}
+.result-banner{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:24px;
+}
+.chip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.85rem;
+  padding:8px 16px;
+  border-radius:30px;
+  border:1px solid var(--line-strong);
+  background:#fff;
+}
+.chip b{ color:var(--accent); }
+.chip.navy b{ color:var(--navy); }
+
+/* ---------- Sections ---------- */
+section{ margin-bottom:54px; scroll-margin-top:24px; }
+.step-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+.step-tag .n{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.78rem;
+  font-weight:700;
+  color:#fff;
+  background:var(--accent);
+  padding:3px 10px;
+  border-radius:5px;
+  letter-spacing:.05em;
+}
+h2{
+  font-family:'Spectral',serif;
+  font-weight:600;
+  font-size:1.6rem;
+  margin:4px 0 18px;
+  letter-spacing:-.01em;
+}
+h3{
+  font-size:1.05rem;
+  font-weight:700;
+  margin:26px 0 10px;
+  color:var(--navy);
+}
+p{ margin:12px 0; color:var(--ink); }
+.note{ color:var(--ink-soft); font-size:.95rem; }
+
+/* ---------- Math block ---------- */
+.math-card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-left:4px solid var(--navy);
+  border-radius:10px;
+  padding:6px 24px;
+  margin:20px 0;
+  overflow-x:auto;
+}
+
+/* ---------- Tables ---------- */
+table{
+  border-collapse:collapse;
+  width:100%;
+  margin:20px 0;
+  font-size:.94rem;
+}
+th,td{
+  border:1px solid var(--line-strong);
+  padding:11px 14px;
+  text-align:center;
+}
+th{
+  background:var(--ink);
+  color:#fff;
+  font-weight:600;
+  font-size:.86rem;
+  letter-spacing:.02em;
+}
+tbody tr:nth-child(even){ background:var(--paper); }
+td.lab{ text-align:left; font-weight:600; }
+.mono{ font-family:'JetBrains Mono',monospace; }
+tr.total-row{ background:var(--navy-soft)!important; font-weight:700; }
+tr.total-row td{ border-top:2px solid var(--navy); }
+
+/* highlighted F cell */
+.f-cell{ background:var(--accent-soft)!important; color:var(--accent); font-weight:700; font-family:'JetBrains Mono',monospace; }
+
+/* ---------- Callout ---------- */
+.callout{
+  border-radius:10px;
+  padding:16px 20px;
+  margin:22px 0;
+  font-size:.95rem;
+}
+.callout.tip{ background:var(--navy-soft); border:1px solid #cfdcec; }
+.callout.warn{ background:#fdf3e7; border:1px solid #f0d9b5; }
+.callout.concl{ background:var(--ok-soft); border:1px solid #bfe0cd; }
+.callout .ct{
+  font-weight:700; display:block; margin-bottom:4px;
+}
+.callout.tip .ct{ color:var(--navy); }
+.callout.warn .ct{ color:var(--gold); }
+.callout.concl .ct{ color:var(--ok); }
+
+/* ---------- Mean bars ---------- */
+.bars{ margin:24px 0; }
+.bar-row{ display:flex; align-items:center; gap:14px; margin:9px 0; }
+.bar-row .lbl{
+  width:34px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--navy);
+}
+.bar-track{ flex:1; background:var(--paper); border-radius:6px; height:30px; position:relative; border:1px solid var(--line); }
+.bar-fill{
+  height:100%; border-radius:5px 0 0 5px;
+  background:linear-gradient(90deg,var(--navy),#3b5e88);
+  display:flex; align-items:center; justify-content:flex-end;
+  padding-right:10px; color:#fff; font-size:.82rem; font-weight:600;
+  font-family:'JetBrains Mono',monospace;
+}
+.grand-line{
+  position:absolute; top:-4px; bottom:-4px;
+  border-left:2px dashed var(--accent);
+}
+.bars .legend{ font-size:.82rem; color:var(--accent); margin-top:6px; }
+
+/* ---------- code inline ---------- */
+code{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--code-bg);
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:.88em;
+  color:var(--accent);
+}
+
+.summary-flow{
+  background:var(--ink);
+  color:#fff;
+  border-radius:12px;
+  padding:24px 28px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.92rem;
+  line-height:2;
+  text-align:center;
+}
+.summary-flow .arrow{ color:var(--gold); margin:0 8px; }
+.summary-flow b{ color:#f2c14e; }
+
+footer{
+  margin-top:60px; padding-top:24px;
+  border-top:1px solid var(--line);
+  font-size:.84rem; color:var(--ink-soft);
+}
+
+@media (max-width:900px){
+  .wrap{ grid-template-columns:1fr; }
+  .toc{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); }
+  .toc nav{ display:flex; flex-wrap:wrap; gap:4px; }
+  .toc nav a{ border-left:none; }
+  main{ padding:36px 22px 80px; }
+  header.page-head h1{ font-size:1.9rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="toc">
+    <div class="brand">일원분산분석</div>
+    <div class="brand-sub">One-way ANOVA</div>
+    <nav id="toc-nav">
+      <a href="#s0"><span class="num">00</span>개요 &amp; 가설</a>
+      <a href="#s1"><span class="num">01</span>집단·전체 평균</a>
+      <a href="#s2"><span class="num">02</span>집단 간 제곱합 SSB</a>
+      <a href="#s3"><span class="num">03</span>집단 내 제곱합 SSW</a>
+      <a href="#s4"><span class="num">04</span>총제곱합 SST 검증</a>
+      <a href="#s5"><span class="num">05</span>자유도 df</a>
+      <a href="#s6"><span class="num">06</span>평균제곱 MS</a>
+      <a href="#s7"><span class="num">07</span>F 통계량</a>
+      <a href="#s8"><span class="num">08</span>ANOVA 표</a>
+      <a href="#s9"><span class="num">09</span>의사결정</a>
+      <a href="#s10"><span class="num">10</span>요약 흐름</a>
+    </nav>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main>
+    <header class="page-head">
+      <div class="eyebrow">통계 분석 · 가설검정</div>
+      <h1>일원분산분석 수치 계산 과정</h1>
+      <p class="sub">네 집단 A·B·C·D ($n=10$, 총 $N=40$)의 평균 차이를 손으로 분해하는 전체 과정</p>
+      <div class="result-banner">
+        <span class="chip">F = <b>89.1261</b></span>
+        <span class="chip navy">p-value = <b>1.00 × 10⁻¹⁶</b></span>
+        <span class="chip">df = <b>(3, 36)</b></span>
+      </div>
+    </header>
+
+    <!-- S0 -->
+    <section id="s0">
+      <div class="step-tag"><span class="n">STEP 00</span></div>
+      <h2>개요 &amp; 가설 설정</h2>
+      <p>일원분산분석은 <b>총변동(SST)</b>을 <b>집단 간 변동(SSB)</b>과 <b>집단 내 변동(SSW)</b>으로 분해하여, 집단 간 차이가 우연한 잡음에 비해 충분히 큰지를 $F$ 비로 판정하는 기법입니다.</p>
+      <div class="math-card">
+        $$ H_0:\ \mu_A = \mu_B = \mu_C = \mu_D \qquad\text{vs}\qquad H_1:\ \text{적어도 하나의 평균은 다르다} $$
+      </div>
+      <table>
+        <thead><tr><th>집단</th><th>데이터</th><th>표본 크기</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">A</td><td class="mono">10.5 11.3 10.8 9.6 11.1 10.2 10.9 11.4 10.5 10.3</td><td>10</td></tr>
+          <tr><td class="lab">B</td><td class="mono">11.9 12.4 12.1 13.2 12.5 11.8 12.2 12.9 12.4 12.3</td><td>10</td></tr>
+          <tr><td class="lab">C</td><td class="mono">11.2 11.7 11.6 10.9 11.3 11.1 10.8 11.5 11.4 11.0</td><td>10</td></tr>
+          <tr><td class="lab">D</td><td class="mono">9.8 9.4 9.1 9.5 9.6 9.9 9.2 9.7 9.3 9.4</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- S1 -->
+    <section id="s1">
+      <div class="step-tag"><span class="n">STEP 01</span></div>
+      <h2>집단 평균과 전체 평균</h2>
+      <p>각 집단의 합계를 표본 크기 10으로 나눠 집단 평균 $\bar{x}_j$ 를, 전체 합계를 $N=40$ 으로 나눠 전체 평균(grand mean) $\bar{x}$ 를 구합니다.</p>
+      <table>
+        <thead><tr><th>집단</th><th>합계</th><th>집단 평균 $\bar{x}_j$</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">A</td><td class="mono">106.60</td><td class="mono">10.660</td></tr>
+          <tr><td class="lab">B</td><td class="mono">123.70</td><td class="mono">12.370</td></tr>
+          <tr><td class="lab">C</td><td class="mono">112.50</td><td class="mono">11.250</td></tr>
+          <tr><td class="lab">D</td><td class="mono">94.90</td><td class="mono">9.490</td></tr>
+        </tbody>
+      </table>
+      <div class="math-card">
+        $$ \bar{x} = \frac{106.6 + 123.7 + 112.5 + 94.9}{40} = \frac{437.7}{40} = 10.9425 $$
+      </div>
+
+      <div class="bars">
+        <div class="bar-row"><span class="lbl">A</span><div class="bar-track"><div class="bar-fill" style="width:86.2%">10.66</div><div class="grand-line" style="left:88.5%"></div></div></div>
+        <div class="bar-row"><span class="lbl">B</span><div class="bar-track"><div class="bar-fill" style="width:100%">12.37</div><div class="grand-line" style="left:88.5%"></div></div></div>
+        <div class="bar-row"><span class="lbl">C</span><div class="bar-track"><div class="bar-fill" style="width:90.9%">11.25</div><div class="grand-line" style="left:88.5%"></div></div></div>
+        <div class="bar-row"><span class="lbl">D</span><div class="bar-track"><div class="bar-fill" style="width:76.7%">9.49</div><div class="grand-line" style="left:88.5%"></div></div></div>
+        <div class="legend">┆ 점선 = 전체 평균(10.9425). B는 위로, D는 아래로 크게 벗어나 있음 → 큰 집단 간 변동의 원인</div>
+      </div>
+    </section>
+
+    <!-- S2 -->
+    <section id="s2">
+      <div class="step-tag"><span class="n">STEP 02</span></div>
+      <h2>집단 간 제곱합 SSB <span class="note">(Between / 처리제곱합)</span></h2>
+      <div class="math-card">
+        $$ SSB = \sum_{j=1}^{k} n_j\,(\bar{x}_j - \bar{x})^2 $$
+      </div>
+      <p>각 집단 평균과 전체 평균(10.9425)의 편차를 제곱한 뒤 표본 크기 10을 곱합니다.</p>
+      <table>
+        <thead><tr><th>집단</th><th>$\bar{x}_j - \bar{x}$</th><th>$10\,(\bar{x}_j-\bar{x})^2$</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">A</td><td class="mono">−0.2825</td><td class="mono">0.79806</td></tr>
+          <tr><td class="lab">B</td><td class="mono">+1.4275</td><td class="mono">20.37756</td></tr>
+          <tr><td class="lab">C</td><td class="mono">+0.3075</td><td class="mono">0.94556</td></tr>
+          <tr><td class="lab">D</td><td class="mono">−1.4525</td><td class="mono">21.09756</td></tr>
+          <tr class="total-row"><td class="lab">합계 (SSB)</td><td>—</td><td class="mono">43.21875</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><span class="ct">관찰</span> B(+20.38)와 D(+21.10)가 SSB의 거의 전부를 차지합니다. 두 집단이 전체 평균에서 가장 멀리 떨어져 있기 때문입니다.</div>
+    </section>
+
+    <!-- S3 -->
+    <section id="s3">
+      <div class="step-tag"><span class="n">STEP 03</span></div>
+      <h2>집단 내 제곱합 SSW <span class="note">(Within / 오차제곱합)</span></h2>
+      <div class="math-card">
+        $$ SSW = \sum_{j=1}^{k}\sum_{i=1}^{n_j}(x_{ij}-\bar{x}_j)^2 $$
+      </div>
+      <p>각 데이터에서 <b>자기 집단의 평균</b>을 뺀 편차의 제곱합입니다. 예시로 집단 A($\bar{x}_A=10.66$)를 직접 펼치면:</p>
+      <div class="math-card">
+        $$
+        \begin{aligned}
+        SS_A =\;&(10.5-10.66)^2+(11.3-10.66)^2+(10.8-10.66)^2+(9.6-10.66)^2\\
+        &+(11.1-10.66)^2+(10.2-10.66)^2+(10.9-10.66)^2+(11.4-10.66)^2\\
+        &+(10.5-10.66)^2+(10.3-10.66)^2 = 2.744
+        \end{aligned}
+        $$
+      </div>
+      <table>
+        <thead><tr><th>집단</th><th>집단 내 제곱합 $SS_j$</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">A</td><td class="mono">2.744</td></tr>
+          <tr><td class="lab">B</td><td class="mono">1.641</td></tr>
+          <tr><td class="lab">C</td><td class="mono">0.825</td></tr>
+          <tr><td class="lab">D</td><td class="mono">0.609</td></tr>
+          <tr class="total-row"><td class="lab">합계 (SSW)</td><td class="mono">5.819</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- S4 -->
+    <section id="s4">
+      <div class="step-tag"><span class="n">STEP 04</span></div>
+      <h2>총제곱합 SST &amp; 분해 검증</h2>
+      <div class="math-card">
+        $$ SST = \sum_{i,j}(x_{ij}-\bar{x})^2 = 49.03775 $$
+      </div>
+      <p>ANOVA의 핵심 항등식 $SST = SSB + SSW$ 로 검산합니다.</p>
+      <div class="math-card">
+        $$ 49.03775 \;=\; \underbrace{43.21875}_{SSB} \;+\; \underbrace{5.81900}_{SSW} \quad\checkmark $$
+      </div>
+      <p class="note">총변동이 집단 간 변동과 집단 내 변동으로 정확히 나뉘는 것이 분산분석의 출발점입니다.</p>
+    </section>
+
+    <!-- S5 -->
+    <section id="s5">
+      <div class="step-tag"><span class="n">STEP 05</span></div>
+      <h2>자유도 (Degrees of Freedom)</h2>
+      <div class="math-card">
+        $$
+        df_{between}=k-1=3,\quad
+        df_{within}=N-k=36,\quad
+        df_{total}=N-1=39
+        $$
+      </div>
+    </section>
+
+    <!-- S6 -->
+    <section id="s6">
+      <div class="step-tag"><span class="n">STEP 06</span></div>
+      <h2>평균제곱 (Mean Square)</h2>
+      <p>제곱합을 각자의 자유도로 나눠 분산 추정량을 만듭니다.</p>
+      <div class="math-card">
+        $$ MSB = \frac{SSB}{df_{between}} = \frac{43.21875}{3} = 14.40625 $$
+      </div>
+      <div class="math-card">
+        $$ MSW = \frac{SSW}{df_{within}} = \frac{5.819}{36} = 0.161639 $$
+      </div>
+    </section>
+
+    <!-- S7 -->
+    <section id="s7">
+      <div class="step-tag"><span class="n">STEP 07</span></div>
+      <h2>F 통계량</h2>
+      <div class="math-card">
+        $$ F = \frac{MSB}{MSW} = \frac{14.40625}{0.161639} = \mathbf{89.1261} $$
+      </div>
+      <div class="callout tip"><span class="ct">의미</span> 집단 간 분산이 집단 내 분산(잡음)의 약 <b>89배</b>라는 뜻입니다. scipy의 <code>f_oneway</code> 결과(89.126...)와 정확히 일치합니다.</div>
+    </section>
+
+    <!-- S8 -->
+    <section id="s8">
+      <div class="step-tag"><span class="n">STEP 08</span></div>
+      <h2>ANOVA 요약표</h2>
+      <table>
+        <thead>
+          <tr><th>변동 요인 (Source)</th><th>제곱합 SS</th><th>자유도 df</th><th>평균제곱 MS</th><th>F</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="lab">집단 간 (Between / 처리)</td><td class="mono">43.21875</td><td class="mono">3</td><td class="mono">14.40625</td><td class="f-cell" rowspan="2">89.13</td></tr>
+          <tr><td class="lab">집단 내 (Within / 오차)</td><td class="mono">5.81900</td><td class="mono">36</td><td class="mono">0.16164</td></tr>
+          <tr class="total-row"><td class="lab">합계 (Total)</td><td class="mono">49.03775</td><td class="mono">39</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- S9 -->
+    <section id="s9">
+      <div class="step-tag"><span class="n">STEP 09</span></div>
+      <h2>의사결정</h2>
+      <h3>① 임계값 방법</h3>
+      <div class="math-card">
+        $$ F_{0.05}(3,\,36) \approx 2.8663 \quad\Rightarrow\quad F=89.13 \;>\; 2.8663 $$
+      </div>
+      <h3>② p-value 방법</h3>
+      <div class="math-card">
+        $$ p = 1.00\times10^{-16} \;<\; \alpha = 0.05 $$
+      </div>
+      <div class="callout concl"><span class="ct">결론</span> 두 방법 모두 귀무가설을 기각합니다. 유의수준 5%에서 네 집단의 평균이 모두 같다고 볼 수 없으며, <b>적어도 한 집단의 평균은 통계적으로 유의하게 다릅니다.</b> 구체적으로 어느 쌍이 다른지는 Tukey HSD 등 사후검정(post-hoc)으로 확인합니다.</div>
+      <div class="callout warn"><span class="ct">전제 가정</span> 정규성(Shapiro-Wilk), 등분산성(Levene), 독립성을 함께 점검해야 합니다. 등분산이 깨지면 <b>Welch's ANOVA</b>, 정규성이 깨지면 비모수 검정인 <b>Kruskal-Wallis</b>를 사용합니다.</div>
+    </section>
+
+    <!-- S10 -->
+    <section id="s10">
+      <div class="step-tag"><span class="n">STEP 10</span></div>
+      <h2>암기용 요약 흐름</h2>
+      <div class="summary-flow">
+        평균 <span class="arrow">→</span> <b>SSB, SSW</b> <span class="arrow">→</span> df <span class="arrow">→</span> MS = SS/df <span class="arrow">→</span> <b>F = MSB/MSW</b> <span class="arrow">→</span> 판정
+      </div>
+    </section>
+
+    <footer>
+      일원분산분석(One-way ANOVA) 수치 계산 학습 자료 · 모든 값은 Python(scipy.stats.f_oneway)으로 검증됨.
+    </footer>
+  </main>
+</div>
+
+<script>
+// TOC active highlight on scroll
+const links = document.querySelectorAll('#toc-nav a');
+const sections = [...links].map(a => document.querySelector(a.getAttribute('href')));
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id = e.target.id;
+      links.forEach(l=>l.classList.toggle('active', l.getAttribute('href') === '#'+id));
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>s && obs.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카이제곱 검정 완벽 가이드 — 개념 · 수식 · 수치 예제 · Python</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,700;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+
+<!-- syntax highlighting -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+
+<script>
+window.MathJax = { tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}, svg:{fontCache:'global'} };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+:root{
+  --bg:#ffffff; --ink:#1a1d24; --ink-soft:#4a4f5a;
+  --line:#e7e3da; --line-strong:#d6d1c6; --paper:#fbfaf7;
+  --accent:#7c1f2e; --accent-soft:#f3e8ea;
+  --navy:#1f3a5f; --navy-soft:#eaf0f7; --gold:#a8852c;
+  --code-bg:#f7f5f0; --ok:#2f6b46; --ok-soft:#e6f1ea;
+  --teal:#1d6b6b; --teal-soft:#e3f0ef;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'Pretendard',system-ui,sans-serif;font-size:16px;line-height:1.75;
+  -webkit-font-smoothing:antialiased;}
+
+.wrap{display:grid;grid-template-columns:268px 1fr;max-width:1180px;margin:0 auto;}
+.toc{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  padding:36px 22px 40px;border-right:1px solid var(--line);background:var(--paper);}
+.toc .brand{font-family:'Spectral',serif;font-weight:700;font-size:1.15rem;letter-spacing:-.01em;margin-bottom:4px;}
+.toc .brand-sub{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:26px;}
+.toc nav a{display:block;text-decoration:none;color:var(--ink-soft);font-size:.86rem;
+  padding:6px 12px;border-radius:7px;border-left:2px solid transparent;transition:all .18s;}
+.toc nav a:hover{background:#fff;color:var(--accent);}
+.toc nav a.active{color:var(--accent);background:#fff;border-left:2px solid var(--accent);font-weight:600;}
+.toc nav a .num{display:inline-block;width:22px;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--gold);font-weight:500;}
+
+main{padding:56px 60px 120px;min-width:0;}
+header.page-head{border-bottom:2px solid var(--ink);padding-bottom:28px;margin-bottom:48px;}
+.eyebrow{font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px;}
+header.page-head h1{font-family:'Spectral',serif;font-weight:700;font-size:2.4rem;line-height:1.15;margin:0 0 10px;letter-spacing:-.02em;}
+header.page-head .sub{color:var(--ink-soft);font-size:1.02rem;margin:0;}
+.result-banner{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;}
+.chip{font-family:'JetBrains Mono',monospace;font-size:.84rem;padding:8px 15px;border-radius:30px;border:1px solid var(--line-strong);background:#fff;}
+.chip b{color:var(--accent);} .chip.navy b{color:var(--navy);} .chip.teal b{color:var(--teal);}
+
+section{margin-bottom:52px;scroll-margin-top:24px;}
+.step-tag{display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;}
+.step-tag .n{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:#fff;background:var(--accent);padding:3px 10px;border-radius:5px;letter-spacing:.05em;}
+.step-tag .n.navy{background:var(--navy);} .step-tag .n.teal{background:var(--teal);} .step-tag .n.gold{background:var(--gold);}
+h2{font-family:'Spectral',serif;font-weight:600;font-size:1.55rem;margin:4px 0 18px;letter-spacing:-.01em;}
+h3{font-size:1.02rem;font-weight:700;margin:24px 0 10px;color:var(--navy);}
+h4.subh{font-size:.92rem;font-weight:700;margin:18px 0 6px;color:var(--accent);}
+p{margin:12px 0;} .note{color:var(--ink-soft);font-size:.94rem;}
+ul,ol{margin:12px 0;padding-left:22px;} li{margin:5px 0;}
+
+.math-card{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:10px;padding:6px 24px;margin:18px 0;overflow-x:auto;}
+.math-card.accent{border-left-color:var(--accent);}
+
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.92rem;}
+th,td{border:1px solid var(--line-strong);padding:10px 13px;text-align:center;}
+th{background:var(--ink);color:#fff;font-weight:600;font-size:.84rem;}
+tbody tr:nth-child(even){background:var(--paper);}
+td.lab{text-align:left;font-weight:600;}
+.mono{font-family:'JetBrains Mono',monospace;}
+tr.total-row{background:var(--navy-soft)!important;font-weight:700;}
+tr.total-row td{border-top:2px solid var(--navy);}
+.x-cell{background:var(--accent-soft)!important;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;}
+.sig{color:var(--ok);font-weight:700;} .nsig{color:var(--accent);font-weight:700;}
+.exp{color:var(--ink-soft);font-size:.82rem;}
+.hl-pos{background:var(--ok-soft);font-weight:700;} .hl-neg{background:var(--accent-soft);font-weight:700;}
+
+.callout{border-radius:10px;padding:15px 20px;margin:20px 0;font-size:.94rem;}
+.callout.tip{background:var(--navy-soft);border:1px solid #cfdcec;}
+.callout.warn{background:#fdf3e7;border:1px solid #f0d9b5;}
+.callout.concl{background:var(--ok-soft);border:1px solid #bfe0cd;}
+.callout.key{background:var(--teal-soft);border:1px solid #b9dad8;}
+.callout .ct{font-weight:700;display:block;margin-bottom:4px;}
+.callout.tip .ct{color:var(--navy);} .callout.warn .ct{color:var(--gold);}
+.callout.concl .ct{color:var(--ok);} .callout.key .ct{color:var(--teal);}
+
+code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:.88em;color:var(--accent);}
+
+/* code blocks */
+.code-block{margin:18px 0;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;background:#fbfaf7;}
+.code-block .cb-head{display:flex;align-items:center;justify-content:space-between;
+  background:var(--ink);color:#e9e6df;padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.04em;}
+.code-block .cb-head .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#f2c14e;}
+.code-block .cb-head .lang{color:#9fb4cf;}
+.code-block pre{margin:0;padding:16px 18px;overflow-x:auto;background:#fbfaf7;}
+.code-block pre code{background:none;padding:0;color:#1a1d24;font-size:.84rem;line-height:1.7;}
+/* highlight.js token overrides to match palette */
+.hljs-keyword,.hljs-built_in{color:#7c1f2e;font-weight:600;}
+.hljs-string,.hljs-meta .hljs-string{color:#2f6b46;}
+.hljs-number{color:#a8852c;}
+.hljs-comment{color:#8a8578;font-style:italic;}
+.hljs-title,.hljs-title.function_{color:#1f3a5f;font-weight:600;}
+.hljs-attr,.hljs-params{color:#1d6b6b;}
+.output{margin:-8px 0 18px;border:1px dashed var(--line-strong);border-left:3px solid var(--teal);border-radius:0 8px 8px 0;
+  background:var(--teal-soft);padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#214f4f;white-space:pre-wrap;}
+.output .ot{display:block;font-weight:700;color:var(--teal);margin-bottom:5px;letter-spacing:.04em;font-size:.72rem;}
+
+.plot-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0;text-align:center;}
+.plot-card svg{max-width:100%;height:auto;}
+.plot-card .cap{font-size:.8rem;color:var(--ink-soft);margin-top:8px;font-style:italic;}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:20px 0;}
+.compare-grid .card{border:1px solid var(--line-strong);border-radius:10px;padding:16px 18px;background:#fff;}
+.compare-grid .card h4{margin:0 0 8px;font-size:.98rem;color:var(--accent);font-weight:700;}
+.compare-grid .card p{margin:6px 0;font-size:.85rem;color:var(--ink-soft);}
+
+.summary-flow{background:var(--ink);color:#fff;border-radius:12px;padding:24px 28px;font-family:'JetBrains Mono',monospace;font-size:.9rem;line-height:2;text-align:center;}
+.summary-flow .arrow{color:var(--gold);margin:0 6px;} .summary-flow b{color:#f2c14e;}
+
+.ref-list{list-style:none;padding-left:0;counter-reset:ref;}
+.ref-list li{counter-increment:ref;padding:8px 0 8px 36px;position:relative;font-size:.9rem;border-bottom:1px solid var(--line);}
+.ref-list li::before{content:"["counter(ref)"]";position:absolute;left:0;top:8px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;font-size:.82rem;}
+.ref-list li .src{color:var(--ink-soft);}
+
+footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);font-size:.84rem;color:var(--ink-soft);}
+
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;}
+  .toc{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+  .toc nav{display:flex;flex-wrap:wrap;gap:4px;} .toc nav a{border-left:none;}
+  main{padding:36px 22px 80px;} header.page-head h1{font-size:1.8rem;}
+  .compare-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <aside class="toc">
+    <div class="brand">카이제곱 검정 완벽 가이드</div>
+    <div class="brand-sub">Chi-square Test</div>
+    <nav id="toc-nav">
+      <a href="#s0"><span class="num">00</span>카이제곱 검정이란?</a>
+      <a href="#s1"><span class="num">01</span>카이제곱 분포의 수학</a>
+      <a href="#s2"><span class="num">02</span>검정의 일반 절차</a>
+      <a href="#s3"><span class="num">03</span>세 가지 검정 유형</a>
+      <a href="#s4"><span class="num">04</span>적합도 검정 예제</a>
+      <a href="#s5"><span class="num">05</span>독립성 검정 예제</a>
+      <a href="#s6"><span class="num">06</span>동질성 검정 예제</a>
+      <a href="#s7"><span class="num">07</span>효과크기</a>
+      <a href="#s8"><span class="num">08</span>잔차분석 (사후검정)</a>
+      <a href="#s9"><span class="num">09</span>가정 &amp; 주의사항</a>
+      <a href="#s10"><span class="num">10</span>Python 통합 구현</a>
+      <a href="#s11"><span class="num">11</span>요약 &amp; 참고문헌</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="page-head">
+      <div class="eyebrow">통계 분석 · 범주형 자료 검정</div>
+      <h1>카이제곱 검정 완벽 가이드</h1>
+      <p class="sub">관측도수와 기대도수의 차이로 범주형 변수의 분포·연관성을 검정하는 방법 — 수학적 배경부터 수치 예제, Python 구현, 사후분석까지</p>
+      <div class="result-banner">
+        <span class="chip">적합도 χ² = <b>4.5</b></span>
+        <span class="chip navy">독립성 χ² = <b>11.67</b></span>
+        <span class="chip teal">동질성 χ² = <b>4.57</b></span>
+      </div>
+    </header>
+
+    <!-- S0 -->
+    <section id="s0">
+      <div class="step-tag"><span class="n">개념</span></div>
+      <h2>카이제곱 검정이란?</h2>
+      <p>카이제곱($\chi^2$) 검정은 <b>범주형(categorical) 자료</b>에서 우리가 실제로 관측한 빈도(<b>관측도수 O</b>, Observed)가, 어떤 가설 아래 이론적으로 기대되는 빈도(<b>기대도수 E</b>, Expected)와 얼마나 차이 나는지를 측정하는 비모수적 검정입니다. 1900년 칼 피어슨(Karl Pearson)이 제안하여 <b>피어슨 카이제곱 통계량</b>이라고도 부릅니다.</p>
+      <div class="math-card accent">
+        $$ \chi^2 = \sum_{i=1}^{k} \frac{(O_i - E_i)^2}{E_i} $$
+      </div>
+      <p>각 칸에서 "관측 − 기대" 편차를 제곱하여 기대도수로 나눈 뒤 모두 더합니다. 편차를 <b>제곱</b>하므로 부호가 사라지고, <b>기대도수로 나누므로</b> 같은 크기의 편차라도 기대도수가 작은 칸에서 더 큰 기여를 합니다. 차이가 클수록 $\chi^2$ 값이 커지고, 그 값이 임계값을 넘으면 "우연으로 보기 어렵다"며 귀무가설을 기각합니다.</p>
+      <div class="callout key"><span class="ct">왜 평균이 아니라 빈도(도수)인가?</span> $t$-검정·분산분석이 <b>연속형 변수의 평균</b>을 비교한다면, 카이제곱은 "어느 범주에 몇 개가 들어갔는가"라는 <b>빈도</b> 자체를 다룹니다. 그래서 비율(%)이 아닌 <b>실제 개수(count)</b>로 계산해야 합니다.</div>
+    </section>
+
+    <!-- S1 -->
+    <section id="s1">
+      <div class="step-tag"><span class="n navy">분포</span></div>
+      <h2>카이제곱 분포의 수학적 배경</h2>
+      <p>표준정규분포를 따르는 독립 확률변수 $Z_1, Z_2, \dots, Z_k$가 있을 때, 그 <b>제곱합</b>이 따르는 분포가 자유도 $k$인 카이제곱 분포입니다. 피어슨 통계량이 근사적으로 이 분포를 따르기 때문에 "카이제곱 검정"이라 부릅니다.</p>
+      <div class="math-card">
+        $$ Q = \sum_{i=1}^{k} Z_i^2 \ \sim\ \chi^2(k), \qquad Z_i \overset{iid}{\sim} N(0,1) $$
+      </div>
+      <h3>확률밀도함수 (PDF)</h3>
+      <div class="math-card">
+        $$ f(x;k) = \frac{1}{2^{k/2}\,\Gamma\!\left(\tfrac{k}{2}\right)}\, x^{\,k/2-1}\, e^{-x/2}, \qquad x > 0 $$
+      </div>
+      <p>여기서 $\Gamma(\cdot)$는 감마함수입니다. 카이제곱 분포는 사실 <b>형상모수 $k/2$, 척도모수 $2$인 감마분포</b>의 특수한 경우입니다.</p>
+
+      <h3>주요 성질</h3>
+      <table>
+        <thead><tr><th>특성</th><th>값 / 설명</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">정의역</td><td>$x \ge 0$ (음수 불가 — 제곱합이므로)</td></tr>
+          <tr><td class="lab">평균 $E[X]$</td><td class="mono">$k$ (자유도)</td></tr>
+          <tr><td class="lab">분산 $Var[X]$</td><td class="mono">$2k$</td></tr>
+          <tr><td class="lab">최빈값(mode)</td><td class="mono">$\max(k-2,\ 0)$</td></tr>
+          <tr><td class="lab">왜도(skewness)</td><td class="mono">$\sqrt{8/k}$ — 우측으로 치우침, $k$↑이면 0에 수렴</td></tr>
+          <tr><td class="lab">가법성</td><td>$\chi^2(k_1)+\chi^2(k_2)=\chi^2(k_1+k_2)$ (독립일 때)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>자유도에 따른 분포 모양</h3>
+      <div class="plot-card">
+        <svg viewBox="0 0 620 330" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+          <!-- axes -->
+          <line x1="56" y1="288" x2="500" y2="288" stroke="#8a8578" stroke-width="1.5"/>
+          <line x1="56" y1="288" x2="56" y2="24" stroke="#8a8578" stroke-width="1.5"/>
+          <!-- x ticks -->
+          <g font-size="10" fill="#4a4f5a" text-anchor="middle">
+            <line x1="56" y1="288" x2="56" y2="292" stroke="#8a8578"/><text x="56" y="305">0</text>
+            <line x1="167" y1="288" x2="167" y2="292" stroke="#8a8578"/><text x="167" y="305">4</text>
+            <line x1="278" y1="288" x2="278" y2="292" stroke="#8a8578"/><text x="278" y="305">8</text>
+            <line x1="389" y1="288" x2="389" y2="292" stroke="#8a8578"/><text x="389" y="305">12</text>
+            <line x1="500" y1="288" x2="500" y2="292" stroke="#8a8578"/><text x="500" y="305">16</text>
+          </g>
+          <!-- y ticks -->
+          <g font-size="10" fill="#4a4f5a" text-anchor="end">
+            <text x="50" y="291">0</text><text x="50" y="238">.1</text><text x="50" y="185">.2</text>
+            <text x="50" y="132">.3</text><text x="50" y="80">.4</text><text x="50" y="27">.5</text>
+          </g>
+          <text x="295" y="322" text-anchor="middle" font-size="11" fill="#4a4f5a">χ² 값  x</text>
+          <text x="20" y="156" text-anchor="middle" font-size="11" fill="#4a4f5a" transform="rotate(-90 20 156)">밀도 f(x; k)</text>
+          <path d="M57.1,24.0 L58.8,24.0 L60.5,24.0 L62.2,24.0 L64.0,24.0 L65.7,24.0 L67.4,24.0 L69.1,45.6 L70.8,67.0 L72.5,85.1 L74.2,100.7 L75.9,114.4 L77.6,126.4 L79.3,137.2 L81.1,146.8 L82.8,155.6 L84.5,163.5 L86.2,170.7 L87.9,177.4 L89.6,183.5 L91.3,189.2 L93.0,194.4 L94.7,199.3 L96.4,203.8 L98.2,208.0 L99.9,212.0 L101.6,215.7 L103.3,219.2 L105.0,222.4 L106.7,225.5 L108.4,228.4 L110.1,231.1 L111.8,233.7 L113.5,236.1 L115.2,238.4 L117.0,240.6 L118.7,242.7 L120.4,244.6 L122.1,246.5 L123.8,248.3 L125.5,250.0 L127.2,251.6 L128.9,253.1 L130.6,254.5 L132.4,255.9 L134.1,257.2 L135.8,258.5 L137.5,259.7 L139.2,260.8 L140.9,261.9 L142.6,263.0 L144.3,264.0 L146.0,264.9 L147.7,265.8 L149.4,266.7 L151.2,267.5 L152.9,268.3 L154.6,269.1 L156.3,269.8 L158.0,270.5 L159.7,271.2 L161.4,271.8 L163.1,272.4 L164.8,273.0 L166.6,273.6 L168.3,274.1 L170.0,274.7 L171.7,275.2 L173.4,275.6 L175.1,276.1 L176.8,276.6 L178.5,277.0 L180.2,277.4 L181.9,277.8 L183.7,278.2 L185.4,278.5 L187.1,278.9 L188.8,279.2 L190.5,279.5 L192.2,279.8 L193.9,280.1 L195.6,280.4 L197.3,280.7 L199.0,281.0 L200.8,281.2 L202.5,281.4 L204.2,281.7 L205.9,281.9 L207.6,282.1 L209.3,282.3 L211.0,282.5 L212.7,282.7 L214.4,282.9 L216.1,283.1 L217.9,283.3 L219.6,283.4 L221.3,283.6 L223.0,283.8 L224.7,283.9 L226.4,284.1 L228.1,284.2 L229.8,284.3 L231.5,284.5 L233.2,284.6 L235.0,284.7 L236.7,284.8 L238.4,284.9 L240.1,285.0 L241.8,285.1 L243.5,285.2 L245.2,285.3 L246.9,285.4 L248.6,285.5 L250.3,285.6 L252.1,285.7 L253.8,285.8 L255.5,285.8 L257.2,285.9 L258.9,286.0 L260.6,286.1 L262.3,286.1 L264.0,286.2 L265.7,286.2 L267.4,286.3 L269.1,286.4 L270.9,286.4 L272.6,286.5 L274.3,286.5 L276.0,286.6 L277.7,286.6 L279.4,286.7 L281.1,286.7 L282.8,286.8 L284.5,286.8 L286.2,286.8 L288.0,286.9 L289.7,286.9 L291.4,287.0 L293.1,287.0 L294.8,287.0 L296.5,287.1 L298.2,287.1 L299.9,287.1 L301.6,287.2 L303.3,287.2 L305.1,287.2 L306.8,287.2 L308.5,287.3 L310.2,287.3 L311.9,287.3 L313.6,287.3 L315.3,287.4 L317.0,287.4 L318.7,287.4 L320.4,287.4 L322.2,287.4 L323.9,287.5 L325.6,287.5 L327.3,287.5 L329.0,287.5 L330.7,287.5 L332.4,287.5 L334.1,287.6 L335.8,287.6 L337.5,287.6 L339.3,287.6 L341.0,287.6 L342.7,287.6 L344.4,287.6 L346.1,287.7 L347.8,287.7 L349.5,287.7 L351.2,287.7 L352.9,287.7 L354.6,287.7 L356.4,287.7 L358.1,287.7 L359.8,287.7 L361.5,287.7 L363.2,287.8 L364.9,287.8 L366.6,287.8 L368.3,287.8 L370.0,287.8 L371.7,287.8 L373.5,287.8 L375.2,287.8 L376.9,287.8 L378.6,287.8 L380.3,287.8 L382.0,287.8 L383.7,287.8 L385.4,287.8 L387.1,287.8 L388.8,287.8 L390.6,287.9 L392.3,287.9 L394.0,287.9 L395.7,287.9 L397.4,287.9 L399.1,287.9 L400.8,287.9 L402.5,287.9 L404.2,287.9 L405.9,287.9 L407.7,287.9 L409.4,287.9 L411.1,287.9 L412.8,287.9 L414.5,287.9 L416.2,287.9 L417.9,287.9 L419.6,287.9 L421.3,287.9 L423.1,287.9 L424.8,287.9 L426.5,287.9 L428.2,287.9 L429.9,287.9 L431.6,287.9 L433.3,287.9 L435.0,287.9 L436.7,287.9 L438.4,287.9 L440.2,287.9 L441.9,287.9 L443.6,287.9 L445.3,287.9 L447.0,288.0 L448.7,288.0 L450.4,288.0 L452.1,288.0 L453.8,288.0 L455.5,288.0 L457.2,288.0 L459.0,288.0 L460.7,288.0 L462.4,288.0 L464.1,288.0 L465.8,288.0 L467.5,288.0 L469.2,288.0 L470.9,288.0 L472.6,288.0 L474.4,288.0 L476.1,288.0 L477.8,288.0 L479.5,288.0 L481.2,288.0 L482.9,288.0 L484.6,288.0 L486.3,288.0 L488.0,288.0 L489.7,288.0 L491.4,288.0 L493.2,288.0 L494.9,288.0 L496.6,288.0 L498.3,288.0 L500.0,288.0" fill="none" stroke="#7c1f2e" stroke-width="2.3"/>
+          <path d="M57.1,29.2 L58.8,37.1 L60.5,44.7 L62.2,52.1 L64.0,59.2 L65.7,66.2 L67.4,72.9 L69.1,79.4 L70.8,85.8 L72.5,91.9 L74.2,97.8 L75.9,103.6 L77.6,109.2 L79.3,114.6 L81.1,119.9 L82.8,125.0 L84.5,129.9 L86.2,134.7 L87.9,139.4 L89.6,143.9 L91.3,148.3 L93.0,152.5 L94.7,156.6 L96.4,160.6 L98.2,164.5 L99.9,168.2 L101.6,171.9 L103.3,175.4 L105.0,178.8 L106.7,182.1 L108.4,185.3 L110.1,188.4 L111.8,191.5 L113.5,194.4 L115.2,197.2 L117.0,200.0 L118.7,202.7 L120.4,205.2 L122.1,207.8 L123.8,210.2 L125.5,212.5 L127.2,214.8 L128.9,217.1 L130.6,219.2 L132.4,221.3 L134.1,223.3 L135.8,225.3 L137.5,227.2 L139.2,229.0 L140.9,230.8 L142.6,232.6 L144.3,234.2 L146.0,235.9 L147.7,237.4 L149.4,239.0 L151.2,240.5 L152.9,241.9 L154.6,243.3 L156.3,244.7 L158.0,246.0 L159.7,247.3 L161.4,248.5 L163.1,249.7 L164.8,250.9 L166.6,252.0 L168.3,253.1 L170.0,254.1 L171.7,255.2 L173.4,256.2 L175.1,257.1 L176.8,258.1 L178.5,259.0 L180.2,259.8 L181.9,260.7 L183.7,261.5 L185.4,262.3 L187.1,263.1 L188.8,263.9 L190.5,264.6 L192.2,265.3 L193.9,266.0 L195.6,266.7 L197.3,267.3 L199.0,267.9 L200.8,268.6 L202.5,269.1 L204.2,269.7 L205.9,270.3 L207.6,270.8 L209.3,271.3 L211.0,271.8 L212.7,272.3 L214.4,272.8 L216.1,273.3 L217.9,273.7 L219.6,274.1 L221.3,274.6 L223.0,275.0 L224.7,275.4 L226.4,275.7 L228.1,276.1 L229.8,276.5 L231.5,276.8 L233.2,277.2 L235.0,277.5 L236.7,277.8 L238.4,278.1 L240.1,278.4 L241.8,278.7 L243.5,279.0 L245.2,279.3 L246.9,279.5 L248.6,279.8 L250.3,280.0 L252.1,280.3 L253.8,280.5 L255.5,280.7 L257.2,281.0 L258.9,281.2 L260.6,281.4 L262.3,281.6 L264.0,281.8 L265.7,282.0 L267.4,282.2 L269.1,282.3 L270.9,282.5 L272.6,282.7 L274.3,282.8 L276.0,283.0 L277.7,283.1 L279.4,283.3 L281.1,283.4 L282.8,283.6 L284.5,283.7 L286.2,283.8 L288.0,284.0 L289.7,284.1 L291.4,284.2 L293.1,284.3 L294.8,284.4 L296.5,284.5 L298.2,284.6 L299.9,284.7 L301.6,284.8 L303.3,284.9 L305.1,285.0 L306.8,285.1 L308.5,285.2 L310.2,285.3 L311.9,285.4 L313.6,285.5 L315.3,285.5 L317.0,285.6 L318.7,285.7 L320.4,285.7 L322.2,285.8 L323.9,285.9 L325.6,285.9 L327.3,286.0 L329.0,286.1 L330.7,286.1 L332.4,286.2 L334.1,286.2 L335.8,286.3 L337.5,286.3 L339.3,286.4 L341.0,286.4 L342.7,286.5 L344.4,286.5 L346.1,286.6 L347.8,286.6 L349.5,286.7 L351.2,286.7 L352.9,286.7 L354.6,286.8 L356.4,286.8 L358.1,286.9 L359.8,286.9 L361.5,286.9 L363.2,287.0 L364.9,287.0 L366.6,287.0 L368.3,287.1 L370.0,287.1 L371.7,287.1 L373.5,287.1 L375.2,287.2 L376.9,287.2 L378.6,287.2 L380.3,287.2 L382.0,287.3 L383.7,287.3 L385.4,287.3 L387.1,287.3 L388.8,287.3 L390.6,287.4 L392.3,287.4 L394.0,287.4 L395.7,287.4 L397.4,287.4 L399.1,287.5 L400.8,287.5 L402.5,287.5 L404.2,287.5 L405.9,287.5 L407.7,287.5 L409.4,287.5 L411.1,287.6 L412.8,287.6 L414.5,287.6 L416.2,287.6 L417.9,287.6 L419.6,287.6 L421.3,287.6 L423.1,287.6 L424.8,287.7 L426.5,287.7 L428.2,287.7 L429.9,287.7 L431.6,287.7 L433.3,287.7 L435.0,287.7 L436.7,287.7 L438.4,287.7 L440.2,287.7 L441.9,287.7 L443.6,287.8 L445.3,287.8 L447.0,287.8 L448.7,287.8 L450.4,287.8 L452.1,287.8 L453.8,287.8 L455.5,287.8 L457.2,287.8 L459.0,287.8 L460.7,287.8 L462.4,287.8 L464.1,287.8 L465.8,287.8 L467.5,287.8 L469.2,287.8 L470.9,287.9 L472.6,287.9 L474.4,287.9 L476.1,287.9 L477.8,287.9 L479.5,287.9 L481.2,287.9 L482.9,287.9 L484.6,287.9 L486.3,287.9 L488.0,287.9 L489.7,287.9 L491.4,287.9 L493.2,287.9 L494.9,287.9 L496.6,287.9 L498.3,287.9 L500.0,287.9" fill="none" stroke="#a8852c" stroke-width="2.3"/>
+          <path d="M57.1,246.7 L58.8,224.2 L60.5,209.6 L62.2,198.7 L64.0,190.3 L65.7,183.6 L67.4,178.1 L69.1,173.7 L70.8,170.2 L72.5,167.3 L74.2,165.1 L75.9,163.4 L77.6,162.1 L79.3,161.1 L81.1,160.6 L82.8,160.3 L84.5,160.3 L86.2,160.5 L87.9,160.9 L89.6,161.5 L91.3,162.2 L93.0,163.1 L94.7,164.2 L96.4,165.3 L98.2,166.5 L99.9,167.8 L101.6,169.2 L103.3,170.7 L105.0,172.2 L106.7,173.8 L108.4,175.4 L110.1,177.1 L111.8,178.7 L113.5,180.4 L115.2,182.2 L117.0,183.9 L118.7,185.7 L120.4,187.4 L122.1,189.2 L123.8,191.0 L125.5,192.7 L127.2,194.5 L128.9,196.2 L130.6,198.0 L132.4,199.7 L134.1,201.4 L135.8,203.2 L137.5,204.9 L139.2,206.5 L140.9,208.2 L142.6,209.8 L144.3,211.5 L146.0,213.1 L147.7,214.7 L149.4,216.2 L151.2,217.8 L152.9,219.3 L154.6,220.8 L156.3,222.3 L158.0,223.7 L159.7,225.2 L161.4,226.6 L163.1,227.9 L164.8,229.3 L166.6,230.6 L168.3,231.9 L170.0,233.2 L171.7,234.5 L173.4,235.7 L175.1,237.0 L176.8,238.2 L178.5,239.3 L180.2,240.5 L181.9,241.6 L183.7,242.7 L185.4,243.8 L187.1,244.8 L188.8,245.9 L190.5,246.9 L192.2,247.9 L193.9,248.9 L195.6,249.8 L197.3,250.8 L199.0,251.7 L200.8,252.6 L202.5,253.4 L204.2,254.3 L205.9,255.1 L207.6,255.9 L209.3,256.7 L211.0,257.5 L212.7,258.3 L214.4,259.0 L216.1,259.7 L217.9,260.5 L219.6,261.2 L221.3,261.8 L223.0,262.5 L224.7,263.1 L226.4,263.8 L228.1,264.4 L229.8,265.0 L231.5,265.6 L233.2,266.2 L235.0,266.7 L236.7,267.3 L238.4,267.8 L240.1,268.3 L241.8,268.8 L243.5,269.3 L245.2,269.8 L246.9,270.3 L248.6,270.7 L250.3,271.2 L252.1,271.6 L253.8,272.1 L255.5,272.5 L257.2,272.9 L258.9,273.3 L260.6,273.7 L262.3,274.0 L264.0,274.4 L265.7,274.8 L267.4,275.1 L269.1,275.5 L270.9,275.8 L272.6,276.1 L274.3,276.4 L276.0,276.7 L277.7,277.0 L279.4,277.3 L281.1,277.6 L282.8,277.9 L284.5,278.2 L286.2,278.4 L288.0,278.7 L289.7,278.9 L291.4,279.2 L293.1,279.4 L294.8,279.6 L296.5,279.9 L298.2,280.1 L299.9,280.3 L301.6,280.5 L303.3,280.7 L305.1,280.9 L306.8,281.1 L308.5,281.3 L310.2,281.5 L311.9,281.6 L313.6,281.8 L315.3,282.0 L317.0,282.1 L318.7,282.3 L320.4,282.5 L322.2,282.6 L323.9,282.8 L325.6,282.9 L327.3,283.0 L329.0,283.2 L330.7,283.3 L332.4,283.4 L334.1,283.6 L335.8,283.7 L337.5,283.8 L339.3,283.9 L341.0,284.0 L342.7,284.1 L344.4,284.2 L346.1,284.3 L347.8,284.4 L349.5,284.5 L351.2,284.6 L352.9,284.7 L354.6,284.8 L356.4,284.9 L358.1,285.0 L359.8,285.1 L361.5,285.2 L363.2,285.2 L364.9,285.3 L366.6,285.4 L368.3,285.5 L370.0,285.5 L371.7,285.6 L373.5,285.7 L375.2,285.7 L376.9,285.8 L378.6,285.9 L380.3,285.9 L382.0,286.0 L383.7,286.0 L385.4,286.1 L387.1,286.1 L388.8,286.2 L390.6,286.2 L392.3,286.3 L394.0,286.3 L395.7,286.4 L397.4,286.4 L399.1,286.5 L400.8,286.5 L402.5,286.6 L404.2,286.6 L405.9,286.6 L407.7,286.7 L409.4,286.7 L411.1,286.7 L412.8,286.8 L414.5,286.8 L416.2,286.8 L417.9,286.9 L419.6,286.9 L421.3,286.9 L423.1,287.0 L424.8,287.0 L426.5,287.0 L428.2,287.1 L429.9,287.1 L431.6,287.1 L433.3,287.1 L435.0,287.2 L436.7,287.2 L438.4,287.2 L440.2,287.2 L441.9,287.2 L443.6,287.3 L445.3,287.3 L447.0,287.3 L448.7,287.3 L450.4,287.3 L452.1,287.4 L453.8,287.4 L455.5,287.4 L457.2,287.4 L459.0,287.4 L460.7,287.5 L462.4,287.5 L464.1,287.5 L465.8,287.5 L467.5,287.5 L469.2,287.5 L470.9,287.5 L472.6,287.6 L474.4,287.6 L476.1,287.6 L477.8,287.6 L479.5,287.6 L481.2,287.6 L482.9,287.6 L484.6,287.6 L486.3,287.6 L488.0,287.7 L489.7,287.7 L491.4,287.7 L493.2,287.7 L494.9,287.7 L496.6,287.7 L498.3,287.7 L500.0,287.7" fill="none" stroke="#2f6b46" stroke-width="2.3"/>
+          <path d="M57.1,287.4 L58.8,285.8 L60.5,283.7 L62.2,281.3 L64.0,278.7 L65.7,275.9 L67.4,273.0 L69.1,270.0 L70.8,267.1 L72.5,264.1 L74.2,261.1 L75.9,258.2 L77.6,255.3 L79.3,252.4 L81.1,249.7 L82.8,246.9 L84.5,244.3 L86.2,241.8 L87.9,239.3 L89.6,236.9 L91.3,234.7 L93.0,232.5 L94.7,230.4 L96.4,228.4 L98.2,226.5 L99.9,224.7 L101.6,223.0 L103.3,221.4 L105.0,219.9 L106.7,218.4 L108.4,217.1 L110.1,215.9 L111.8,214.7 L113.5,213.7 L115.2,212.7 L117.0,211.8 L118.7,211.0 L120.4,210.2 L122.1,209.6 L123.8,209.0 L125.5,208.4 L127.2,208.0 L128.9,207.6 L130.6,207.3 L132.4,207.0 L134.1,206.8 L135.8,206.7 L137.5,206.6 L139.2,206.6 L140.9,206.6 L142.6,206.7 L144.3,206.8 L146.0,207.0 L147.7,207.2 L149.4,207.4 L151.2,207.7 L152.9,208.1 L154.6,208.4 L156.3,208.8 L158.0,209.2 L159.7,209.7 L161.4,210.2 L163.1,210.7 L164.8,211.3 L166.6,211.8 L168.3,212.4 L170.0,213.0 L171.7,213.7 L173.4,214.3 L175.1,215.0 L176.8,215.7 L178.5,216.4 L180.2,217.1 L181.9,217.8 L183.7,218.5 L185.4,219.3 L187.1,220.1 L188.8,220.8 L190.5,221.6 L192.2,222.4 L193.9,223.2 L195.6,224.0 L197.3,224.8 L199.0,225.6 L200.8,226.4 L202.5,227.2 L204.2,228.0 L205.9,228.8 L207.6,229.6 L209.3,230.4 L211.0,231.2 L212.7,232.0 L214.4,232.8 L216.1,233.7 L217.9,234.5 L219.6,235.3 L221.3,236.1 L223.0,236.8 L224.7,237.6 L226.4,238.4 L228.1,239.2 L229.8,240.0 L231.5,240.7 L233.2,241.5 L235.0,242.3 L236.7,243.0 L238.4,243.8 L240.1,244.5 L241.8,245.2 L243.5,245.9 L245.2,246.7 L246.9,247.4 L248.6,248.1 L250.3,248.8 L252.1,249.5 L253.8,250.1 L255.5,250.8 L257.2,251.5 L258.9,252.1 L260.6,252.8 L262.3,253.4 L264.0,254.0 L265.7,254.7 L267.4,255.3 L269.1,255.9 L270.9,256.5 L272.6,257.1 L274.3,257.7 L276.0,258.2 L277.7,258.8 L279.4,259.4 L281.1,259.9 L282.8,260.5 L284.5,261.0 L286.2,261.5 L288.0,262.0 L289.7,262.5 L291.4,263.0 L293.1,263.5 L294.8,264.0 L296.5,264.5 L298.2,265.0 L299.9,265.4 L301.6,265.9 L303.3,266.3 L305.1,266.8 L306.8,267.2 L308.5,267.6 L310.2,268.0 L311.9,268.4 L313.6,268.9 L315.3,269.2 L317.0,269.6 L318.7,270.0 L320.4,270.4 L322.2,270.8 L323.9,271.1 L325.6,271.5 L327.3,271.8 L329.0,272.2 L330.7,272.5 L332.4,272.8 L334.1,273.2 L335.8,273.5 L337.5,273.8 L339.3,274.1 L341.0,274.4 L342.7,274.7 L344.4,275.0 L346.1,275.3 L347.8,275.5 L349.5,275.8 L351.2,276.1 L352.9,276.3 L354.6,276.6 L356.4,276.8 L358.1,277.1 L359.8,277.3 L361.5,277.6 L363.2,277.8 L364.9,278.0 L366.6,278.2 L368.3,278.5 L370.0,278.7 L371.7,278.9 L373.5,279.1 L375.2,279.3 L376.9,279.5 L378.6,279.7 L380.3,279.9 L382.0,280.1 L383.7,280.2 L385.4,280.4 L387.1,280.6 L388.8,280.8 L390.6,280.9 L392.3,281.1 L394.0,281.2 L395.7,281.4 L397.4,281.5 L399.1,281.7 L400.8,281.8 L402.5,282.0 L404.2,282.1 L405.9,282.3 L407.7,282.4 L409.4,282.5 L411.1,282.6 L412.8,282.8 L414.5,282.9 L416.2,283.0 L417.9,283.1 L419.6,283.2 L421.3,283.4 L423.1,283.5 L424.8,283.6 L426.5,283.7 L428.2,283.8 L429.9,283.9 L431.6,284.0 L433.3,284.1 L435.0,284.2 L436.7,284.3 L438.4,284.3 L440.2,284.4 L441.9,284.5 L443.6,284.6 L445.3,284.7 L447.0,284.8 L448.7,284.8 L450.4,284.9 L452.1,285.0 L453.8,285.1 L455.5,285.1 L457.2,285.2 L459.0,285.3 L460.7,285.3 L462.4,285.4 L464.1,285.5 L465.8,285.5 L467.5,285.6 L469.2,285.6 L470.9,285.7 L472.6,285.8 L474.4,285.8 L476.1,285.9 L477.8,285.9 L479.5,286.0 L481.2,286.0 L482.9,286.1 L484.6,286.1 L486.3,286.2 L488.0,286.2 L489.7,286.2 L491.4,286.3 L493.2,286.3 L494.9,286.4 L496.6,286.4 L498.3,286.5 L500.0,286.5" fill="none" stroke="#1f3a5f" stroke-width="2.3"/>
+          <path d="M57.1,288.0 L58.8,288.0 L60.5,288.0 L62.2,287.9 L64.0,287.9 L65.7,287.8 L67.4,287.7 L69.1,287.5 L70.8,287.4 L72.5,287.1 L74.2,286.9 L75.9,286.6 L77.6,286.2 L79.3,285.9 L81.1,285.4 L82.8,285.0 L84.5,284.4 L86.2,283.9 L87.9,283.3 L89.6,282.7 L91.3,282.0 L93.0,281.3 L94.7,280.6 L96.4,279.8 L98.2,279.0 L99.9,278.1 L101.6,277.3 L103.3,276.4 L105.0,275.5 L106.7,274.5 L108.4,273.6 L110.1,272.6 L111.8,271.6 L113.5,270.6 L115.2,269.6 L117.0,268.6 L118.7,267.5 L120.4,266.5 L122.1,265.4 L123.8,264.4 L125.5,263.3 L127.2,262.2 L128.9,261.2 L130.6,260.1 L132.4,259.1 L134.1,258.0 L135.8,257.0 L137.5,255.9 L139.2,254.9 L140.9,253.9 L142.6,252.9 L144.3,251.9 L146.0,250.9 L147.7,249.9 L149.4,249.0 L151.2,248.1 L152.9,247.2 L154.6,246.3 L156.3,245.4 L158.0,244.5 L159.7,243.7 L161.4,242.9 L163.1,242.1 L164.8,241.3 L166.6,240.6 L168.3,239.8 L170.0,239.1 L171.7,238.4 L173.4,237.8 L175.1,237.1 L176.8,236.5 L178.5,235.9 L180.2,235.4 L181.9,234.8 L183.7,234.3 L185.4,233.8 L187.1,233.4 L188.8,232.9 L190.5,232.5 L192.2,232.1 L193.9,231.7 L195.6,231.4 L197.3,231.1 L199.0,230.8 L200.8,230.5 L202.5,230.2 L204.2,230.0 L205.9,229.8 L207.6,229.6 L209.3,229.4 L211.0,229.3 L212.7,229.2 L214.4,229.1 L216.1,229.0 L217.9,228.9 L219.6,228.9 L221.3,228.9 L223.0,228.9 L224.7,228.9 L226.4,228.9 L228.1,229.0 L229.8,229.0 L231.5,229.1 L233.2,229.2 L235.0,229.3 L236.7,229.5 L238.4,229.6 L240.1,229.8 L241.8,229.9 L243.5,230.1 L245.2,230.3 L246.9,230.6 L248.6,230.8 L250.3,231.0 L252.1,231.3 L253.8,231.6 L255.5,231.9 L257.2,232.1 L258.9,232.4 L260.6,232.8 L262.3,233.1 L264.0,233.4 L265.7,233.8 L267.4,234.1 L269.1,234.5 L270.9,234.8 L272.6,235.2 L274.3,235.6 L276.0,236.0 L277.7,236.4 L279.4,236.8 L281.1,237.2 L282.8,237.6 L284.5,238.0 L286.2,238.4 L288.0,238.8 L289.7,239.3 L291.4,239.7 L293.1,240.1 L294.8,240.6 L296.5,241.0 L298.2,241.5 L299.9,241.9 L301.6,242.4 L303.3,242.8 L305.1,243.3 L306.8,243.7 L308.5,244.2 L310.2,244.7 L311.9,245.1 L313.6,245.6 L315.3,246.0 L317.0,246.5 L318.7,247.0 L320.4,247.4 L322.2,247.9 L323.9,248.4 L325.6,248.8 L327.3,249.3 L329.0,249.7 L330.7,250.2 L332.4,250.7 L334.1,251.1 L335.8,251.6 L337.5,252.0 L339.3,252.5 L341.0,252.9 L342.7,253.4 L344.4,253.8 L346.1,254.3 L347.8,254.7 L349.5,255.1 L351.2,255.6 L352.9,256.0 L354.6,256.4 L356.4,256.9 L358.1,257.3 L359.8,257.7 L361.5,258.1 L363.2,258.6 L364.9,259.0 L366.6,259.4 L368.3,259.8 L370.0,260.2 L371.7,260.6 L373.5,261.0 L375.2,261.4 L376.9,261.8 L378.6,262.2 L380.3,262.5 L382.0,262.9 L383.7,263.3 L385.4,263.7 L387.1,264.0 L388.8,264.4 L390.6,264.8 L392.3,265.1 L394.0,265.5 L395.7,265.8 L397.4,266.2 L399.1,266.5 L400.8,266.9 L402.5,267.2 L404.2,267.5 L405.9,267.9 L407.7,268.2 L409.4,268.5 L411.1,268.8 L412.8,269.1 L414.5,269.4 L416.2,269.7 L417.9,270.0 L419.6,270.3 L421.3,270.6 L423.1,270.9 L424.8,271.2 L426.5,271.5 L428.2,271.8 L429.9,272.0 L431.6,272.3 L433.3,272.6 L435.0,272.8 L436.7,273.1 L438.4,273.4 L440.2,273.6 L441.9,273.9 L443.6,274.1 L445.3,274.3 L447.0,274.6 L448.7,274.8 L450.4,275.1 L452.1,275.3 L453.8,275.5 L455.5,275.7 L457.2,275.9 L459.0,276.2 L460.7,276.4 L462.4,276.6 L464.1,276.8 L465.8,277.0 L467.5,277.2 L469.2,277.4 L470.9,277.6 L472.6,277.8 L474.4,278.0 L476.1,278.1 L477.8,278.3 L479.5,278.5 L481.2,278.7 L482.9,278.9 L484.6,279.0 L486.3,279.2 L488.0,279.4 L489.7,279.5 L491.4,279.7 L493.2,279.8 L494.9,280.0 L496.6,280.1 L498.3,280.3 L500.0,280.4" fill="none" stroke="#1d6b6b" stroke-width="2.3"/>
+          <g font-size="11" font-family="JetBrains Mono, monospace">
+            <line x1="510" y1="40" x2="534" y2="40" stroke="#7c1f2e" stroke-width="2.6"/>
+            <text x="540" y="44" fill="#4a4f5a">df = 1</text>
+            <line x1="510" y1="66" x2="534" y2="66" stroke="#a8852c" stroke-width="2.6"/>
+            <text x="540" y="70" fill="#4a4f5a">df = 2</text>
+            <line x1="510" y1="92" x2="534" y2="92" stroke="#2f6b46" stroke-width="2.6"/>
+            <text x="540" y="96" fill="#4a4f5a">df = 3</text>
+            <line x1="510" y1="118" x2="534" y2="118" stroke="#1f3a5f" stroke-width="2.6"/>
+            <text x="540" y="122" fill="#4a4f5a">df = 5</text>
+            <line x1="510" y1="144" x2="534" y2="144" stroke="#1d6b6b" stroke-width="2.6"/>
+            <text x="540" y="148" fill="#4a4f5a">df = 8</text>
+          </g>
+        </svg>
+      </div>
+      <div class="callout key"><span class="ct">분포의 특징</span> 카이제곱 분포는 <b>0 이상의 값만</b> 가지며 <b>오른쪽으로 치우친(우측 비대칭)</b> 형태입니다. 자유도(df)가 작으면 0 근처에 몰려 급격히 꺾이고($k\le2$), df가 커질수록 봉우리가 오른쪽으로 이동하며 점점 <b>종 모양(정규분포)에 가까워집니다.</b> 검정은 항상 <b>우측 단측검정</b>으로, $\chi^2$이 임계값보다 크면 기각합니다.</div>
+
+      <h3>임계값 표 (상위 5% 기준, $\alpha=0.05$)</h3>
+      <table>
+        <thead><tr><th>자유도 df</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>8</th><th>10</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">$\chi^2_{0.05}$</td><td class="mono">3.841</td><td class="mono">5.991</td><td class="mono">7.815</td><td class="mono">9.488</td><td class="mono">11.070</td><td class="mono">15.507</td><td class="mono">18.307</td></tr>
+          <tr><td class="lab">$\chi^2_{0.01}$</td><td class="mono">6.635</td><td class="mono">9.210</td><td class="mono">11.345</td><td class="mono">13.277</td><td class="mono">15.086</td><td class="mono">20.090</td><td class="mono">23.209</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- S2 -->
+    <section id="s2">
+      <div class="step-tag"><span class="n gold">절차</span></div>
+      <h2>검정의 일반 절차</h2>
+      <ol>
+        <li><b>가설 설정</b> — $H_0$: 분포가 이론과 일치한다 / 변수가 독립이다. $H_1$: 그렇지 않다.</li>
+        <li><b>기대도수 $E$ 계산</b> — $H_0$가 참이라고 가정했을 때 각 칸의 기대 빈도를 구합니다.</li>
+        <li><b>검정통계량 계산</b> — $\chi^2 = \sum (O-E)^2/E$.</li>
+        <li><b>자유도 결정</b> — 검정 유형에 따라 $df$를 구합니다.</li>
+        <li><b>판정</b> — $\chi^2 > \chi^2_\alpha(df)$ 이거나 $p\text{-value} < \alpha$ 이면 $H_0$ 기각.</li>
+      </ol>
+      <div class="callout warn"><span class="ct">기대도수가 핵심</span> 카이제곱 검정의 모든 차이는 결국 "기대도수를 어떻게 정의하느냐"에서 출발합니다. 적합도는 <b>이론 확률 × 표본 크기</b>, 분할표(독립성·동질성)는 <b>(행 합 × 열 합) / 총합</b>으로 기대도수를 만듭니다.</div>
+    </section>
+
+    <!-- S3 -->
+    <section id="s3">
+      <div class="step-tag"><span class="n navy">유형</span></div>
+      <h2>세 가지 검정 유형</h2>
+      <div class="compare-grid">
+        <div class="card">
+          <h4>① 적합도 검정</h4>
+          <p><b>Goodness of Fit</b></p>
+          <p>한 변수의 관측 분포가 특정 이론 분포(예: 균등·정규)와 맞는가?</p>
+          <p class="exp">df = (범주 수) − 1 − (추정한 모수 개수)</p>
+        </div>
+        <div class="card">
+          <h4>② 독립성 검정</h4>
+          <p><b>Test of Independence</b></p>
+          <p>한 표본에서 측정한 두 변수가 서로 연관되어 있는가?</p>
+          <p class="exp">df = (행−1)(열−1)</p>
+        </div>
+        <div class="card">
+          <h4>③ 동질성 검정</h4>
+          <p><b>Test of Homogeneity</b></p>
+          <p>여러 모집단의 범주 분포가 서로 같은가(동질한가)?</p>
+          <p class="exp">df = (행−1)(열−1)</p>
+        </div>
+      </div>
+      <div class="callout tip"><span class="ct">②와 ③의 차이</span> 계산식과 자유도는 <b>완전히 동일</b>합니다. 차이는 <b>표본 추출 설계</b>에 있습니다. 독립성은 <b>하나의 표본</b>에서 두 변수를 동시에 측정하고, 동질성은 <b>각 집단(모집단)별로 표본 크기를 미리 고정</b>해 뽑은 뒤 분포를 비교합니다.</div>
+    </section>
+
+    <!-- S4 -->
+    <section id="s4">
+      <div class="step-tag"><span class="n">예제 ①</span></div>
+      <h2>적합도 검정 — 주사위는 공정한가?</h2>
+      <p>주사위를 <b>120번</b> 던졌습니다. 공정하다면 각 눈은 $120/6 = 20$회 나와야 합니다.</p>
+      <div class="math-card">
+        $$ H_0:\ \text{각 눈이 나올 확률이 모두 } \tfrac{1}{6} \quad\text{vs}\quad H_1:\ \text{적어도 하나는 다름} $$
+      </div>
+      <table>
+        <thead><tr><th>눈</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>합</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">관측 O</td><td class="mono">16</td><td class="mono">24</td><td class="mono">18</td><td class="mono">25</td><td class="mono">22</td><td class="mono">15</td><td class="mono">120</td></tr>
+          <tr><td class="lab">기대 E</td><td class="mono">20</td><td class="mono">20</td><td class="mono">20</td><td class="mono">20</td><td class="mono">20</td><td class="mono">20</td><td class="mono">120</td></tr>
+          <tr><td class="lab">$(O-E)^2/E$</td><td class="mono">0.80</td><td class="mono">0.80</td><td class="mono">0.20</td><td class="mono">1.25</td><td class="mono">0.20</td><td class="mono">1.25</td><td class="x-cell">4.50</td></tr>
+        </tbody>
+      </table>
+      <div class="math-card">
+        $$ \chi^2 = \frac{(-4)^2}{20}+\frac{4^2}{20}+\frac{(-2)^2}{20}+\frac{5^2}{20}+\frac{2^2}{20}+\frac{(-5)^2}{20} = 4.5 $$
+      </div>
+      <p><b>자유도:</b> $df = 6 - 1 = 5$ &nbsp;·&nbsp; <b>임계값:</b> $\chi^2_{0.05}(5) = 11.07$ &nbsp;·&nbsp; <b>p-value</b> $= 0.480$</p>
+
+      <h3>기각역과 검정통계량의 위치</h3>
+      <div class="plot-card">
+        <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+          <line x1="50" y1="254" x2="575" y2="254" stroke="#8a8578" stroke-width="1.5"/>
+          <line x1="50" y1="254" x2="50" y2="22" stroke="#8a8578" stroke-width="1.5"/>
+          <path d="M289.9,254.0 L289.9,226.9 L293.4,228.5 L297.0,230.0 L300.5,231.4 L304.0,232.7 L307.6,234.0 L311.1,235.2 L314.7,236.3 L318.2,237.4 L321.8,238.4 L325.3,239.3 L328.9,240.2 L332.4,241.1 L336.0,241.8 L339.5,242.6 L343.1,243.3 L346.6,244.0 L350.1,244.6 L353.7,245.2 L357.2,245.7 L360.8,246.2 L364.3,246.7 L367.9,247.2 L371.4,247.6 L375.0,248.0 L378.5,248.4 L382.1,248.8 L385.6,249.1 L389.2,249.4 L392.7,249.7 L396.2,250.0 L399.8,250.2 L403.3,250.5 L406.9,250.7 L410.4,250.9 L414.0,251.1 L417.5,251.3 L421.1,251.5 L424.6,251.6 L428.2,251.8 L431.7,251.9 L435.2,252.1 L438.8,252.2 L442.3,252.3 L445.9,252.4 L449.4,252.5 L453.0,252.6 L456.5,252.7 L460.1,252.8 L463.6,252.9 L467.2,253.0 L470.7,253.0 L474.3,253.1 L477.8,253.2 L481.3,253.2 L484.9,253.3 L488.4,253.3 L492.0,253.4 L495.5,253.4 L499.1,253.4 L502.6,253.5 L506.2,253.5 L509.7,253.6 L513.3,253.6 L516.8,253.6 L520.4,253.6 L523.9,253.7 L527.4,253.7 L531.0,253.7 L534.5,253.7 L538.1,253.7 L541.6,253.8 L545.2,253.8 L548.7,253.8 L552.3,253.8 L555.8,253.8 L559.4,253.8 L562.9,253.8 L566.5,253.9 L570.0,253.9 L570.0,254.0 Z" fill="#7c1f2e" fill-opacity="0.16" stroke="none"/>
+          <path d="M50.2,253.8 L52.4,247.5 L54.6,237.8 L56.7,226.3 L58.9,214.0 L61.1,201.2 L63.3,188.3 L65.4,175.6 L67.6,163.1 L69.8,151.1 L72.0,139.5 L74.1,128.6 L76.3,118.2 L78.5,108.5 L80.7,99.5 L82.8,91.2 L85.0,83.5 L87.2,76.5 L89.4,70.2 L91.5,64.5 L93.7,59.4 L95.9,55.0 L98.1,51.1 L100.2,47.8 L102.4,45.0 L104.6,42.8 L106.8,41.0 L108.9,39.6 L111.1,38.8 L113.3,38.3 L115.5,38.2 L117.6,38.4 L119.8,39.0 L122.0,39.9 L124.2,41.1 L126.3,42.5 L128.5,44.2 L130.7,46.1 L132.9,48.3 L135.0,50.6 L137.2,53.1 L139.4,55.7 L141.6,58.5 L143.7,61.4 L145.9,64.4 L148.1,67.5 L150.3,70.7 L152.4,74.0 L154.6,77.3 L156.8,80.7 L159.0,84.1 L161.1,87.6 L163.3,91.1 L165.5,94.6 L167.7,98.1 L169.8,101.6 L172.0,105.1 L174.2,108.5 L176.4,112.0 L178.5,115.5 L180.7,118.9 L182.9,122.3 L185.1,125.6 L187.2,129.0 L189.4,132.2 L191.6,135.5 L193.8,138.7 L195.9,141.8 L198.1,144.9 L200.3,148.0 L202.5,151.0 L204.6,153.9 L206.8,156.8 L209.0,159.6 L211.2,162.4 L213.3,165.1 L215.5,167.8 L217.7,170.4 L219.9,172.9 L222.0,175.4 L224.2,177.8 L226.4,180.2 L228.6,182.5 L230.7,184.7 L232.9,186.9 L235.1,189.1 L237.3,191.2 L239.4,193.2 L241.6,195.2 L243.8,197.1 L246.0,199.0 L248.1,200.8 L250.3,202.6 L252.5,204.3 L254.7,205.9 L256.8,207.6 L259.0,209.1 L261.2,210.7 L263.3,212.2 L265.5,213.6 L267.7,215.0 L269.9,216.3 L272.0,217.7 L274.2,218.9 L276.4,220.2 L278.6,221.3 L280.7,222.5 L282.9,223.6 L285.1,224.7 L287.3,225.7 L289.4,226.8 L291.6,227.7 L293.8,228.7 L296.0,229.6 L298.1,230.5 L300.3,231.3 L302.5,232.2 L304.7,233.0 L306.8,233.7 L309.0,234.5 L311.2,235.2 L313.4,235.9 L315.5,236.6 L317.7,237.2 L319.9,237.9 L322.1,238.5 L324.2,239.0 L326.4,239.6 L328.6,240.1 L330.8,240.7 L332.9,241.2 L335.1,241.7 L337.3,242.1 L339.5,242.6 L341.6,243.0 L343.8,243.4 L346.0,243.8 L348.2,244.2 L350.3,244.6 L352.5,245.0 L354.7,245.3 L356.9,245.7 L359.0,246.0 L361.2,246.3 L363.4,246.6 L365.6,246.9 L367.7,247.2 L369.9,247.4 L372.1,247.7 L374.3,247.9 L376.4,248.2 L378.6,248.4 L380.8,248.6 L383.0,248.8 L385.1,249.0 L387.3,249.2 L389.5,249.4 L391.7,249.6 L393.8,249.8 L396.0,250.0 L398.2,250.1 L400.4,250.3 L402.5,250.4 L404.7,250.6 L406.9,250.7 L409.1,250.8 L411.2,251.0 L413.4,251.1 L415.6,251.2 L417.8,251.3 L419.9,251.4 L422.1,251.5 L424.3,251.6 L426.5,251.7 L428.6,251.8 L430.8,251.9 L433.0,252.0 L435.2,252.1 L437.3,252.2 L439.5,252.2 L441.7,252.3 L443.9,252.4 L446.0,252.4 L448.2,252.5 L450.4,252.6 L452.6,252.6 L454.7,252.7 L456.9,252.7 L459.1,252.8 L461.3,252.8 L463.4,252.9 L465.6,252.9 L467.8,253.0 L470.0,253.0 L472.1,253.1 L474.3,253.1 L476.5,253.1 L478.7,253.2 L480.8,253.2 L483.0,253.2 L485.2,253.3 L487.4,253.3 L489.5,253.3 L491.7,253.4 L493.9,253.4 L496.1,253.4 L498.2,253.4 L500.4,253.5 L502.6,253.5 L504.8,253.5 L506.9,253.5 L509.1,253.5 L511.3,253.6 L513.5,253.6 L515.6,253.6 L517.8,253.6 L520.0,253.6 L522.2,253.6 L524.3,253.7 L526.5,253.7 L528.7,253.7 L530.9,253.7 L533.0,253.7 L535.2,253.7 L537.4,253.7 L539.6,253.8 L541.7,253.8 L543.9,253.8 L546.1,253.8 L548.3,253.8 L550.4,253.8 L552.6,253.8 L554.8,253.8 L557.0,253.8 L559.1,253.8 L561.3,253.8 L563.5,253.8 L565.7,253.9 L567.8,253.9 L570.0,253.9" fill="none" stroke="#1f3a5f" stroke-width="2.6"/>
+          <line x1="289.9" y1="60" x2="289.9" y2="254" stroke="#7c1f2e" stroke-width="2" stroke-dasharray="5 4"/>
+          <text x="289.9" y="50" text-anchor="middle" font-size="11" fill="#7c1f2e" font-weight="700">임계값 11.07</text>
+          <text x="418.3" y="160" text-anchor="middle" font-size="11" fill="#7c1f2e">기각역 α=0.05</text>
+          <line x1="147.5" y1="120" x2="147.5" y2="254" stroke="#2f6b46" stroke-width="2"/>
+          <text x="147.5" y="112" text-anchor="middle" font-size="11" fill="#2f6b46" font-weight="700">χ²=4.5</text>
+          <text x="147.5" y="98" text-anchor="middle" font-size="9.5" fill="#2f6b46">(채택역)</text>
+          <g font-size="10" fill="#4a4f5a" text-anchor="middle">
+            <line x1="50.0" y1="254" x2="50.0" y2="258" stroke="#8a8578"/><text x="50.0" y="270">0</text>
+            <line x1="158.3" y1="254" x2="158.3" y2="258" stroke="#8a8578"/><text x="158.3" y="270">5</text>
+            <line x1="266.7" y1="254" x2="266.7" y2="258" stroke="#8a8578"/><text x="266.7" y="270">10</text>
+            <line x1="375.0" y1="254" x2="375.0" y2="258" stroke="#8a8578"/><text x="375.0" y="270">15</text>
+            <line x1="483.3" y1="254" x2="483.3" y2="258" stroke="#8a8578"/><text x="483.3" y="270">20</text>
+          </g>
+          <text x="312" y="290" text-anchor="middle" font-size="11" fill="#4a4f5a">χ²(df=5) 분포</text>
+        </svg>
+        <div class="cap">검정통계량 4.5는 채택역(임계값 왼쪽)에 위치 → 귀무가설 기각 못함</div>
+      </div>
+      <h3>Python 구현 — <code>scipy.stats.chisquare</code></h3>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>goodness_of_fit.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">import numpy as np
+from scipy import stats
+
+# 관측도수와 기대도수 (합이 같아야 함)
+observed = np.array([16, 24, 18, 25, 22, 15])
+expected = np.full(6, observed.sum() / 6)   # 공정하다면 각 20회
+
+chi2, p = stats.chisquare(f_obs=observed, f_exp=expected)
+df = len(observed) - 1
+crit = stats.chi2.ppf(0.95, df)             # 우측 5% 임계값
+
+print(f"chi2 = {chi2:.4f}")
+print(f"df   = {df}")
+print(f"crit(0.05) = {crit:.4f}")
+print(f"p-value = {p:.4f}")
+print("결론:", "기각" if p < 0.05 else "기각 못함")</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>chi2 = 4.5000
+df   = 5
+crit(0.05) = 11.0705
+p-value = 0.4799
+결론: 기각 못함</div>
+      <div class="callout concl"><span class="ct">결론</span> $\chi^2 = 4.5 < 11.07$ 이고 $p = 0.48 > 0.05$ 이므로 귀무가설을 <b>기각하지 못합니다.</b> 즉, 관측된 차이는 우연의 범위 안이며 <b>주사위가 공정하지 않다는 증거는 없습니다.</b></div>
+    </section>
+
+    <!-- S5 -->
+    <section id="s5">
+      <div class="step-tag"><span class="n">예제 ②</span></div>
+      <h2>독립성 검정 — 성별과 선호 음료는 무관한가?</h2>
+      <p>200명을 무작위로 뽑아 성별과 선호 음료를 조사했습니다(<b>하나의 표본, 두 변수 동시 측정</b>).</p>
+      <div class="math-card">
+        $$ H_0:\ \text{성별과 음료 선호는 독립이다} \quad\text{vs}\quad H_1:\ \text{서로 연관이 있다} $$
+      </div>
+      <h3>관측도수 O</h3>
+      <table>
+        <thead><tr><th>성별 \ 음료</th><th>커피</th><th>차</th><th>주스</th><th>행 합</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">남자</td><td class="mono">40</td><td class="mono">30</td><td class="mono">30</td><td class="mono">100</td></tr>
+          <tr><td class="lab">여자</td><td class="mono">20</td><td class="mono">50</td><td class="mono">30</td><td class="mono">100</td></tr>
+          <tr class="total-row"><td class="lab">열 합</td><td class="mono">60</td><td class="mono">80</td><td class="mono">60</td><td class="mono">200</td></tr>
+        </tbody>
+      </table>
+      <h3>기대도수 E</h3>
+      <p>독립이라면 각 칸의 기대도수는 다음과 같습니다.</p>
+      <div class="math-card">
+        $$ E_{ij} = \frac{(\text{행 합}_i)\times(\text{열 합}_j)}{\text{총합 } N} $$
+      </div>
+      <p class="note">예: 남자·커피 칸 $= \dfrac{100 \times 60}{200} = 30$</p>
+      <table>
+        <thead><tr><th>성별 \ 음료</th><th>커피</th><th>차</th><th>주스</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">남자</td><td class="mono">30</td><td class="mono">40</td><td class="mono">30</td></tr>
+          <tr><td class="lab">여자</td><td class="mono">30</td><td class="mono">40</td><td class="mono">30</td></tr>
+        </tbody>
+      </table>
+      <h3>셀별 기여도 $(O-E)^2/E$</h3>
+      <table>
+        <thead><tr><th>성별 \ 음료</th><th>커피</th><th>차</th><th>주스</th><th>행 소계</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">남자</td><td class="mono">3.333</td><td class="mono">2.500</td><td class="mono">0.000</td><td class="mono">5.833</td></tr>
+          <tr><td class="lab">여자</td><td class="mono">3.333</td><td class="mono">2.500</td><td class="mono">0.000</td><td class="mono">5.833</td></tr>
+          <tr class="total-row"><td class="lab">χ² 합계</td><td colspan="3">—</td><td class="x-cell">11.667</td></tr>
+        </tbody>
+      </table>
+      <p><b>자유도:</b> $df=(2-1)(3-1)=2$ &nbsp;·&nbsp; <b>임계값:</b> $\chi^2_{0.05}(2)=5.99$ &nbsp;·&nbsp; <b>p-value</b> $= 0.0029$</p>
+
+      <h3>Python 구현 — <code>scipy.stats.chi2_contingency</code></h3>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>independence.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">import numpy as np
+from scipy import stats
+
+# 분할표 (행: 성별, 열: 음료)
+table = np.array([[40, 30, 30],    # 남자
+                  [20, 50, 30]])   # 여자
+
+chi2, p, dof, expected = stats.chi2_contingency(table, correction=False)
+
+print("기대도수 E =")
+print(expected)
+print(f"chi2 = {chi2:.4f},  df = {dof},  p = {p:.4f}")
+print("결론:", "독립 기각(연관 있음)" if p < 0.05 else "독립 기각 못함")</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>기대도수 E =
+[[30. 40. 30.]
+ [30. 40. 30.]]
+chi2 = 11.6667,  df = 2,  p = 0.0029
+결론: 독립 기각(연관 있음)</div>
+      <div class="callout concl"><span class="ct">결론</span> $\chi^2 = 11.67 > 5.99$ 이고 $p = 0.0029 < 0.05$ 이므로 귀무가설을 <b>기각합니다.</b> 성별과 음료 선호는 <b>통계적으로 유의한 연관이 있습니다.</b> (커피·차 칸의 기여도가 큼 — 남자는 커피, 여자는 차를 상대적으로 더 선호. 정확히 어느 칸이 유의한지는 <a href="#s8">08. 잔차분석</a>에서 확인합니다.)</div>
+    </section>
+
+    <!-- S6 -->
+    <section id="s6">
+      <div class="step-tag"><span class="n teal">예제 ③</span></div>
+      <h2>동질성 검정 — 두 지역의 의견 분포가 같은가?</h2>
+      <p>지역 A에서 100명, 지역 B에서 100명을 <b>각각 따로 표본 크기를 정해</b> 뽑아 정책 의견을 조사했습니다(<b>표본 설계가 독립성과 다른 점</b>).</p>
+      <div class="math-card">
+        $$ H_0:\ \text{두 지역의 의견 분포가 동일하다} \quad\text{vs}\quad H_1:\ \text{다르다} $$
+      </div>
+      <h3>관측도수 O</h3>
+      <table>
+        <thead><tr><th>지역 \ 의견</th><th>찬성</th><th>반대</th><th>중립</th><th>행 합</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">지역 A</td><td class="mono">60</td><td class="mono">30</td><td class="mono">10</td><td class="mono">100</td></tr>
+          <tr><td class="lab">지역 B</td><td class="mono">45</td><td class="mono">40</td><td class="mono">15</td><td class="mono">100</td></tr>
+          <tr class="total-row"><td class="lab">열 합</td><td class="mono">105</td><td class="mono">70</td><td class="mono">25</td><td class="mono">200</td></tr>
+        </tbody>
+      </table>
+      <h3>기대도수 E &amp; 계산</h3>
+      <table>
+        <thead><tr><th>지역 \ 의견</th><th>찬성</th><th>반대</th><th>중립</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">지역 A</td><td class="mono">52.5</td><td class="mono">35.0</td><td class="mono">12.5</td></tr>
+          <tr><td class="lab">지역 B</td><td class="mono">52.5</td><td class="mono">35.0</td><td class="mono">12.5</td></tr>
+        </tbody>
+      </table>
+      <div class="math-card">
+        $$ \chi^2 = 2\!\left[\frac{(7.5)^2}{52.5}+\frac{(5)^2}{35}+\frac{(2.5)^2}{12.5}\right] = 2\,(1.071+0.714+0.5) = 4.571 $$
+      </div>
+      <p><b>자유도:</b> $df=(2-1)(3-1)=2$ &nbsp;·&nbsp; <b>임계값:</b> $\chi^2_{0.05}(2)=5.99$ &nbsp;·&nbsp; <b>p-value</b> $= 0.102$</p>
+
+      <h3>Python 구현 (동질성도 동일 함수 사용)</h3>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>homogeneity.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">import numpy as np
+from scipy import stats
+
+# 행: 지역(각각 100명으로 사전 고정), 열: 의견
+table = np.array([[60, 30, 10],    # 지역 A
+                  [45, 40, 15]])   # 지역 B
+
+chi2, p, dof, expected = stats.chi2_contingency(table, correction=False)
+print(f"chi2 = {chi2:.4f},  df = {dof},  p = {p:.4f}")
+print("결론:", "분포 다름" if p < 0.05 else "분포 같다고 볼 수 있음")</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>chi2 = 4.5714,  df = 2,  p = 0.1017
+결론: 분포 같다고 볼 수 있음</div>
+      <div class="callout concl"><span class="ct">결론</span> $\chi^2 = 4.57 < 5.99$ 이고 $p = 0.102 > 0.05$ 이므로 귀무가설을 <b>기각하지 못합니다.</b> 즉 <b>두 지역의 의견 분포가 다르다고 볼 만한 충분한 증거가 없습니다.</b></div>
+      <div class="callout key"><span class="ct">독립성 vs 동질성 핵심</span> 수식·자유도·해석 절차는 같지만, 독립성은 "두 변수의 <b>연관</b>"을, 동질성은 "여러 집단의 <b>분포 일치</b>"를 묻습니다. 표를 만들 때 행 합(또는 열 합)이 <b>연구자가 사전에 고정한 값</b>이면 동질성 검정입니다. <code>scipy</code>에서는 두 검정을 같은 함수로 처리합니다.</div>
+    </section>
+
+    <!-- S7 -->
+    <section id="s7">
+      <div class="step-tag"><span class="n gold">효과크기</span></div>
+      <h2>효과크기 — 연관이 "얼마나" 강한가?</h2>
+      <p>$p$-값은 "연관이 있는가(유무)"만 알려줄 뿐, <b>표본이 커지면 작은 차이도 유의</b>해집니다. 연관의 <b>크기</b>를 보려면 효과크기를 함께 보고해야 합니다.</p>
+      <h4 class="subh">Cramér's V (분할표용)</h4>
+      <div class="math-card accent">
+        $$ V = \sqrt{\frac{\chi^2}{N\,(k-1)}}, \qquad k = \min(\text{행 수},\ \text{열 수}) $$
+      </div>
+      <p>$2\times2$ 표에서는 $\phi$(파이) 계수와 같습니다($\phi=\sqrt{\chi^2/N}$). $V$는 $0$(무관)에서 $1$(완전 연관) 사이 값을 가집니다.</p>
+      <table>
+        <thead><tr><th>df* = min(행,열)−1</th><th>작음(small)</th><th>중간(medium)</th><th>큼(large)</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">1</td><td class="mono">0.10</td><td class="mono">0.30</td><td class="mono">0.50</td></tr>
+          <tr><td class="lab">2</td><td class="mono">0.07</td><td class="mono">0.21</td><td class="mono">0.35</td></tr>
+          <tr><td class="lab">3</td><td class="mono">0.06</td><td class="mono">0.17</td><td class="mono">0.29</td></tr>
+        </tbody>
+      </table>
+      <p class="note">* Cohen(1988) 기준. 예제 ②(독립성)는 $k=2$이므로 df*=1 기준을 적용합니다.</p>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>effect_size.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">import numpy as np
+from scipy import stats
+
+table = np.array([[40, 30, 30], [20, 50, 30]])  # 예제 ②
+chi2, p, dof, _ = stats.chi2_contingency(table, correction=False)
+
+n = table.sum()
+k = min(table.shape)
+cramers_v = np.sqrt(chi2 / (n * (k - 1)))
+print(f"Cramer's V = {cramers_v:.4f}")   # 0.2415 → 작음~중간
+
+# scipy 1.7+ 에서는 내장 함수도 제공
+res = stats.contingency.association(table, method="cramer")
+print(f"association = {res:.4f}")</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>Cramer's V = 0.2415
+association = 0.2415</div>
+      <div class="callout tip"><span class="ct">해석</span> 예제 ②의 $V=0.24$는 df*=1 기준에서 <b>작음~중간 정도</b>의 연관입니다. 즉 성별과 음료 선호는 통계적으로 유의하지만, 실질적 연관의 크기는 강하지 않습니다. 예제 ③(동질성)의 $V=0.15$는 더 약하며 유의하지도 않았습니다.</div>
+    </section>
+
+    <!-- S8 -->
+    <section id="s8">
+      <div class="step-tag"><span class="n">사후검정</span></div>
+      <h2>잔차분석 — 어느 칸이 차이를 만들었나?</h2>
+      <p>전체 검정이 유의해도 "어느 칸 때문에 유의했는가"는 따로 봐야 합니다. <b>조정된 표준화 잔차(adjusted standardized residual)</b>를 쓰면 각 칸을 표준정규처럼 해석할 수 있어, 절댓값이 <b>1.96을 넘으면</b> 그 칸이 유의하게 기여했다고 판단합니다.</p>
+      <div class="math-card">
+        $$ r_{ij} = \frac{O_{ij}-E_{ij}}{\sqrt{E_{ij}\left(1-\dfrac{n_{i\cdot}}{N}\right)\!\left(1-\dfrac{n_{\cdot j}}{N}\right)}} $$
+      </div>
+      <p>분자는 단순 표준화 잔차 $(O-E)/\sqrt{E}$이고, 분모의 행·열 비율 보정이 들어가야 정확히 $N(0,1)$을 따릅니다. 예제 ②에 적용한 결과입니다.</p>
+      <div class="plot-card">
+        <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+          <!-- threshold band -->
+          <rect x="46" y="75" width="534" height="122" fill="#fbfaf7"/>
+          <line x1="46" y1="136" x2="580" y2="136" stroke="#8a8578" stroke-width="1.4"/>
+          <!-- +-1.96 lines -->
+          <line x1="46" y1="75" x2="580" y2="75" stroke="#7c1f2e" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <line x1="46" y1="197" x2="580" y2="197" stroke="#7c1f2e" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="584" y="78" font-size="9.5" fill="#7c1f2e">+1.96</text>
+          <text x="584" y="200" font-size="9.5" fill="#7c1f2e">−1.96</text>
+          <rect x="64.0" y="40.0" width="68.0" height="96.0" fill="#2f6b46" fill-opacity="0.85" rx="2"/>
+          <text x="98.0" y="34.0" text-anchor="middle" font-size="10" font-weight="700" fill="#2f6b46">+3.09</text>
+          <text x="98.0" y="290" text-anchor="middle" font-size="9.5" fill="#4a4f5a">남·커피</text>
+          <rect x="150.0" y="136.0" width="68.0" height="89.8" fill="#7c1f2e" fill-opacity="0.85" rx="2"/>
+          <text x="184.0" y="239.8" text-anchor="middle" font-size="10" font-weight="700" fill="#7c1f2e">-2.89</text>
+          <text x="184.0" y="290" text-anchor="middle" font-size="9.5" fill="#4a4f5a">남·차</text>
+          <line x1="236.0" y1="136.0" x2="304.0" y2="136.0" stroke="#b9b3a6" stroke-width="2"/>
+          <text x="270.0" y="290" text-anchor="middle" font-size="9.5" fill="#4a4f5a">남·주스</text>
+          <rect x="322.0" y="136.0" width="68.0" height="96.0" fill="#7c1f2e" fill-opacity="0.85" rx="2"/>
+          <text x="356.0" y="246.0" text-anchor="middle" font-size="10" font-weight="700" fill="#7c1f2e">-3.09</text>
+          <text x="356.0" y="290" text-anchor="middle" font-size="9.5" fill="#4a4f5a">여·커피</text>
+          <rect x="408.0" y="46.2" width="68.0" height="89.8" fill="#2f6b46" fill-opacity="0.85" rx="2"/>
+          <text x="442.0" y="40.2" text-anchor="middle" font-size="10" font-weight="700" fill="#2f6b46">+2.89</text>
+          <text x="442.0" y="290" text-anchor="middle" font-size="9.5" fill="#4a4f5a">여·차</text>
+          <line x1="494.0" y1="136.0" x2="562.0" y2="136.0" stroke="#b9b3a6" stroke-width="2"/>
+          <text x="528.0" y="290" text-anchor="middle" font-size="9.5" fill="#4a4f5a">여·주스</text>
+        </svg>
+        <div class="cap">조정된 표준화 잔차 — |값|&gt;1.96(점선 밖)이면 유의. 커피·차 칸이 차이를 만듦</div>
+      </div>
+      <table>
+        <thead><tr><th>성별 \ 음료</th><th>커피</th><th>차</th><th>주스</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">남자</td><td class="hl-pos mono">+3.09</td><td class="hl-neg mono">−2.89</td><td class="mono">0.00</td></tr>
+          <tr><td class="lab">여자</td><td class="hl-neg mono">−3.09</td><td class="hl-pos mono">+2.89</td><td class="mono">0.00</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>residuals.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">import numpy as np
+from scipy import stats
+
+table = np.array([[40, 30, 30], [20, 50, 30]])
+chi2, p, dof, E = stats.chi2_contingency(table, correction=False)
+
+n = table.sum()
+row = table.sum(axis=1, keepdims=True)   # 행 합
+col = table.sum(axis=0, keepdims=True)   # 열 합
+
+# 조정된 표준화 잔차
+adj = (table - E) / np.sqrt(E * (1 - row / n) * (1 - col / n))
+print(np.round(adj, 2))
+
+# |잔차| > 1.96 인 칸이 유의하게 기여
+sig = np.abs(adj) > 1.96
+print("유의 셀 위치:\n", sig)</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>[[ 3.09 -2.89  0.  ]
+ [-3.09  2.89  0.  ]]
+유의 셀 위치:
+ [[ True  True False]
+ [ True  True False]]</div>
+      <div class="callout concl"><span class="ct">해석</span> 커피(남자 +3.09, 여자 −3.09)와 차(남자 −2.89, 여자 +2.89) 칸의 잔차가 ±1.96을 넘습니다. <b>남자는 커피를 기대보다 많이, 여자는 차를 기대보다 많이</b> 선호하는 것이 전체 유의성의 원인입니다. 주스는 두 집단 모두 기대치와 차이가 없습니다.</div>
+    </section>
+
+    <!-- S9 -->
+    <section id="s9">
+      <div class="step-tag"><span class="n">주의</span></div>
+      <h2>가정 &amp; 주의사항</h2>
+      <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">기대도수 조건</td><td>모든 칸의 <b>기대도수 $E_i \ge 5$</b> 권장(전체의 80% 이상이 5 이상, 어떤 칸도 1 미만 아님). 작은 칸이 많으면 검정이 부정확해짐 → <b>Fisher 정확검정</b> 고려</td></tr>
+          <tr><td class="lab">2×2 보정</td><td>$2\times2$ 표에서 표본이 작으면 <b>Yates 연속성 보정</b> 적용: $\displaystyle\sum\frac{(|O-E|-0.5)^2}{E}$ &nbsp;(<code>scipy</code>는 기본값 <code>correction=True</code>)</td></tr>
+          <tr><td class="lab">독립 관측</td><td>각 관측치는 서로 독립이어야 하며, 한 개체가 한 칸에만 속해야 함(반복측정 ✗ → McNemar 검정)</td></tr>
+          <tr><td class="lab">도수 사용</td><td>비율(%)이 아닌 <b>실제 빈도(count)</b>로 계산해야 함</td></tr>
+          <tr><td class="lab">단측 성격</td><td>항상 <b>우측 기각역</b>만 사용(차이의 크기만 보고 방향은 따지지 않음)</td></tr>
+          <tr><td class="lab">표본 크기 민감성</td><td>$N$이 매우 크면 사소한 차이도 유의해짐 → 반드시 <b>효과크기(Cramér's V)</b> 병기</td></tr>
+        </tbody>
+      </table>
+      <h3>작은 표본일 때 — Fisher 정확검정</h3>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>fisher.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">from scipy import stats
+
+# 기대도수가 5 미만인 칸이 있는 작은 2x2 표
+small = [[8, 2],
+         [1, 5]]
+
+# 카이제곱 대신 정확검정 사용 (2x2 전용)
+odds_ratio, p = stats.fisher_exact(small)
+print(f"odds ratio = {odds_ratio:.3f},  p = {p:.4f}")</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>odds ratio = 20.000,  p = 0.0350</div>
+    </section>
+
+    <!-- S10 -->
+    <section id="s10">
+      <div class="step-tag"><span class="n navy">코드</span></div>
+      <h2>Python 통합 구현 — 재사용 가능한 함수</h2>
+      <p>지금까지의 모든 단계(검정통계량 · 자유도 · p-값 · 효과크기 · 조정 잔차)를 한 번에 출력하는 함수입니다. 그대로 복사해 사용할 수 있습니다.</p>
+      <div class="code-block">
+        <div class="cb-head"><span><span class="dot"></span>chi_square_report.py</span><span class="lang">Python</span></div>
+<pre><code class="language-python">import numpy as np
+from scipy import stats
+
+
+def chi_square_gof(observed, expected=None):
+    """적합도 검정 (Goodness of Fit)."""
+    observed = np.asarray(observed, dtype=float)
+    if expected is None:                       # 기본: 균등분포 가정
+        expected = np.full_like(observed, observed.sum() / len(observed))
+    chi2, p = stats.chisquare(observed, expected)
+    df = len(observed) - 1
+    return {
+        "chi2": chi2, "df": df, "p": p,
+        "crit_0.05": stats.chi2.ppf(0.95, df),
+        "reject_H0": p < 0.05,
+    }
+
+
+def chi_square_table(table, correction=False):
+    """독립성/동질성 검정 + 효과크기 + 조정 잔차를 한 번에."""
+    table = np.asarray(table, dtype=float)
+    chi2, p, dof, E = stats.chi2_contingency(table, correction=correction)
+
+    n = table.sum()
+    k = min(table.shape)
+    cramers_v = np.sqrt(chi2 / (n * (k - 1)))
+
+    row = table.sum(axis=1, keepdims=True)
+    col = table.sum(axis=0, keepdims=True)
+    adj_resid = (table - E) / np.sqrt(E * (1 - row / n) * (1 - col / n))
+
+    return {
+        "chi2": chi2, "df": dof, "p": p,
+        "crit_0.05": stats.chi2.ppf(0.95, dof),
+        "cramers_v": cramers_v,
+        "expected": E,
+        "adj_residuals": adj_resid,
+        "significant_cells": np.abs(adj_resid) > 1.96,
+        "reject_H0": p < 0.05,
+    }
+
+
+if __name__ == "__main__":
+    # 예제 ① 적합도
+    print("[적합도]", chi_square_gof([16, 24, 18, 25, 22, 15]))
+
+    # 예제 ② 독립성
+    res = chi_square_table([[40, 30, 30], [20, 50, 30]])
+    print(f"[독립성] chi2={res['chi2']:.3f}, p={res['p']:.4f}, "
+          f"V={res['cramers_v']:.3f}, reject={res['reject_H0']}")
+    print("조정 잔차:\n", np.round(res["adj_residuals"], 2))</code></pre>
+      </div>
+      <div class="output"><span class="ot">OUTPUT</span>[적합도] {'chi2': 4.5, 'df': 5, 'p': 0.4799..., 'crit_0.05': 11.07..., 'reject_H0': False}
+[독립성] chi2=11.667, p=0.0029, V=0.241, reject=True
+조정 잔차:
+ [[ 3.09 -2.89  0.  ]
+ [-3.09  2.89  0.  ]]</div>
+      <div class="callout tip"><span class="ct">실무 팁</span> <code>pandas.crosstab(df['성별'], df['음료'])</code>로 원자료에서 바로 분할표를 만든 뒤 <code>chi_square_table()</code>에 넣으면 전처리부터 사후분석까지 한 흐름으로 처리됩니다. $2\times2$ 표는 <code>correction=True</code>(Yates 보정)가 기본 권장값입니다.</div>
+    </section>
+
+    <!-- S11 -->
+    <section id="s11">
+      <div class="step-tag"><span class="n">요약</span></div>
+      <h2>요약 흐름</h2>
+      <div class="summary-flow">
+        가설 설정 <span class="arrow">→</span> <b>기대도수 E</b> 계산 <span class="arrow">→</span> $\chi^2=\sum(O-E)^2/E$ <span class="arrow">→</span> df 결정 <span class="arrow">→</span> 임계값/p 비교 <span class="arrow">→</span> 효과크기 <span class="arrow">→</span> 잔차분석
+      </div>
+      <table style="margin-top:24px">
+        <thead><tr><th>예제</th><th>χ²</th><th>df</th><th>임계값</th><th>p</th><th>Cramér's V</th><th>판정</th></tr></thead>
+        <tbody>
+          <tr><td class="lab">① 적합도(주사위)</td><td class="mono">4.50</td><td class="mono">5</td><td class="mono">11.07</td><td class="mono">0.480</td><td class="mono">—</td><td class="nsig">기각 못함</td></tr>
+          <tr><td class="lab">② 독립성(성별×음료)</td><td class="mono">11.67</td><td class="mono">2</td><td class="mono">5.99</td><td class="mono">0.0029</td><td class="mono">0.24</td><td class="sig">기각·유의</td></tr>
+          <tr><td class="lab">③ 동질성(지역×의견)</td><td class="mono">4.57</td><td class="mono">2</td><td class="mono">5.99</td><td class="mono">0.102</td><td class="mono">0.15</td><td class="nsig">기각 못함</td></tr>
+        </tbody>
+      </table>
+
+      <h3>참고문헌 &amp; 출처</h3>
+      <ul class="ref-list">
+        <li>Pearson, K. (1900). <i>On the criterion that a given system of deviations from the probable... is such that it can be reasonably supposed to have arisen from random sampling.</i> Philosophical Magazine, 50(302), 157–175. <span class="src">— 카이제곱 검정의 원논문.</span></li>
+        <li>Agresti, A. (2018). <i>An Introduction to Categorical Data Analysis</i> (3rd ed.). Wiley. <span class="src">— 분할표·독립성·동질성·잔차분석의 표준 교재.</span></li>
+        <li>Cohen, J. (1988). <i>Statistical Power Analysis for the Behavioral Sciences</i> (2nd ed.). <span class="src">— Cramér's V 효과크기 해석 기준.</span></li>
+        <li>SciPy 공식 문서. <i>scipy.stats.chisquare / chi2_contingency / fisher_exact / contingency.association.</i> <span class="src">docs.scipy.org</span></li>
+        <li>NIST/SEMATECH. <i>e-Handbook of Statistical Methods — Chi-Square Goodness-of-Fit Test.</i> <span class="src">itl.nist.gov/div898/handbook</span></li>
+      </ul>
+
+      <footer>
+        카이제곱 검정 완벽 가이드 · 모든 수치는 Python(<code>scipy.stats</code> v1.17) <code>chisquare</code> / <code>chi2_contingency</code> / <code>fisher_exact</code>로 검증됨. 분포 곡선·기각역·잔차 그림은 실제 PDF 값으로 생성한 SVG입니다.
+      </footer>
+    </section>
+  </main>
+</div>
+
+<script>
+  // syntax highlight
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.hljs) document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  });
+  // TOC scroll-spy
+  const links=document.querySelectorAll('#toc-nav a');
+  const sections=[...links].map(a=>document.querySelector(a.getAttribute('href')));
+  const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
+    const id=e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+id));}});},
+    {rootMargin:'-15% 0px -75% 0px'});
+  sections.forEach(s=>s&&obs.observe(s));
+</script>
+</body>
+</html>

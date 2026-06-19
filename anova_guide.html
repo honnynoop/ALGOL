@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분산분석 — 일원분산분석과 이원분산분석</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --ink:#1a1a17;
+    --ink-soft:#4a4a44;
+    --line:#e6e3da;
+    --accent:#9a4b2e;        /* 깊은 테라코타 */
+    --accent-soft:#fbf2ec;
+    --teal:#1f5e57;          /* 보조 강조 */
+    --panel:#faf8f3;
+    --panel-2:#f3f0e8;
+    --code-bg:#1c2128;
+    --code-ink:#e6edf3;
+    --hi:#fff3d6;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans KR',sans-serif;
+    font-weight:400;
+    line-height:1.85;
+    font-size:16.5px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:0 26px 120px;}
+
+  /* ---------- header ---------- */
+  header.top{
+    padding:90px 0 56px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:0;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:500;
+    margin:0 0 22px;
+  }
+  h1.title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(38px,7vw,68px);
+    line-height:1.04;
+    letter-spacing:-.015em;
+    margin:0 0 26px;
+    color:var(--ink);
+  }
+  h1.title em{font-style:italic;color:var(--accent);}
+  .lede{
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:62ch;
+    margin:0;
+  }
+
+  /* ---------- toc ---------- */
+  nav.toc{
+    display:flex;flex-wrap:wrap;gap:10px;
+    padding:30px 0 0;margin:0 0 12px;
+  }
+  nav.toc a{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;letter-spacing:.04em;
+    text-decoration:none;color:var(--ink-soft);
+    border:1px solid var(--line);border-radius:30px;
+    padding:7px 16px;transition:all .18s ease;
+  }
+  nav.toc a:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  /* ---------- section ---------- */
+  section{padding:66px 0 0;}
+  .sec-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;color:var(--accent);letter-spacing:.2em;
+    font-weight:500;display:block;margin-bottom:10px;
+  }
+  h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    letter-spacing:-.01em;line-height:1.12;
+    margin:0 0 24px;padding-bottom:18px;
+    border-bottom:1px solid var(--line);
+  }
+  h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;font-size:23px;letter-spacing:-.005em;
+    margin:42px 0 12px;color:var(--ink);
+  }
+  h4{
+    font-family:'Noto Sans KR',sans-serif;
+    font-weight:700;font-size:16px;
+    margin:28px 0 6px;color:var(--teal);
+  }
+  p{margin:0 0 16px;}
+  strong{font-weight:700;color:var(--ink);}
+  .accent-text{color:var(--accent);font-weight:500;}
+
+  /* ---------- callout ---------- */
+  .note{
+    background:var(--accent-soft);
+    border-left:3px solid var(--accent);
+    padding:18px 22px;border-radius:0 8px 8px 0;
+    margin:24px 0;font-size:15.5px;
+  }
+  .note .tag{
+    display:block;font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin-bottom:6px;
+  }
+  .note.teal{background:#eef5f3;border-left-color:var(--teal);}
+  .note.teal .tag{color:var(--teal);}
+
+  /* ---------- formula ---------- */
+  .formula{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px 26px;margin:22px 0;
+    font-family:'Fraunces',serif;font-size:19px;
+    text-align:center;color:var(--ink);overflow-x:auto;
+  }
+  .formula .lbl{
+    display:block;font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:12px;font-weight:500;
+  }
+  .frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 4px;}
+  .frac .num{border-bottom:1.5px solid var(--ink);padding:0 8px 2px;}
+  .frac .den{padding:2px 8px 0;}
+
+  /* ---------- table ---------- */
+  .tbl-scroll{overflow-x:auto;margin:22px 0;}
+  table{
+    border-collapse:collapse;width:100%;font-size:14.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  table.data-tbl{font-family:'Noto Sans KR',sans-serif;font-size:15px;}
+  th,td{
+    border:1px solid var(--line);
+    padding:9px 13px;text-align:center;
+  }
+  th{
+    background:var(--panel-2);font-weight:700;color:var(--ink);
+    font-family:'Noto Sans KR',sans-serif;
+  }
+  td.lab{background:var(--panel);font-weight:500;text-align:left;
+    font-family:'Noto Sans KR',sans-serif;}
+  tr.total td{background:var(--accent-soft);font-weight:700;}
+  .hl{background:var(--hi);border-radius:3px;padding:1px 5px;font-weight:600;}
+
+  /* ---------- code ---------- */
+  .code-head{
+    display:flex;align-items:center;gap:8px;
+    background:#11161c;border-radius:10px 10px 0 0;
+    padding:11px 18px;border-bottom:1px solid #2d333b;
+  }
+  .code-head .dot{width:11px;height:11px;border-radius:50%;}
+  .code-head .fn{
+    margin-left:10px;font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:#8b949e;letter-spacing:.02em;
+  }
+  pre{
+    margin:0 0 24px;background:var(--code-bg);
+    border-radius:0 0 10px 10px;
+    padding:20px 22px;overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13.5px;line-height:1.75;color:var(--code-ink);
+  }
+  pre.solo{border-radius:10px;margin-top:22px;}
+  .c-kw{color:#ff7b72;}
+  .c-fn{color:#d2a8ff;}
+  .c-str{color:#a5d6ff;}
+  .c-num{color:#79c0ff;}
+  .c-com{color:#8b949e;font-style:italic;}
+  .c-out{color:#7ee787;}
+
+  /* ---------- step list ---------- */
+  ol.steps{counter-reset:step;list-style:none;padding:0;margin:18px 0;}
+  ol.steps li{
+    position:relative;padding:0 0 18px 46px;margin:0;
+  }
+  ol.steps li::before{
+    counter-increment:step;content:counter(step);
+    position:absolute;left:0;top:0;
+    width:30px;height:30px;border-radius:50%;
+    background:var(--ink);color:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  ol.steps li strong{display:block;margin-bottom:2px;}
+
+  ul.clean{list-style:none;padding:0;margin:14px 0;}
+  ul.clean li{position:relative;padding-left:24px;margin-bottom:9px;}
+  ul.clean li::before{
+    content:"▸";position:absolute;left:0;top:0;color:var(--accent);font-weight:700;
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    margin-top:90px;padding-top:30px;border-top:2px solid var(--ink);
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    color:var(--ink-soft);letter-spacing:.04em;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+  .verdict{
+    display:inline-block;font-family:'Noto Sans KR',sans-serif;
+    font-weight:700;font-size:13px;padding:3px 11px;border-radius:20px;
+  }
+  .verdict.yes{background:#e3f0e9;color:#1f5e57;}
+  .verdict.no{background:#f6ece8;color:#9a4b2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">Analysis of Variance · 분산분석</p>
+    <h1 class="title">일원분산분석과<br><em>이원분산분석</em></h1>
+    <p class="lede">세 집단 이상의 평균을 한 번에 비교하는 분산분석을, 개념 → 손으로 검산한 수치 예제 → 실행 가능한 파이썬 코드 순서로 정리합니다.</p>
+    <nav class="toc">
+      <a href="#intro">개요</a>
+      <a href="#oneway">일원분산분석</a>
+      <a href="#oneway-num">수치 예제 ①</a>
+      <a href="#oneway-code">소스 예제 ①</a>
+      <a href="#twoway">이원분산분석</a>
+      <a href="#twoway-num">수치 예제 ②</a>
+      <a href="#twoway-code">소스 예제 ②</a>
+      <a href="#compare">비교 요약</a>
+    </nav>
+  </header>
+
+  <!-- ============ 개요 ============ -->
+  <section id="intro">
+    <span class="sec-num">00 / OVERVIEW</span>
+    <h2>분산분석이란?</h2>
+    <p><strong>분산분석(ANOVA)</strong>은 세 집단 이상의 모평균이 모두 같은지를 검정하는 방법입니다. t-검정을 여러 번 반복하면 1종 오류가 누적되는데, 분산분석은 <span class="accent-text">전체 분산을 "집단 간 변동"과 "집단 내 변동"으로 분해</span>하여 한 번의 F-검정으로 비교합니다.</p>
+    <div class="formula">
+      <span class="lbl">핵심 아이디어 — 변동의 분해</span>
+      전체 변동(SST) &nbsp;=&nbsp; 집단 간 변동(SSB) &nbsp;+&nbsp; 집단 내 변동(SSW)
+    </div>
+    <p>집단 간 변동(처리에 의한 차이)이 집단 내 변동(우연한 오차)보다 충분히 크면, 그 비율인 <strong>F 통계량</strong>이 커지고 "평균이 다르다"고 판단합니다.</p>
+    <div class="formula">
+      <span class="lbl">F 통계량</span>
+      F &nbsp;=&nbsp;
+      <span class="frac"><span class="num">집단 간 평균제곱 (MSB)</span><span class="den">집단 내 평균제곱 (MSW)</span></span>
+      &nbsp;=&nbsp;
+      <span class="frac"><span class="num">처리에 의한 변동</span><span class="den">우연에 의한 변동</span></span>
+    </div>
+    <div class="note teal">
+      <span class="tag">요인의 개수</span>
+      독립변수(요인)가 <strong>1개</strong>면 <strong>일원분산분석(one-way)</strong>, <strong>2개</strong>면 <strong>이원분산분석(two-way)</strong>입니다. 요인이 늘어날수록 "상호작용 효과"라는 새로운 검정 대상이 추가됩니다.
+    </div>
+  </section>
+
+  <!-- ============ 일원분산분석 ============ -->
+  <section id="oneway">
+    <span class="sec-num">01 / ONE-WAY ANOVA</span>
+    <h2>일원분산분석</h2>
+    <p><strong>하나의 요인(독립변수)</strong>이 종속변수에 영향을 주는지 검정합니다. 예: "비료 종류(A, B, C)에 따라 식물의 성장량 평균이 다른가?"</p>
+
+    <h3>가설</h3>
+    <ul class="clean">
+      <li><strong>귀무가설 H₀</strong> : μ<sub>A</sub> = μ<sub>B</sub> = μ<sub>C</sub> (모든 집단의 평균이 같다)</li>
+      <li><strong>대립가설 H₁</strong> : 적어도 한 집단의 평균은 다르다</li>
+    </ul>
+
+    <h3>변동의 분해와 자유도</h3>
+    <p>총 표본 수를 N, 집단 수를 k라 할 때:</p>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>변동 원천</th><th>제곱합(SS)</th><th>자유도(df)</th><th>평균제곱(MS)</th><th>F</th></tr>
+        <tr><td class="lab">집단 간 (처리)</td><td>SSB</td><td>k − 1</td><td>SSB / (k−1)</td><td>MSB / MSW</td></tr>
+        <tr><td class="lab">집단 내 (잔차)</td><td>SSW</td><td>N − k</td><td>SSW / (N−k)</td><td>—</td></tr>
+        <tr class="total"><td class="lab">전체</td><td>SST</td><td>N − 1</td><td>—</td><td>—</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 수치 예제 1 ============ -->
+  <section id="oneway-num">
+    <span class="sec-num">01-A / WORKED EXAMPLE</span>
+    <h2>수치 예제 ①</h2>
+    <p>세 가지 비료를 4개 화분씩 적용한 뒤 성장량(cm)을 측정했습니다. 손으로 끝까지 계산해 봅니다.</p>
+
+    <div class="tbl-scroll">
+      <table class="data-tbl">
+        <tr><th>집단</th><th>관측값</th><th>합계</th><th>평균 (x̄ᵢ)</th><th>n</th></tr>
+        <tr><td class="lab">비료 A</td><td>5, 7, 6, 8</td><td>26</td><td>6.5</td><td>4</td></tr>
+        <tr><td class="lab">비료 B</td><td>8, 9, 7, 10</td><td>34</td><td>8.5</td><td>4</td></tr>
+        <tr><td class="lab">비료 C</td><td>11, 10, 12, 9</td><td>42</td><td>10.5</td><td>4</td></tr>
+        <tr class="total"><td class="lab">전체</td><td>—</td><td>102</td><td>8.5 (전체평균)</td><td>12</td></tr>
+      </table>
+    </div>
+
+    <ol class="steps">
+      <li><strong>전체제곱합 SST</strong> — 모든 값에서 전체평균(8.5)을 뺀 제곱의 합<br>
+        SST = (5−8.5)² + (7−8.5)² + … + (9−8.5)² = <span class="hl">47</span></li>
+      <li><strong>집단 간 제곱합 SSB</strong> — 각 집단평균과 전체평균의 차이<br>
+        SSB = 4·(6.5−8.5)² + 4·(8.5−8.5)² + 4·(10.5−8.5)² = 16 + 0 + 16 = <span class="hl">32</span></li>
+      <li><strong>집단 내 제곱합 SSW</strong> — 잔차<br>
+        SSW = SST − SSB = 47 − 32 = <span class="hl">15</span></li>
+      <li><strong>평균제곱 MS</strong><br>
+        MSB = 32 / (3−1) = 16 &nbsp;&nbsp;|&nbsp;&nbsp; MSW = 15 / (12−3) = 1.667</li>
+      <li><strong>F 통계량</strong><br>
+        F = MSB / MSW = 16 / 1.667 = <span class="hl">9.60</span></li>
+    </ol>
+
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>원천</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p-value</th></tr>
+        <tr><td class="lab">집단 간</td><td>32</td><td>2</td><td>16.00</td><td>9.60</td><td>≈ 0.006</td></tr>
+        <tr><td class="lab">집단 내</td><td>15</td><td>9</td><td>1.667</td><td>—</td><td>—</td></tr>
+        <tr class="total"><td class="lab">전체</td><td>47</td><td>11</td><td>—</td><td>—</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="note">
+      <span class="tag">결론</span>
+      임계값 F<sub>0.05</sub>(2, 9) ≈ 4.26 보다 검정통계량 9.60이 크고, p ≈ 0.006 &lt; 0.05 이므로 <strong>귀무가설을 기각</strong>합니다.
+      <span class="verdict yes">비료 종류에 따라 성장량 평균에 유의한 차이가 있다</span>
+    </div>
+  </section>
+
+  <!-- ============ 소스 예제 1 ============ -->
+  <section id="oneway-code">
+    <span class="sec-num">01-B / SOURCE CODE</span>
+    <h2>소스 예제 ①</h2>
+    <p>위 데이터를 그대로 파이썬으로 검증합니다. 간단한 검정은 <code>scipy</code>, ANOVA 표가 필요하면 <code>statsmodels</code>를 씁니다.</p>
+
+    <div class="code-head">
+      <span class="dot" style="background:#ff5f57"></span>
+      <span class="dot" style="background:#febc2e"></span>
+      <span class="dot" style="background:#28c840"></span>
+      <span class="fn">one_way_anova.py</span>
+    </div>
+<pre><span class="c-kw">import</span> numpy <span class="c-kw">as</span> np
+<span class="c-kw">import</span> pandas <span class="c-kw">as</span> pd
+<span class="c-kw">from</span> scipy <span class="c-kw">import</span> stats
+<span class="c-kw">import</span> statsmodels.api <span class="c-kw">as</span> sm
+<span class="c-kw">from</span> statsmodels.formula.api <span class="c-kw">import</span> ols
+
+<span class="c-com"># --- 데이터 (주의: 변수명을 C로 쓰면 patsy의 C() 함수를 가려 오류 발생) ---</span>
+grp_A = [<span class="c-num">5</span>, <span class="c-num">7</span>, <span class="c-num">6</span>, <span class="c-num">8</span>]
+grp_B = [<span class="c-num">8</span>, <span class="c-num">9</span>, <span class="c-num">7</span>, <span class="c-num">10</span>]
+grp_C = [<span class="c-num">11</span>, <span class="c-num">10</span>, <span class="c-num">12</span>, <span class="c-num">9</span>]
+
+<span class="c-com"># --- 방법 1) scipy: F, p만 빠르게 ---</span>
+f_stat, p_value = stats.<span class="c-fn">f_oneway</span>(grp_A, grp_B, grp_C)
+<span class="c-fn">print</span>(<span class="c-str">f"F = {f_stat:.4f},  p = {p_value:.4f}"</span>)
+<span class="c-out"># F = 9.6000,  p = 0.0059</span>
+
+<span class="c-com"># --- 방법 2) statsmodels: 완전한 ANOVA 표 ---</span>
+df = pd.<span class="c-fn">DataFrame</span>({
+    <span class="c-str">'growth'</span>: grp_A + grp_B + grp_C,
+    <span class="c-str">'group'</span> : [<span class="c-str">'A'</span>]*<span class="c-num">4</span> + [<span class="c-str">'B'</span>]*<span class="c-num">4</span> + [<span class="c-str">'C'</span>]*<span class="c-num">4</span>
+})
+model = <span class="c-fn">ols</span>(<span class="c-str">'growth ~ C(group)'</span>, data=df).<span class="c-fn">fit</span>()
+<span class="c-fn">print</span>(sm.stats.<span class="c-fn">anova_lm</span>(model, typ=<span class="c-num">2</span>))
+<span class="c-out">#             sum_sq   df    F    PR(>F)</span>
+<span class="c-out"># C(group)      32.0  2.0  9.6  0.005861</span>
+<span class="c-out"># Residual      15.0  9.0  NaN       NaN</span></pre>
+
+    <div class="note teal">
+      <span class="tag">Tip</span>
+      요인이 하나뿐인 일원분산분석에서는 <code>typ=1, 2, 3</code> 결과가 모두 동일합니다. 보정할 다른 요인이 없기 때문입니다.
+    </div>
+  </section>
+
+  <!-- ============ 이원분산분석 ============ -->
+  <section id="twoway">
+    <span class="sec-num">02 / TWO-WAY ANOVA</span>
+    <h2>이원분산분석</h2>
+    <p><strong>두 개의 요인</strong>이 동시에 종속변수에 미치는 영향을 검정합니다. 핵심은 두 요인의 <span class="accent-text">주효과(main effect)</span>뿐 아니라, 두 요인이 결합될 때 생기는 <span class="accent-text">상호작용 효과(interaction)</span>까지 본다는 점입니다.</p>
+
+    <p>예: 요인 A = 비료 종류(A1, A2), 요인 B = 물 주기(B1, B2) → 성장량에 대한 효과.</p>
+
+    <h3>세 가지 가설</h3>
+    <ul class="clean">
+      <li><strong>주효과 A</strong> : 비료 종류에 따라 평균이 다른가?</li>
+      <li><strong>주효과 B</strong> : 물 주기에 따라 평균이 다른가?</li>
+      <li><strong>상호작용 A×B</strong> : "특정 비료는 특정 물 주기에서만 효과적"처럼, 한 요인의 효과가 다른 요인의 수준에 따라 달라지는가?</li>
+    </ul>
+
+    <div class="note">
+      <span class="tag">상호작용이 핵심</span>
+      상호작용이 <strong>유의하면</strong> 주효과를 단독으로 해석하면 안 됩니다. "비료 효과는 물 주기에 따라 달라진다"처럼 조합 단위로 해석해야 합니다.
+    </div>
+
+    <h3>변동의 분해와 자유도</h3>
+    <p>요인 A의 수준 a개, 요인 B의 수준 b개, 각 셀당 반복 n개일 때:</p>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>원천</th><th>제곱합</th><th>자유도</th></tr>
+        <tr><td class="lab">주효과 A</td><td>SSA</td><td>a − 1</td></tr>
+        <tr><td class="lab">주효과 B</td><td>SSB</td><td>b − 1</td></tr>
+        <tr><td class="lab">상호작용 A×B</td><td>SSAB</td><td>(a−1)(b−1)</td></tr>
+        <tr><td class="lab">오차(잔차)</td><td>SSE</td><td>ab(n−1)</td></tr>
+        <tr class="total"><td class="lab">전체</td><td>SST</td><td>N − 1</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 수치 예제 2 ============ -->
+  <section id="twoway-num">
+    <span class="sec-num">02-A / WORKED EXAMPLE</span>
+    <h2>수치 예제 ②</h2>
+    <p>비료(A1, A2) × 물 주기(B1, B2)의 2×2 설계, 각 조합당 2번 반복(총 8개)입니다. 균형 설계라 손계산이 깔끔합니다.</p>
+
+    <div class="tbl-scroll">
+      <table class="data-tbl">
+        <tr><th></th><th>B1</th><th>B2</th><th>A 행평균</th></tr>
+        <tr><td class="lab">A1</td><td>6, 8 &nbsp;(x̄=7)</td><td>10, 12 &nbsp;(x̄=11)</td><td>9</td></tr>
+        <tr><td class="lab">A2</td><td>14, 16 &nbsp;(x̄=15)</td><td>12, 14 &nbsp;(x̄=13)</td><td>14</td></tr>
+        <tr class="total"><td class="lab">B 열평균</td><td>11</td><td>12</td><td>11.5 (전체)</td></tr>
+      </table>
+    </div>
+
+    <ol class="steps">
+      <li><strong>전체제곱합 SST</strong> = Σ(x − 11.5)² = <span class="hl">78</span></li>
+      <li><strong>주효과 A (SSA)</strong> = 4·(9−11.5)² + 4·(14−11.5)² = 25 + 25 = <span class="hl">50</span></li>
+      <li><strong>주효과 B (SSB)</strong> = 4·(11−11.5)² + 4·(12−11.5)² = 1 + 1 = <span class="hl">2</span></li>
+      <li><strong>상호작용 (SSAB)</strong> = Σ n·(셀평균 − A행평균 − B열평균 + 전체평균)²<br>
+        각 셀 편차 = ±1.5 → SSAB = 2·(1.5²×4) = <span class="hl">18</span></li>
+      <li><strong>오차 (SSE)</strong> = SST − SSA − SSB − SSAB = 78 − 50 − 2 − 18 = <span class="hl">8</span></li>
+    </ol>
+
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>원천</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p-value</th></tr>
+        <tr><td class="lab">비료 A</td><td>50</td><td>1</td><td>50</td><td>25.0</td><td>≈ 0.0075 ✔</td></tr>
+        <tr><td class="lab">물 주기 B</td><td>2</td><td>1</td><td>2</td><td>1.0</td><td>≈ 0.374 ✘</td></tr>
+        <tr><td class="lab">상호작용 A×B</td><td>18</td><td>1</td><td>18</td><td>9.0</td><td>≈ 0.040 ✔</td></tr>
+        <tr><td class="lab">오차</td><td>8</td><td>4</td><td>2</td><td>—</td><td>—</td></tr>
+        <tr class="total"><td class="lab">전체</td><td>78</td><td>7</td><td>—</td><td>—</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="note">
+      <span class="tag">결론</span> 임계값 F<sub>0.05</sub>(1, 4) ≈ 7.71 기준으로 해석합니다.
+      <ul class="clean" style="margin-top:10px">
+        <li>비료(A): F=25 &gt; 7.71 → <span class="verdict yes">유의</span></li>
+        <li>물 주기(B): F=1 &lt; 7.71 → <span class="verdict no">유의하지 않음</span></li>
+        <li>상호작용(A×B): F=9 &gt; 7.71 → <span class="verdict yes">유의</span></li>
+      </ul>
+      상호작용이 유의하므로, 비료의 효과는 물 주기 수준에 따라 달라진다고 해석해야 합니다.
+    </div>
+  </section>
+
+  <!-- ============ 소스 예제 2 ============ -->
+  <section id="twoway-code">
+    <span class="sec-num">02-B / SOURCE CODE</span>
+    <h2>소스 예제 ②</h2>
+    <p>이원분산분석은 <code>statsmodels</code>로 합니다. 공식(formula)에 <code>:</code>로 상호작용항을 명시합니다.</p>
+
+    <div class="code-head">
+      <span class="dot" style="background:#ff5f57"></span>
+      <span class="dot" style="background:#febc2e"></span>
+      <span class="dot" style="background:#28c840"></span>
+      <span class="fn">two_way_anova.py</span>
+    </div>
+<pre><span class="c-kw">import</span> pandas <span class="c-kw">as</span> pd
+<span class="c-kw">import</span> statsmodels.api <span class="c-kw">as</span> sm
+<span class="c-kw">from</span> statsmodels.formula.api <span class="c-kw">import</span> ols
+
+df = pd.<span class="c-fn">DataFrame</span>({
+    <span class="c-str">'growth'</span>: [<span class="c-num">6</span>, <span class="c-num">8</span>, <span class="c-num">10</span>, <span class="c-num">12</span>, <span class="c-num">14</span>, <span class="c-num">16</span>, <span class="c-num">12</span>, <span class="c-num">14</span>],
+    <span class="c-str">'fert'</span>  : [<span class="c-str">'A1'</span>,<span class="c-str">'A1'</span>,<span class="c-str">'A1'</span>,<span class="c-str">'A1'</span>,<span class="c-str">'A2'</span>,<span class="c-str">'A2'</span>,<span class="c-str">'A2'</span>,<span class="c-str">'A2'</span>],
+    <span class="c-str">'water'</span> : [<span class="c-str">'B1'</span>,<span class="c-str">'B1'</span>,<span class="c-str">'B2'</span>,<span class="c-str">'B2'</span>,<span class="c-str">'B1'</span>,<span class="c-str">'B1'</span>,<span class="c-str">'B2'</span>,<span class="c-str">'B2'</span>],
+})
+
+<span class="c-com"># 주효과 2개 + 상호작용항 fert:water</span>
+model = <span class="c-fn">ols</span>(<span class="c-str">'growth ~ C(fert) + C(water) + C(fert):C(water)'</span>, data=df).<span class="c-fn">fit</span>()
+anova = sm.stats.<span class="c-fn">anova_lm</span>(model, typ=<span class="c-num">2</span>)
+<span class="c-fn">print</span>(anova)
+<span class="c-out">#                   sum_sq   df     F    PR(>F)</span>
+<span class="c-out"># C(fert)             50.0  1.0  25.0  0.007490</span>
+<span class="c-out"># C(water)             2.0  1.0   1.0  0.373901</span>
+<span class="c-out"># C(fert):C(water)    18.0  1.0   9.0  0.039942</span>
+<span class="c-out"># Residual             8.0  4.0   NaN       NaN</span></pre>
+
+    <div class="note teal">
+      <span class="tag">Type 선택</span>
+      위처럼 <strong>균형 설계(셀당 표본 수 동일)</strong>에서는 <code>typ=1, 2, 3</code> 결과가 같습니다. <strong>불균형 설계</strong>에서만 달라지며, 상호작용이 없으면 <code>typ=2</code>, 있으면 <code>typ=3</code>을 권장합니다. (Type 3는 <code>C(fert, Sum)</code> 같은 합-대비 코딩 필요)
+    </div>
+
+    <h4>상호작용 시각화 코드</h4>
+<pre class="solo"><span class="c-kw">import</span> matplotlib.pyplot <span class="c-kw">as</span> plt
+<span class="c-kw">from</span> statsmodels.graphics.factorplots <span class="c-kw">import</span> interaction_plot
+
+<span class="c-fn">interaction_plot</span>(x=df[<span class="c-str">'water'</span>], trace=df[<span class="c-str">'fert'</span>], response=df[<span class="c-str">'growth'</span>])
+plt.<span class="c-fn">title</span>(<span class="c-str">'Interaction Plot'</span>); plt.<span class="c-fn">show</span>()
+<span class="c-com"># 두 선이 평행하지 않으면(교차하면) 상호작용이 존재한다는 신호</span></pre>
+  </section>
+
+  <!-- ============ 비교 ============ -->
+  <section id="compare">
+    <span class="sec-num">03 / SUMMARY</span>
+    <h2>한눈에 비교</h2>
+    <div class="tbl-scroll">
+      <table class="data-tbl">
+        <tr><th>구분</th><th>일원분산분석</th><th>이원분산분석</th></tr>
+        <tr><td class="lab">요인 수</td><td>1개</td><td>2개</td></tr>
+        <tr><td class="lab">검정 대상</td><td>주효과 1개</td><td>주효과 2개 + 상호작용 1개</td></tr>
+        <tr><td class="lab">F 검정 수</td><td>1개</td><td>3개</td></tr>
+        <tr><td class="lab">상호작용</td><td>없음</td><td>핵심 — 주효과 해석을 좌우</td></tr>
+        <tr><td class="lab">파이썬 공식</td><td><code>y ~ C(A)</code></td><td><code>y ~ C(A)+C(B)+C(A):C(B)</code></td></tr>
+        <tr><td class="lab">예시 질문</td><td>비료에 따라 성장이 다른가?</td><td>비료·물·둘의 조합이 성장에 영향?</td></tr>
+      </table>
+    </div>
+
+    <div class="note">
+      <span class="tag">분석 전 가정 확인 (공통)</span>
+      <ul class="clean" style="margin-top:8px">
+        <li><strong>정규성</strong> — 잔차가 정규분포 (Shapiro-Wilk, Q-Q plot)</li>
+        <li><strong>등분산성</strong> — 집단별 분산이 같음 (Levene 검정)</li>
+        <li><strong>독립성</strong> — 관측값이 서로 독립</li>
+      </ul>
+      가정이 깨지면 비모수 대안(Kruskal-Wallis 등)이나 변수 변환을 고려합니다. 또한 ANOVA가 유의하면 어떤 집단끼리 다른지 <strong>사후검정(Tukey HSD)</strong>으로 확인합니다.
+    </div>
+  </section>
+
+  <footer>
+    <span>ANOVA STUDY GUIDE · 일원 · 이원 분산분석</span>
+    <span>scipy · statsmodels · Python</span>
+  </footer>
+
+</div>
+</body>
+</html>

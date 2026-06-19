@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>빅데이터분석기사 작업형1 — 데이터 전처리 총정리</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f4f7f4;
+    --bg3: #e8f0e8;
+    --border: #d4e0d4;
+    --text: #141f14;
+    --muted: #5a6e5a;
+
+    --g1: #1a7a3c;   /* 기본 탐색 */
+    --g2: #0e6b8a;   /* 결측치 */
+    --g3: #b84b00;   /* 이상치 */
+    --g4: #6b3fa0;   /* 타입/인코딩 */
+    --g5: #1a6b6b;   /* 문자열 */
+    --g6: #8a5a00;   /* 날짜/시간 */
+    --g7: #1a4a7a;   /* 필터링 */
+    --g8: #7a1a4a;   /* 그룹화 */
+    --g9: #3d7a1a;   /* 결합 */
+    --g10: #1a3a6b;  /* 스케일링 */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  .top-header {
+    background: #0d1f12;
+    color: white;
+    padding: 28px 48px 24px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 3px solid var(--g1);
+  }
+  .top-header::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 340px;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(26,122,60,0.07) 10px,
+      rgba(26,122,60,0.07) 20px
+    );
+  }
+  .header-inner { position: relative; z-index: 1; }
+  .badge-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .hbadge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(26,122,60,0.18);
+    border: 1px solid rgba(26,122,60,0.4);
+    border-radius: 20px;
+    padding: 3px 11px;
+    font-size: 11px; font-weight: 600;
+    color: #7edd9a;
+    letter-spacing: 0.04em;
+  }
+  .top-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800;
+    color: white;
+    margin-bottom: 6px;
+  }
+  .top-header h1 span { color: #5dba7d; }
+  .top-header p { font-size: 13px; color: #7a9c7a; }
+
+  /* ── LAYOUT ── */
+  .container { display: flex; }
+
+  .sidebar {
+    width: 210px; min-width: 210px;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+    background: #f4f7f4;
+    border-right: 1px solid var(--border);
+    padding: 18px 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .nav-section-label {
+    font-size: 9.5px; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: #8aaa8a;
+    padding: 4px 8px;
+    margin: 14px 0 4px;
+  }
+  .nav-section-label:first-child { margin-top: 0; }
+
+  .sidebar a {
+    display: flex; align-items: center; gap: 7px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 12px; font-weight: 400;
+    padding: 5px 8px;
+    border-radius: 6px;
+    margin-bottom: 1px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .sidebar a:hover { background: var(--bg3); color: var(--g1); }
+  .sidebar a.active {
+    background: #e0ffe8; color: var(--g1);
+    border-left-color: var(--g1); font-weight: 600;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .main {
+    flex: 1; padding: 28px 38px;
+    max-width: calc(100% - 210px);
+    overflow-x: hidden;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 50px; }
+  .section-anchor { scroll-margin-top: 20px; }
+
+  .sec-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px; padding-bottom: 11px;
+    border-bottom: 2px solid var(--border);
+  }
+  .sec-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .sec-head h2 { font-size: 17px; font-weight: 700; }
+  .sec-sub { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap {
+    background: #0d1a10;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    border: 1px solid #1e3320;
+  }
+  .code-label {
+    background: #1a2e1e;
+    padding: 6px 14px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: #5dba7d;
+    border-bottom: 1px solid #1e3320;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .code-body {
+    padding: 14px 18px;
+    font-family: 'Fira Code', monospace;
+    font-size: 12.5px;
+    color: #cfe8d0;
+    overflow-x: auto;
+    line-height: 1.75;
+    white-space: pre;
+  }
+  .kw  { color: #88c0a8; }   /* import, from, def, if, for, return */
+  .fn  { color: #7ec8e3; }   /* 함수명 */
+  .st  { color: #b5d99c; }   /* 문자열 */
+  .nm  { color: #f0c27f; }   /* 숫자 */
+  .cm  { color: #4a6a4a; font-style: italic; }
+  .at  { color: #d4a4f0; }   /* attribute */
+  .op  { color: #e8a87c; }   /* operator */
+  .cls { color: #ffcc88; }   /* class name */
+
+  /* ── TABLES ── */
+  .tbl-wrap {
+    overflow-x: auto; margin-bottom: 14px;
+    border-radius: 9px; border: 1px solid var(--border);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead tr { background: var(--bg2); }
+  th {
+    padding: 9px 13px; text-align: left;
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.05em; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 13px; border-bottom: 1px solid #eff3ef;
+    vertical-align: middle; line-height: 1.55;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f9fbf9; }
+  td code, th code {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    background: #e8f0e8;
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #1a7a3c;
+  }
+
+  /* ── CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card {
+    border-radius: 10px; padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+  }
+  .card-icon { font-size: 22px; margin-bottom: 6px; }
+  .card-title { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+  .card-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .hl {
+    border-left: 3px solid;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    background: var(--bg2);
+  }
+  .hl b { font-weight: 700; }
+  .hl code {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ── CHIP ── */
+  .chip {
+    display: inline-block;
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--g1);
+  }
+
+  /* ── TWO/THREE COL ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 1000px) { .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr 1fr; } }
+
+  /* ── SVG DIAGRAM ── */
+  .diag-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .diag-title {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); margin-bottom: 12px;
+  }
+
+  /* ── FLOW STEPS ── */
+  .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 16px; flex-wrap: wrap; }
+  .flow-step {
+    flex: 1; min-width: 120px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-right: none;
+    padding: 12px 14px;
+    position: relative;
+    text-align: center;
+  }
+  .flow-step:last-child { border-right: 1px solid var(--border); border-radius: 0 8px 8px 0; }
+  .flow-step:first-child { border-radius: 8px 0 0 8px; }
+  .flow-step::after {
+    content: '▶';
+    position: absolute; right: -10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted); font-size: 12px;
+    z-index: 1;
+  }
+  .flow-step:last-child::after { display: none; }
+  .flow-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--g1); color: white;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px;
+  }
+  .flow-title { font-size: 11px; font-weight: 700; color: var(--text); }
+  .flow-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* 컬러 행 */
+  .r-green td:first-child { border-left: 3px solid var(--g1); }
+  .r-blue  td:first-child { border-left: 3px solid var(--g2); }
+  .r-org   td:first-child { border-left: 3px solid var(--g3); }
+  .r-purp  td:first-child { border-left: 3px solid var(--g4); }
+  .r-teal  td:first-child { border-left: 3px solid var(--g5); }
+
+  /* tag badge */
+  .tag {
+    display: inline-block; padding: 1px 7px;
+    border-radius: 20px; font-size: 10px; font-weight: 700;
+  }
+  .tag-must { background: #ffd6d6; color: #b30000; }
+  .tag-imp  { background: #fff0cc; color: #8a5000; }
+  .tag-new  { background: #d6f0ff; color: #005580; }
+
+  /* ── SEPARATOR ── */
+  .sep { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="top-header">
+  <div class="header-inner">
+    <div class="badge-row">
+      <span class="hbadge">🐼 pandas</span>
+      <span class="hbadge">🔢 numpy</span>
+      <span class="hbadge">🤖 sklearn</span>
+      <span class="hbadge">📅 datetime</span>
+    </div>
+    <h1>빅데이터분석기사 <span>작업형 1</span></h1>
+    <p>데이터 전처리 · 탐색 · 정제 · 변환 · 결합 · 인코딩 · 스케일링 — 완전 정복</p>
+  </div>
+</header>
+
+<div class="container">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section-label">기본</div>
+    <a href="#s-load"><span class="dot" style="background:#1a7a3c"></span>데이터 불러오기</a>
+    <a href="#s-explore"><span class="dot" style="background:#1a7a3c"></span>기본 탐색</a>
+    <a href="#s-select"><span class="dot" style="background:#1a4a7a"></span>선택 · 필터링</a>
+
+    <div class="nav-section-label">정제</div>
+    <a href="#s-missing"><span class="dot" style="background:#0e6b8a"></span>결측치 처리</a>
+    <a href="#s-outlier"><span class="dot" style="background:#b84b00"></span>이상치 탐지</a>
+    <a href="#s-dup"><span class="dot" style="background:#1a7a3c"></span>중복 처리</a>
+
+    <div class="nav-section-label">변환</div>
+    <a href="#s-dtype"><span class="dot" style="background:#6b3fa0"></span>데이터 타입</a>
+    <a href="#s-string"><span class="dot" style="background:#1a6b6b"></span>문자열 처리</a>
+    <a href="#s-datetime"><span class="dot" style="background:#8a5a00"></span>날짜/시간</a>
+    <a href="#s-col"><span class="dot" style="background:#3d7a1a"></span>컬럼 연산</a>
+
+    <div class="nav-section-label">집계 · 결합</div>
+    <a href="#s-group"><span class="dot" style="background:#7a1a4a"></span>그룹화 · 집계</a>
+    <a href="#s-merge"><span class="dot" style="background:#3d7a1a"></span>데이터 결합</a>
+    <a href="#s-sort"><span class="dot" style="background:#1a4a7a"></span>정렬 · 순위</a>
+
+    <div class="nav-section-label">ML 전처리</div>
+    <a href="#s-encode"><span class="dot" style="background:#6b3fa0"></span>인코딩</a>
+    <a href="#s-scale"><span class="dot" style="background:#1a3a6b"></span>스케일링</a>
+
+    <div class="nav-section-label">기타</div>
+    <a href="#s-numpy"><span class="dot" style="background:#1a7a3c"></span>NumPy 핵심</a>
+    <a href="#s-quick"><span class="dot" style="background:#8a5a00"></span>빠른 참조</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════ 데이터 불러오기 ═══════════════════════ -->
+    <section id="s-load" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e0ffe8">📂</div>
+        <div>
+          <h2>데이터 불러오기 · 저장</h2>
+          <div class="sec-sub">read_csv · to_csv · read_excel · StringIO</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">📌 기본 입출력 패턴</div>
+        <div class="code-body"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># ── CSV 불러오기 ──────────────────────────────────────────</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>)
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, encoding=<span class="st">'utf-8'</span>)        <span class="cm"># 인코딩 지정</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, encoding=<span class="st">'cp949'</span>)         <span class="cm"># 한글 윈도우</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, index_col=<span class="nm">0</span>)               <span class="cm"># 첫 컬럼 → 인덱스</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, header=<span class="nm">None</span>)               <span class="cm"># 헤더 없음</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, sep=<span class="st">'|'</span>)                  <span class="cm"># 구분자 변경</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, na_values=[<span class="st">'?','NA','none'</span>]) <span class="cm"># 결측 지정</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, usecols=[<span class="st">'A','B','C'</span>])      <span class="cm"># 특정 컬럼만</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, nrows=<span class="nm">1000</span>)                <span class="cm"># 상위 n행만</span>
+df = pd<span class="at">.read_csv</span>(<span class="st">'data.csv'</span>, dtype={<span class="st">'age'</span>: <span class="cls">int</span>})        <span class="cm"># 타입 지정</span>
+
+<span class="cm"># ── 저장 ─────────────────────────────────────────────────</span>
+df<span class="at">.to_csv</span>(<span class="st">'result.csv'</span>, index=<span class="nm">False</span>)                    <span class="cm"># 인덱스 제외 저장</span>
+
+<span class="cm"># ── 시험에서 자주 쓰는 패턴 ──────────────────────────────</span>
+<span class="kw">print</span>(df<span class="at">.head</span>(<span class="nm">3</span>))   <span class="cm"># 상위 3행</span>
+<span class="kw">print</span>(<span class="fn">round</span>(결과값, <span class="nm">2</span>))  <span class="cm"># 소수점 2자리 반올림</span></div>
+      </div>
+
+      <div class="hl" style="border-color:var(--g1)">
+        ⚡ <b>시험 제출 패턴:</b> 답은 항상 <code>print(round(answer, 2))</code> 또는 <code>print(answer)</code> 형태로 출력
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 기본 탐색 ═══════════════════════ -->
+    <section id="s-explore" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e0ffe8">🔍</div>
+        <div>
+          <h2>기본 탐색</h2>
+          <div class="sec-sub">shape · info · describe · dtypes · value_counts</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="code-wrap" style="margin:0">
+          <div class="code-label">📐 구조 파악</div>
+          <div class="code-body"><span class="cm"># 기본 정보</span>
+df<span class="at">.shape</span>            <span class="cm"># (행수, 열수)</span>
+df<span class="at">.shape</span>[<span class="nm">0</span>]         <span class="cm"># 행수</span>
+df<span class="at">.shape</span>[<span class="nm">1</span>]         <span class="cm"># 열수</span>
+<span class="fn">len</span>(df)             <span class="cm"># 행수</span>
+df<span class="at">.columns</span>          <span class="cm"># 컬럼명 목록</span>
+df<span class="at">.dtypes</span>           <span class="cm"># 각 컬럼 타입</span>
+df<span class="at">.info</span>()           <span class="cm"># 타입+결측수</span>
+
+<span class="cm"># 통계 요약</span>
+df<span class="at">.describe</span>()       <span class="cm"># 수치형 통계</span>
+df<span class="at">.describe</span>(include=<span class="st">'all'</span>) <span class="cm"># 범주형 포함</span>
+
+<span class="cm"># 미리보기</span>
+df<span class="at">.head</span>(<span class="nm">5</span>)          <span class="cm"># 상위 5행</span>
+df<span class="at">.tail</span>(<span class="nm">5</span>)          <span class="cm"># 하위 5행</span>
+df<span class="at">.sample</span>(<span class="nm">5</span>)        <span class="cm"># 랜덤 5행</span></div>
+        </div>
+        <div class="code-wrap" style="margin:0">
+          <div class="code-label">📊 분포 파악</div>
+          <div class="code-body"><span class="cm"># 빈도 / 유니크</span>
+df[<span class="st">'col'</span>]<span class="at">.value_counts</span>()
+df[<span class="st">'col'</span>]<span class="at">.value_counts</span>(normalize=<span class="nm">True</span>) <span class="cm"># 비율</span>
+df[<span class="st">'col'</span>]<span class="at">.nunique</span>()    <span class="cm"># 고유값 수</span>
+df[<span class="st">'col'</span>]<span class="at">.unique</span>()    <span class="cm"># 고유값 배열</span>
+
+<span class="cm"># 통계량</span>
+df[<span class="st">'col'</span>]<span class="at">.mean</span>()
+df[<span class="st">'col'</span>]<span class="at">.median</span>()
+df[<span class="st">'col'</span>]<span class="at">.std</span>()
+df[<span class="st">'col'</span>]<span class="at">.var</span>()
+df[<span class="st">'col'</span>]<span class="at">.min</span>() / <span class="at">.max</span>()
+df[<span class="st">'col'</span>]<span class="at">.sum</span>()
+df[<span class="st">'col'</span>]<span class="at">.count</span>()      <span class="cm"># 비결측 수</span>
+df[<span class="st">'col'</span>]<span class="at">.quantile</span>(<span class="nm">0.25</span>) <span class="cm"># Q1</span>
+df[<span class="st">'col'</span>]<span class="at">.quantile</span>(<span class="nm">0.75</span>) <span class="cm"># Q3</span></div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>메서드</th><th>반환값</th><th>활용 포인트</th></tr></thead>
+          <tbody>
+            <tr class="r-green"><td><code>df.shape</code></td><td>tuple (rows, cols)</td><td>전체 데이터 크기 파악</td></tr>
+            <tr class="r-green"><td><code>df.info()</code></td><td>출력(None)</td><td>결측치 수, dtype 한번에 확인</td></tr>
+            <tr class="r-green"><td><code>df.describe()</code></td><td>DataFrame</td><td>count/mean/std/min/25%/50%/75%/max</td></tr>
+            <tr class="r-green"><td><code>value_counts()</code></td><td>Series</td><td>범주형 빈도, <code>dropna=False</code>로 NaN 포함</td></tr>
+            <tr class="r-green"><td><code>df.isnull().sum()</code></td><td>Series</td><td>컬럼별 결측치 수 — 가장 자주 쓰임</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 선택/필터링 ═══════════════════════ -->
+    <section id="s-select" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#ddeeff">🎯</div>
+        <div>
+          <h2>선택 · 필터링</h2>
+          <div class="sec-sub">loc · iloc · 불리언 인덱싱 · query</div>
+        </div>
+      </div>
+
+      <div class="diag-wrap">
+        <div class="diag-title">loc vs iloc 차이</div>
+        <svg viewBox="0 0 660 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:660px;">
+          <rect width="660" height="150" fill="#f4f7f4" rx="10"/>
+          <!-- loc 박스 -->
+          <rect x="20" y="20" width="290" height="110" rx="10" fill="white" stroke="#1a7a3c" stroke-width="1.5"/>
+          <rect x="20" y="20" width="290" height="30" rx="10" fill="#1a7a3c"/>
+          <rect x="20" y="35" width="290" height="15" fill="#1a7a3c"/>
+          <text x="165" y="41" text-anchor="middle" font-family="Syne" font-size="14" font-weight="800" fill="white">loc</text>
+          <text x="165" y="60" text-anchor="middle" font-family="Noto Sans KR" font-size="11" fill="#1a4a2a">레이블(이름) 기반 접근</text>
+          <text x="30" y="82" font-family="Fira Code" font-size="11" fill="#1a4a2a">df.loc[행레이블, 열레이블]</text>
+          <text x="30" y="98" font-family="Fira Code" font-size="11" fill="#1a4a2a">df.loc[0:3, 'age':'salary']</text>
+          <text x="30" y="114" font-family="Fira Code" font-size="11" fill="#666">→ 0,1,2,3 모두 포함 (끝 포함!)</text>
+
+          <!-- iloc 박스 -->
+          <rect x="350" y="20" width="290" height="110" rx="10" fill="white" stroke="#0e6b8a" stroke-width="1.5"/>
+          <rect x="350" y="20" width="290" height="30" rx="10" fill="#0e6b8a"/>
+          <rect x="350" y="35" width="290" height="15" fill="#0e6b8a"/>
+          <text x="495" y="41" text-anchor="middle" font-family="Syne" font-size="14" font-weight="800" fill="white">iloc</text>
+          <text x="495" y="60" text-anchor="middle" font-family="Noto Sans KR" font-size="11" fill="#1a3a4a">정수(위치) 기반 접근</text>
+          <text x="360" y="82" font-family="Fira Code" font-size="11" fill="#1a3a4a">df.iloc[행번호, 열번호]</text>
+          <text x="360" y="98" font-family="Fira Code" font-size="11" fill="#1a3a4a">df.iloc[0:3, 0:2]</text>
+          <text x="360" y="114" font-family="Fira Code" font-size="11" fill="#666">→ 0,1,2 포함 (끝 미포함!)</text>
+        </svg>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">필터링 패턴 모음</div>
+        <div class="code-body"><span class="cm"># ── loc / iloc ───────────────────────────────────────────</span>
+df<span class="at">.loc</span>[<span class="nm">0</span>, <span class="st">'age'</span>]              <span class="cm"># 0번 행, age열</span>
+df<span class="at">.loc</span>[<span class="nm">0</span>:<span class="nm">4</span>, [<span class="st">'age'</span>, <span class="st">'salary'</span>]] <span class="cm"># 0~4행, 두 컬럼</span>
+df<span class="at">.iloc</span>[<span class="nm">0</span>:<span class="nm">4</span>, <span class="nm">1</span>:<span class="nm">3</span>]             <span class="cm"># 0~3행, 1~2열</span>
+df<span class="at">.iloc</span>[<span class="nm">-1</span>]                   <span class="cm"># 마지막 행</span>
+
+<span class="cm"># ── 불리언 필터링 ─────────────────────────────────────────</span>
+df[df[<span class="st">'age'</span>] > <span class="nm">30</span>]                          <span class="cm"># 단일 조건</span>
+df[(df[<span class="st">'age'</span>] > <span class="nm">30</span>) & (df[<span class="st">'gender'</span>] == <span class="st">'M'</span>)] <span class="cm"># AND</span>
+df[(df[<span class="st">'score'</span>] < <span class="nm">60</span>) | (df[<span class="st">'score'</span>] > <span class="nm">90</span>)] <span class="cm"># OR</span>
+df[~(df[<span class="st">'col'</span>] == <span class="st">'A'</span>)]                    <span class="cm"># NOT</span>
+df[df[<span class="st">'city'</span>]<span class="at">.isin</span>([<span class="st">'서울'</span>, <span class="st">'부산'</span>])]        <span class="cm"># isin</span>
+df[df[<span class="st">'name'</span>]<span class="at">.str.contains</span>(<span class="st">'김'</span>)]          <span class="cm"># 문자열 포함</span>
+
+<span class="cm"># ── query (가독성 좋음) ───────────────────────────────────</span>
+df<span class="at">.query</span>(<span class="st">'age > 30 and gender == "M"'</span>)
+df<span class="at">.query</span>(<span class="st">'30 &lt; age &lt; 50'</span>)
+val = <span class="nm">30</span>
+df<span class="at">.query</span>(<span class="st">'age > @val'</span>)    <span class="cm"># 변수 참조 시 @</span>
+
+<span class="cm"># ── 컬럼 선택 ────────────────────────────────────────────</span>
+df[[<span class="st">'A'</span>, <span class="st">'B'</span>]]             <span class="cm"># 다중 컬럼</span>
+df<span class="at">.drop</span>(columns=[<span class="st">'C'</span>, <span class="st">'D'</span>]) <span class="cm"># 컬럼 제거</span>
+df<span class="at">.filter</span>(like=<span class="st">'score'</span>)    <span class="cm"># 컬럼명에 'score' 포함</span></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 결측치 ═══════════════════════ -->
+    <section id="s-missing" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e0f4ff">❓</div>
+        <div>
+          <h2>결측치 처리</h2>
+          <div class="sec-sub">isnull · fillna · dropna · interpolate</div>
+        </div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num">1</div><div class="flow-title">탐지</div><div class="flow-sub">isnull().sum()</div></div>
+        <div class="flow-step"><div class="flow-num">2</div><div class="flow-title">비율 확인</div><div class="flow-sub">결측률 계산</div></div>
+        <div class="flow-step"><div class="flow-num">3</div><div class="flow-title">처리 방법 결정</div><div class="flow-sub">제거 or 대체</div></div>
+        <div class="flow-step"><div class="flow-num">4</div><div class="flow-title">처리</div><div class="flow-sub">fillna / dropna</div></div>
+        <div class="flow-step"><div class="flow-num">5</div><div class="flow-title">검증</div><div class="flow-sub">다시 확인</div></div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">결측치 탐지 · 제거 · 대체</div>
+        <div class="code-body"><span class="cm"># ── 탐지 ─────────────────────────────────────────────────</span>
+df<span class="at">.isnull</span>()                 <span class="cm"># True/False DataFrame</span>
+df<span class="at">.isnull</span>()<span class="at">.sum</span>()          <span class="cm"># 컬럼별 결측치 수</span>
+df<span class="at">.isnull</span>()<span class="at">.sum</span>()<span class="at">.sum</span>()   <span class="cm"># 전체 결측치 수</span>
+df<span class="at">.isnull</span>()<span class="at">.mean</span>() * <span class="nm">100</span>  <span class="cm"># 결측 비율 (%)</span>
+df[df[<span class="st">'col'</span>]<span class="at">.isnull</span>()]     <span class="cm"># 결측 행 조회</span>
+df<span class="at">.notnull</span>()               <span class="cm"># isnull 반대</span>
+
+<span class="cm"># ── 제거 ─────────────────────────────────────────────────</span>
+df<span class="at">.dropna</span>()                        <span class="cm"># 결측 있는 행 전체 제거</span>
+df<span class="at">.dropna</span>(axis=<span class="nm">1</span>)                  <span class="cm"># 결측 있는 열 제거</span>
+df<span class="at">.dropna</span>(subset=[<span class="st">'age'</span>, <span class="st">'score'</span>])  <span class="cm"># 특정 컬럼 기준</span>
+df<span class="at">.dropna</span>(thresh=<span class="nm">3</span>)                <span class="cm"># 비결측 3개 이상인 행만 유지</span>
+df<span class="at">.dropna</span>(how=<span class="st">'all'</span>)               <span class="cm"># 모두 결측인 행만 제거</span>
+
+<span class="cm"># ── 대체 (fillna) ─────────────────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.fillna</span>(<span class="nm">0</span>)                <span class="cm"># 0으로 대체</span>
+df[<span class="st">'col'</span>]<span class="at">.fillna</span>(df[<span class="st">'col'</span>]<span class="at">.mean</span>()) <span class="cm"># 평균으로 대체</span>
+df[<span class="st">'col'</span>]<span class="at">.fillna</span>(df[<span class="st">'col'</span>]<span class="at">.median</span>())<span class="cm"># 중앙값</span>
+df[<span class="st">'col'</span>]<span class="at">.fillna</span>(df[<span class="st">'col'</span>]<span class="at">.mode</span>()[<span class="nm">0</span>])<span class="cm"># 최빈값 (범주형)</span>
+df<span class="at">.fillna</span>(method=<span class="st">'ffill'</span>)          <span class="cm"># 앞 값으로 채우기</span>
+df<span class="at">.fillna</span>(method=<span class="st">'bfill'</span>)          <span class="cm"># 뒤 값으로 채우기</span>
+df<span class="at">.fillna</span>({<span class="st">'age'</span>: <span class="nm">0</span>, <span class="st">'name'</span>: <span class="st">'미상'</span>}) <span class="cm"># 컬럼별 다르게</span>
+
+<span class="cm"># ── 보간 ─────────────────────────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.interpolate</span>()            <span class="cm"># 선형 보간</span>
+df[<span class="st">'col'</span>]<span class="at">.interpolate</span>(method=<span class="st">'time'</span>) <span class="cm"># 시계열</span>
+
+<span class="cm"># ── 그룹별 평균으로 채우기 ─────────────────────────────────</span>
+df[<span class="st">'col'</span>] = df<span class="at">.groupby</span>(<span class="st">'group'</span>)[<span class="st">'col'</span>]<span class="at">.transform</span>(<span class="kw">lambda</span> x: x<span class="at">.fillna</span>(x<span class="at">.mean</span>()))</div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>상황</th><th>권장 처리</th><th>코드</th></tr></thead>
+          <tbody>
+            <tr><td>수치형, 정규분포 가정</td><td>평균 대체</td><td><code>fillna(mean())</code></td></tr>
+            <tr><td>수치형, 이상치 많음</td><td>중앙값 대체</td><td><code>fillna(median())</code></td></tr>
+            <tr><td>범주형</td><td>최빈값 대체</td><td><code>fillna(mode()[0])</code></td></tr>
+            <tr><td>시계열, 연속성 있음</td><td>전/후 값 채우기</td><td><code>ffill() / bfill()</code></td></tr>
+            <tr><td>결측률 50% 이상</td><td>컬럼/행 제거 고려</td><td><code>dropna()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 이상치 ═══════════════════════ -->
+    <section id="s-outlier" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#fff0e0">⚠️</div>
+        <div>
+          <h2>이상치 탐지 · 처리</h2>
+          <div class="sec-sub">IQR 방법 · Z-score · clip</div>
+        </div>
+      </div>
+
+      <div class="diag-wrap">
+        <div class="diag-title">IQR 이상치 시각화</div>
+        <svg viewBox="0 0 660 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:660px;">
+          <rect width="660" height="120" fill="#f4f7f4" rx="10"/>
+          <!-- 수직선 -->
+          <line x1="60" y1="60" x2="610" y2="60" stroke="#ccc" stroke-width="2"/>
+
+          <!-- 정상 범위 박스 -->
+          <rect x="200" y="35" width="260" height="50" rx="6" fill="#e0ffe8" stroke="#1a7a3c" stroke-width="1.5"/>
+
+          <!-- Q1, Q3 선 -->
+          <line x1="200" y1="30" x2="200" y2="90" stroke="#1a7a3c" stroke-width="2"/>
+          <line x1="460" y1="30" x2="460" y2="90" stroke="#1a7a3c" stroke-width="2"/>
+          <!-- median -->
+          <line x1="330" y1="35" x2="330" y2="85" stroke="#0e6b8a" stroke-width="2" stroke-dasharray="4,2"/>
+
+          <!-- IQR 범위 확장선 -->
+          <line x1="100" y1="60" x2="200" y2="60" stroke="#b84b00" stroke-width="2" stroke-dasharray="5,3"/>
+          <line x1="460" y1="60" x2="560" y2="60" stroke="#b84b00" stroke-width="2" stroke-dasharray="5,3"/>
+
+          <!-- 울타리 -->
+          <line x1="100" y1="45" x2="100" y2="75" stroke="#b84b00" stroke-width="2"/>
+          <line x1="560" y1="45" x2="560" y2="75" stroke="#b84b00" stroke-width="2"/>
+
+          <!-- 이상치 점 -->
+          <circle cx="60" cy="60" r="6" fill="#e03131"/>
+          <circle cx="610" cy="60" r="6" fill="#e03131"/>
+
+          <!-- 레이블 -->
+          <text x="200" y="26" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#1a7a3c" font-weight="700">Q1</text>
+          <text x="330" y="26" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#0e6b8a" font-weight="700">Median</text>
+          <text x="460" y="26" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#1a7a3c" font-weight="700">Q3</text>
+
+          <text x="100" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#b84b00">Q1−1.5×IQR</text>
+          <text x="560" y="105" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#b84b00">Q3+1.5×IQR</text>
+
+          <text x="60" y="100" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#e03131">이상치</text>
+          <text x="610" y="100" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#e03131">이상치</text>
+
+          <text x="330" y="66" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#1a7a3c">IQR = Q3 − Q1 (정상 범위)</text>
+        </svg>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">IQR · Z-score 이상치 처리</div>
+        <div class="code-body"><span class="cm"># ── IQR 방법 (★ 가장 자주 출제) ──────────────────────────</span>
+Q1 = df[<span class="st">'col'</span>]<span class="at">.quantile</span>(<span class="nm">0.25</span>)
+Q3 = df[<span class="st">'col'</span>]<span class="at">.quantile</span>(<span class="nm">0.75</span>)
+IQR = Q3 - Q1
+
+lower = Q1 - <span class="nm">1.5</span> * IQR
+upper = Q3 + <span class="nm">1.5</span> * IQR
+
+<span class="cm"># 이상치 제거</span>
+df_clean = df[(df[<span class="st">'col'</span>] >= lower) & (df[<span class="st">'col'</span>] <= upper)]
+
+<span class="cm"># 이상치 대체 (Capping)</span>
+df[<span class="st">'col'</span>] = df[<span class="st">'col'</span>]<span class="at">.clip</span>(lower=lower, upper=upper)
+
+<span class="cm"># 이상치 개수 확인</span>
+outliers = df[(df[<span class="st">'col'</span>] < lower) | (df[<span class="st">'col'</span>] > upper)]
+<span class="kw">print</span>(<span class="fn">len</span>(outliers))
+
+<span class="cm"># ── Z-score 방법 ─────────────────────────────────────────</span>
+<span class="kw">from</span> scipy.stats <span class="kw">import</span> zscore
+z = np<span class="at">.abs</span>(zscore(df[<span class="st">'col'</span>]))
+df_clean = df[z < <span class="nm">3</span>]            <span class="cm"># |z| < 3 이면 정상</span>
+
+<span class="cm"># 여러 컬럼에 적용</span>
+z_scores = df<span class="at">.apply</span>(zscore)
+df_clean = df[(z_scores<span class="at">.abs</span>() < <span class="nm">3</span>)<span class="at">.all</span>(axis=<span class="nm">1</span>)]</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 중복 처리 ═══════════════════════ -->
+    <section id="s-dup" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e0ffe8">♻️</div>
+        <div>
+          <h2>중복 처리</h2>
+          <div class="sec-sub">duplicated · drop_duplicates</div>
+        </div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-label">중복 탐지 · 제거</div>
+        <div class="code-body"><span class="cm"># 중복 행 탐지</span>
+df<span class="at">.duplicated</span>()                          <span class="cm"># True/False Series</span>
+df<span class="at">.duplicated</span>()<span class="at">.sum</span>()                   <span class="cm"># 중복 행 수</span>
+df[df<span class="at">.duplicated</span>()]                      <span class="cm"># 중복 행 조회</span>
+df<span class="at">.duplicated</span>(subset=[<span class="st">'id'</span>])             <span class="cm"># 특정 컬럼 기준</span>
+df<span class="at">.duplicated</span>(keep=<span class="st">'last'</span>)              <span class="cm"># 마지막 항목 유지</span>
+
+<span class="cm"># 중복 제거</span>
+df<span class="at">.drop_duplicates</span>()                     <span class="cm"># 중복 행 제거 (첫 행 유지)</span>
+df<span class="at">.drop_duplicates</span>(subset=[<span class="st">'id'</span>])        <span class="cm"># 특정 컬럼 기준</span>
+df<span class="at">.drop_duplicates</span>(keep=<span class="st">'last'</span>)         <span class="cm"># 마지막 값 유지</span>
+df<span class="at">.drop_duplicates</span>(keep=<span class="nm">False</span>)          <span class="cm"># 중복 모두 제거</span></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 데이터 타입 ═══════════════════════ -->
+    <section id="s-dtype" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#f0e8ff">🔄</div>
+        <div>
+          <h2>데이터 타입 변환</h2>
+          <div class="sec-sub">astype · to_numeric · to_datetime · pd.Categorical</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="code-wrap" style="margin:0">
+          <div class="code-label">타입 변환</div>
+          <div class="code-body"><span class="cm"># 타입 확인</span>
+df<span class="at">.dtypes</span>
+df[<span class="st">'col'</span>]<span class="at">.dtype</span>
+
+<span class="cm"># astype 변환</span>
+df[<span class="st">'col'</span>]<span class="at">.astype</span>(<span class="cls">int</span>)
+df[<span class="st">'col'</span>]<span class="at">.astype</span>(<span class="cls">float</span>)
+df[<span class="st">'col'</span>]<span class="at">.astype</span>(<span class="cls">str</span>)
+df[<span class="st">'col'</span>]<span class="at">.astype</span>(<span class="st">'category'</span>)
+
+<span class="cm"># 숫자 변환 (오류 처리)</span>
+pd<span class="at">.to_numeric</span>(df[<span class="st">'col'</span>])
+pd<span class="at">.to_numeric</span>(df[<span class="st">'col'</span>],
+    errors=<span class="st">'coerce'</span>)    <span class="cm"># 실패→NaN</span>
+pd<span class="at">.to_numeric</span>(df[<span class="st">'col'</span>],
+    errors=<span class="st">'ignore'</span>)    <span class="cm"># 실패→원본</span></div>
+        </div>
+        <div class="code-wrap" style="margin:0">
+          <div class="code-label">타입별 주요 dtype</div>
+          <div class="code-body"><span class="cm"># dtype 종류</span>
+<span class="cm"># int64, int32      정수</span>
+<span class="cm"># float64           실수</span>
+<span class="cm"># object            문자열</span>
+<span class="cm"># bool              불리언</span>
+<span class="cm"># datetime64[ns]    날짜시간</span>
+<span class="cm"># category          범주형</span>
+
+<span class="cm"># dtype 일괄 변환</span>
+df = df<span class="at">.astype</span>({
+    <span class="st">'age'</span>: <span class="cls">int</span>,
+    <span class="st">'score'</span>: <span class="cls">float</span>,
+    <span class="st">'gender'</span>: <span class="st">'category'</span>
+})
+
+<span class="cm"># 수치형 컬럼만 선택</span>
+num_cols = df<span class="at">.select_dtypes</span>(
+    include=<span class="st">'number'</span>)<span class="at">.columns</span>
+cat_cols = df<span class="at">.select_dtypes</span>(
+    include=<span class="st">'object'</span>)<span class="at">.columns</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 문자열 처리 ═══════════════════════ -->
+    <section id="s-string" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e0faf8">🔤</div>
+        <div>
+          <h2>문자열 처리 (str accessor)</h2>
+          <div class="sec-sub">str.contains · str.replace · str.split · str.extract</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">str accessor 메서드 모음</div>
+        <div class="code-body"><span class="cm"># ── 검색/판별 ─────────────────────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.str.contains</span>(<span class="st">'패턴'</span>)           <span class="cm"># 포함 여부 (True/False)</span>
+df[<span class="st">'col'</span>]<span class="at">.str.contains</span>(<span class="st">'패턴'</span>, na=<span class="nm">False</span>) <span class="cm"># NaN → False 처리</span>
+df[<span class="st">'col'</span>]<span class="at">.str.startswith</span>(<span class="st">'김'</span>)
+df[<span class="st">'col'</span>]<span class="at">.str.endswith</span>(<span class="st">'님'</span>)
+df[<span class="st">'col'</span>]<span class="at">.str.match</span>(<span class="st">'^[0-9]+'</span>)           <span class="cm"># 정규식 매치</span>
+
+<span class="cm"># ── 변환 ─────────────────────────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.str.replace</span>(<span class="st">'old'</span>, <span class="st">'new'</span>)
+df[<span class="st">'col'</span>]<span class="at">.str.strip</span>()                    <span class="cm"># 양쪽 공백 제거</span>
+df[<span class="st">'col'</span>]<span class="at">.str.lstrip</span>() / <span class="at">.rstrip</span>()
+df[<span class="st">'col'</span>]<span class="at">.str.upper</span>() / <span class="at">.lower</span>()
+df[<span class="st">'col'</span>]<span class="at">.str.title</span>()                    <span class="cm"># 첫글자 대문자</span>
+
+<span class="cm"># ── 추출/분리 ─────────────────────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.str</span>[<span class="nm">0</span>:<span class="nm">3</span>]                      <span class="cm"># 슬라이싱</span>
+df[<span class="st">'col'</span>]<span class="at">.str.len</span>()                     <span class="cm"># 문자열 길이</span>
+df[<span class="st">'col'</span>]<span class="at">.str.split</span>(<span class="st">'-'</span>)               <span class="cm"># 분리 (list)</span>
+df[<span class="st">'col'</span>]<span class="at">.str.split</span>(<span class="st">'-'</span>, expand=<span class="nm">True</span>)  <span class="cm"># 컬럼으로 분리</span>
+df[<span class="st">'col'</span>]<span class="at">.str.extract</span>(<span class="st">r'(\d+)'</span>)        <span class="cm"># 정규식 추출</span>
+
+<span class="cm"># ── 실전 예시 ─────────────────────────────────────────────</span>
+<span class="cm"># 이메일에서 도메인 추출</span>
+df[<span class="st">'domain'</span>] = df[<span class="st">'email'</span>]<span class="at">.str.split</span>(<span class="st">'@'</span>)<span class="at">.str</span>[<span class="nm">1</span>]
+<span class="cm"># 전화번호 숫자만 추출</span>
+df[<span class="st">'phone'</span>] = df[<span class="st">'phone'</span>]<span class="at">.str.replace</span>(<span class="st">r'[^0-9]'</span>, <span class="st">''</span>, regex=<span class="nm">True</span>)</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 날짜/시간 ═══════════════════════ -->
+    <section id="s-datetime" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#fff8e0">📅</div>
+        <div>
+          <h2>날짜 · 시간 처리</h2>
+          <div class="sec-sub">to_datetime · dt accessor · timedelta</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">datetime 변환 · 추출 · 계산</div>
+        <div class="code-body"><span class="cm"># ── 변환 ─────────────────────────────────────────────────</span>
+df[<span class="st">'date'</span>] = pd<span class="at">.to_datetime</span>(df[<span class="st">'date'</span>])
+df[<span class="st">'date'</span>] = pd<span class="at">.to_datetime</span>(df[<span class="st">'date'</span>], format=<span class="st">'%Y/%m/%d'</span>)
+df[<span class="st">'date'</span>] = pd<span class="at">.to_datetime</span>(df[<span class="st">'date'</span>], errors=<span class="st">'coerce'</span>)
+
+<span class="cm"># ── dt accessor로 추출 ────────────────────────────────────</span>
+df[<span class="st">'year'</span>]    = df[<span class="st">'date'</span>]<span class="at">.dt.year</span>
+df[<span class="st">'month'</span>]   = df[<span class="st">'date'</span>]<span class="at">.dt.month</span>
+df[<span class="st">'day'</span>]     = df[<span class="st">'date'</span>]<span class="at">.dt.day</span>
+df[<span class="st">'hour'</span>]    = df[<span class="st">'date'</span>]<span class="at">.dt.hour</span>
+df[<span class="st">'weekday'</span>] = df[<span class="st">'date'</span>]<span class="at">.dt.dayofweek</span> <span class="cm"># 0=월 ~ 6=일</span>
+df[<span class="st">'quarter'</span>] = df[<span class="st">'date'</span>]<span class="at">.dt.quarter</span>
+df[<span class="st">'week'</span>]    = df[<span class="st">'date'</span>]<span class="at">.dt.isocalendar</span>()<span class="at">.week</span>
+df[<span class="st">'doy'</span>]     = df[<span class="st">'date'</span>]<span class="at">.dt.dayofyear</span>  <span class="cm"># 연중 날짜</span>
+
+<span class="cm"># ── 날짜 계산 ─────────────────────────────────────────────</span>
+df[<span class="st">'diff'</span>] = df[<span class="st">'end'</span>] - df[<span class="st">'start'</span>]        <span class="cm"># timedelta</span>
+df[<span class="st">'days'</span>] = (df[<span class="st">'end'</span>] - df[<span class="st">'start'</span>])<span class="at">.dt.days</span> <span class="cm"># 일수</span>
+df[<span class="st">'age'</span>]  = (pd<span class="at">.Timestamp</span>(<span class="st">'today'</span>) - df[<span class="st">'birth'</span>])<span class="at">.dt.days</span> // <span class="nm">365</span>
+
+<span class="cm"># 날짜 필터링</span>
+df[df[<span class="st">'date'</span>] >= <span class="st">'2023-01-01'</span>]
+df[df[<span class="st">'date'</span>]<span class="at">.dt.month</span> == <span class="nm">3</span>]  <span class="cm"># 3월만</span>
+df[df[<span class="st">'date'</span>]<span class="at">.dt.dayofweek</span> < <span class="nm">5</span>] <span class="cm"># 평일만</span></div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>dt 속성</th><th>의미</th><th>범위/비고</th></tr></thead>
+          <tbody>
+            <tr><td><code>.dt.year</code></td><td>연도</td><td>예: 2024</td></tr>
+            <tr><td><code>.dt.month</code></td><td>월</td><td>1 ~ 12</td></tr>
+            <tr><td><code>.dt.day</code></td><td>일</td><td>1 ~ 31</td></tr>
+            <tr><td><code>.dt.hour / .minute</code></td><td>시/분</td><td>0 ~ 23 / 0 ~ 59</td></tr>
+            <tr><td><code>.dt.dayofweek</code></td><td>요일</td><td>0=월요일, 6=일요일</td></tr>
+            <tr><td><code>.dt.quarter</code></td><td>분기</td><td>1 ~ 4</td></tr>
+            <tr><td><code>.dt.days_in_month</code></td><td>해당 월 일수</td><td>28~31</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 컬럼 연산 ═══════════════════════ -->
+    <section id="s-col" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e8f8e0">⚙️</div>
+        <div>
+          <h2>컬럼 연산 · 파생변수</h2>
+          <div class="sec-sub">apply · map · cut · qcut · assign · rename</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">컬럼 생성 · 변환 · apply · cut</div>
+        <div class="code-body"><span class="cm"># ── 컬럼 생성/수정 ───────────────────────────────────────</span>
+df[<span class="st">'new'</span>] = df[<span class="st">'a'</span>] + df[<span class="st">'b'</span>]               <span class="cm"># 산술 연산</span>
+df[<span class="st">'bmi'</span>] = df[<span class="st">'weight'</span>] / (df[<span class="st">'height'</span>]/<span class="nm">100</span>)**<span class="nm">2</span>
+
+<span class="cm"># assign (체이닝 가능)</span>
+df = df<span class="at">.assign</span>(bmi=df[<span class="st">'w'</span>]/(df[<span class="st">'h'</span>]/<span class="nm">100</span>)**<span class="nm">2</span>,
+               grade=<span class="st">'A'</span>)
+
+<span class="cm"># 컬럼 이름 변경</span>
+df<span class="at">.rename</span>(columns={<span class="st">'old'</span>: <span class="st">'new'</span>}, inplace=<span class="nm">True</span>)
+df<span class="at">.columns</span> = [<span class="st">'a'</span>, <span class="st">'b'</span>, <span class="st">'c'</span>]
+
+<span class="cm"># ── apply ─────────────────────────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.apply</span>(<span class="kw">lambda</span> x: x * <span class="nm">2</span>)
+df[<span class="st">'col'</span>]<span class="at">.apply</span>(<span class="kw">lambda</span> x: <span class="st">'합격'</span> <span class="kw">if</span> x >= <span class="nm">60</span> <span class="kw">else</span> <span class="st">'불합격'</span>)
+df<span class="at">.apply</span>(np<span class="at">.mean</span>, axis=<span class="nm">0</span>)   <span class="cm"># 컬럼별 평균</span>
+df<span class="at">.apply</span>(np<span class="at">.sum</span>,  axis=<span class="nm">1</span>)   <span class="cm"># 행별 합계</span>
+
+<span class="cm"># ── map (Series 원소별 변환) ──────────────────────────────</span>
+df[<span class="st">'col'</span>]<span class="at">.map</span>({<span class="st">'M'</span>:<span class="nm">1</span>, <span class="st">'F'</span>:<span class="nm">0</span>})  <span class="cm"># dict로 치환</span>
+df[<span class="st">'col'</span>]<span class="at">.map</span>(<span class="kw">lambda</span> x: x**<span class="nm">2</span>)
+
+<span class="cm"># ── np.where (조건 분기) ──────────────────────────────────</span>
+df[<span class="st">'pass'</span>] = np<span class="at">.where</span>(df[<span class="st">'score'</span>] >= <span class="nm">60</span>, <span class="st">'합격'</span>, <span class="st">'불합격'</span>)
+
+<span class="cm"># ── cut / qcut (구간 분할) ────────────────────────────────</span>
+<span class="cm"># cut: 균등 구간</span>
+df[<span class="st">'grade'</span>] = pd<span class="at">.cut</span>(df[<span class="st">'score'</span>],
+    bins=[<span class="nm">0</span>,<span class="nm">60</span>,<span class="nm">70</span>,<span class="nm">80</span>,<span class="nm">90</span>,<span class="nm">100</span>],
+    labels=[<span class="st">'F'</span>,<span class="st">'D'</span>,<span class="st">'C'</span>,<span class="st">'B'</span>,<span class="st">'A'</span>],
+    right=<span class="nm">True</span>)           <span class="cm"># 우측 포함 여부</span>
+
+<span class="cm"># qcut: 동일 개수 구간</span>
+df[<span class="st">'quartile'</span>] = pd<span class="at">.qcut</span>(df[<span class="st">'score'</span>], q=<span class="nm">4</span>,
+    labels=[<span class="st">'Q1'</span>,<span class="st">'Q2'</span>,<span class="st">'Q3'</span>,<span class="st">'Q4'</span>])</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 그룹화/집계 ═══════════════════════ -->
+    <section id="s-group" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#ffe0f0">📊</div>
+        <div>
+          <h2>그룹화 · 집계</h2>
+          <div class="sec-sub">groupby · agg · pivot_table · crosstab · transform</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">groupby · agg · pivot_table</div>
+        <div class="code-body"><span class="cm"># ── 기본 groupby ─────────────────────────────────────────</span>
+df<span class="at">.groupby</span>(<span class="st">'group'</span>)[<span class="st">'col'</span>]<span class="at">.mean</span>()
+df<span class="at">.groupby</span>(<span class="st">'group'</span>)[<span class="st">'col'</span>]<span class="at">.agg</span>([<span class="st">'mean'</span>,<span class="st">'std'</span>,<span class="st">'count'</span>])
+df<span class="at">.groupby</span>([<span class="st">'g1'</span>,<span class="st">'g2'</span>])<span class="at">.agg</span>({<span class="st">'col1'</span>:<span class="st">'sum'</span>, <span class="st">'col2'</span>:<span class="st">'mean'</span>})
+
+<span class="cm"># agg 함수 목록</span>
+<span class="cm"># 'mean','sum','min','max','count','std','var',</span>
+<span class="cm"># 'first','last','nunique','size','median'</span>
+
+<span class="cm"># 커스텀 agg</span>
+df<span class="at">.groupby</span>(<span class="st">'g'</span>)[<span class="st">'col'</span>]<span class="at">.agg</span>(<span class="kw">lambda</span> x: x<span class="at">.max</span>() - x<span class="at">.min</span>())
+
+<span class="cm"># ── reset_index (인덱스를 컬럼으로) ─────────────────────</span>
+result = df<span class="at">.groupby</span>(<span class="st">'g'</span>)[<span class="st">'col'</span>]<span class="at">.mean</span>()<span class="at">.reset_index</span>()
+
+<span class="cm"># ── transform (원본 길이 유지, 행별 집계값) ───────────────</span>
+df[<span class="st">'group_mean'</span>] = df<span class="at">.groupby</span>(<span class="st">'g'</span>)[<span class="st">'col'</span>]<span class="at">.transform</span>(<span class="st">'mean'</span>)
+df[<span class="st">'rank'</span>]       = df<span class="at">.groupby</span>(<span class="st">'g'</span>)[<span class="st">'col'</span>]<span class="at">.rank</span>(ascending=<span class="nm">False</span>)
+
+<span class="cm"># ── pivot_table ───────────────────────────────────────────</span>
+pt = df<span class="at">.pivot_table</span>(
+    values=<span class="st">'score'</span>,
+    index=<span class="st">'gender'</span>,
+    columns=<span class="st">'grade'</span>,
+    aggfunc=<span class="st">'mean'</span>,
+    fill_value=<span class="nm">0</span>
+)
+
+<span class="cm"># ── crosstab (빈도표) ─────────────────────────────────────</span>
+pd<span class="at">.crosstab</span>(df[<span class="st">'gender'</span>], df[<span class="st">'grade'</span>])
+pd<span class="at">.crosstab</span>(df[<span class="st">'g'</span>], df[<span class="st">'c'</span>], normalize=<span class="st">'index'</span>) <span class="cm"># 행 비율</span></div>
+      </div>
+
+      <div class="hl" style="border-color:var(--g8)">
+        🔑 <b>groupby 자주 출제 패턴:</b> 그룹별 상위 N개 추출 → <code>groupby().apply(lambda x: x.nlargest(N, 'col'))</code><br>
+        그룹별 누적합 → <code>groupby()['col'].cumsum()</code>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 데이터 결합 ═══════════════════════ -->
+    <section id="s-merge" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e8f8e0">🔗</div>
+        <div>
+          <h2>데이터 결합</h2>
+          <div class="sec-sub">merge · concat · join</div>
+        </div>
+      </div>
+
+      <div class="diag-wrap">
+        <div class="diag-title">merge how 종류</div>
+        <svg viewBox="0 0 660 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:660px;">
+          <rect width="660" height="120" fill="#f4f7f4" rx="10"/>
+
+          <!-- inner -->
+          <circle cx="100" cy="60" r="35" fill="#1a7a3c" opacity="0.25" stroke="#1a7a3c" stroke-width="1.5"/>
+          <circle cx="122" cy="60" r="35" fill="#1a7a3c" opacity="0.25" stroke="#1a7a3c" stroke-width="1.5"/>
+          <text x="111" y="55" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#1a7a3c">inner</text>
+          <text x="111" y="68" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#1a7a3c">교집합</text>
+
+          <!-- left -->
+          <circle cx="215" cy="60" r="35" fill="#0e6b8a" opacity="0.4" stroke="#0e6b8a" stroke-width="1.5"/>
+          <circle cx="237" cy="60" r="35" fill="#0e6b8a" opacity="0.15" stroke="#0e6b8a" stroke-width="1.5"/>
+          <text x="222" y="55" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#0e6b8a">left</text>
+          <text x="222" y="68" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#0e6b8a">왼쪽 전체</text>
+
+          <!-- right -->
+          <circle cx="345" cy="60" r="35" fill="#b84b00" opacity="0.15" stroke="#b84b00" stroke-width="1.5"/>
+          <circle cx="367" cy="60" r="35" fill="#b84b00" opacity="0.4" stroke="#b84b00" stroke-width="1.5"/>
+          <text x="360" y="55" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#b84b00">right</text>
+          <text x="360" y="68" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#b84b00">오른쪽 전체</text>
+
+          <!-- outer -->
+          <circle cx="475" cy="60" r="35" fill="#6b3fa0" opacity="0.3" stroke="#6b3fa0" stroke-width="1.5"/>
+          <circle cx="497" cy="60" r="35" fill="#6b3fa0" opacity="0.3" stroke="#6b3fa0" stroke-width="1.5"/>
+          <text x="486" y="55" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#6b3fa0">outer</text>
+          <text x="486" y="68" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#6b3fa0">합집합</text>
+
+          <!-- cross -->
+          <rect x="555" y="30" width="85" height="60" rx="8" fill="#1a4a7a" opacity="0.15" stroke="#1a4a7a" stroke-width="1.5"/>
+          <text x="597" y="58" text-anchor="middle" font-family="Noto Sans KR" font-size="11" font-weight="700" fill="#1a4a7a">cross</text>
+          <text x="597" y="71" text-anchor="middle" font-family="Noto Sans KR" font-size="9" fill="#1a4a7a">카테시안</text>
+        </svg>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">merge · concat · join</div>
+        <div class="code-body"><span class="cm"># ── merge (SQL join) ──────────────────────────────────────</span>
+pd<span class="at">.merge</span>(df1, df2, on=<span class="st">'key'</span>)                  <span class="cm"># inner join</span>
+pd<span class="at">.merge</span>(df1, df2, on=<span class="st">'key'</span>, how=<span class="st">'left'</span>)    <span class="cm"># left join</span>
+pd<span class="at">.merge</span>(df1, df2, on=<span class="st">'key'</span>, how=<span class="st">'outer'</span>)   <span class="cm"># full outer</span>
+pd<span class="at">.merge</span>(df1, df2,
+    left_on=<span class="st">'id1'</span>, right_on=<span class="st">'id2'</span>)           <span class="cm"># 키가 다를 때</span>
+pd<span class="at">.merge</span>(df1, df2, on=[<span class="st">'k1'</span>,<span class="st">'k2'</span>])          <span class="cm"># 복수 키</span>
+pd<span class="at">.merge</span>(df1, df2, on=<span class="st">'k'</span>,
+    suffixes=(<span class="st">'_x'</span>, <span class="st">'_y'</span>))                  <span class="cm"># 중복 컬럼 접미사</span>
+
+<span class="cm"># ── concat (행/열 연결) ───────────────────────────────────</span>
+pd<span class="at">.concat</span>([df1, df2])               <span class="cm"># 행 방향 (위아래)</span>
+pd<span class="at">.concat</span>([df1, df2], axis=<span class="nm">1</span>)       <span class="cm"># 열 방향 (좌우)</span>
+pd<span class="at">.concat</span>([df1, df2], ignore_index=<span class="nm">True</span>) <span class="cm"># 인덱스 재설정</span>
+
+<span class="cm"># ── 인덱스 조작 ───────────────────────────────────────────</span>
+df<span class="at">.set_index</span>(<span class="st">'id'</span>)               <span class="cm"># 컬럼을 인덱스로</span>
+df<span class="at">.reset_index</span>()                  <span class="cm"># 인덱스를 컬럼으로</span>
+df<span class="at">.reset_index</span>(drop=<span class="nm">True</span>)        <span class="cm"># 인덱스 버리고 리셋</span></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 정렬 ═══════════════════════ -->
+    <section id="s-sort" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#ddeeff">🔢</div>
+        <div>
+          <h2>정렬 · 순위 · 상하위 추출</h2>
+          <div class="sec-sub">sort_values · rank · nlargest · nsmallest</div>
+        </div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-label">정렬 · 순위 패턴</div>
+        <div class="code-body"><span class="cm"># ── 정렬 ─────────────────────────────────────────────────</span>
+df<span class="at">.sort_values</span>(<span class="st">'col'</span>)                            <span class="cm"># 오름차순</span>
+df<span class="at">.sort_values</span>(<span class="st">'col'</span>, ascending=<span class="nm">False</span>)          <span class="cm"># 내림차순</span>
+df<span class="at">.sort_values</span>([<span class="st">'c1'</span>,<span class="st">'c2'</span>],
+    ascending=[<span class="nm">True</span>,<span class="nm">False</span>])                      <span class="cm"># 복수 컬럼</span>
+df<span class="at">.sort_values</span>(<span class="st">'col'</span>, na_position=<span class="st">'last'</span>)       <span class="cm"># NaN 뒤로</span>
+df<span class="at">.sort_index</span>()                                  <span class="cm"># 인덱스 기준</span>
+
+<span class="cm"># ── 상/하위 N개 추출 ──────────────────────────────────────</span>
+df<span class="at">.nlargest</span>(<span class="nm">5</span>, <span class="st">'score'</span>)   <span class="cm"># 상위 5개</span>
+df<span class="at">.nsmallest</span>(<span class="nm">5</span>, <span class="st">'score'</span>) <span class="cm"># 하위 5개</span>
+df[<span class="st">'score'</span>]<span class="at">.nlargest</span>(<span class="nm">3</span>)  <span class="cm"># Series 상위 3</span>
+
+<span class="cm"># ── 순위 ─────────────────────────────────────────────────</span>
+df[<span class="st">'rank'</span>] = df[<span class="st">'score'</span>]<span class="at">.rank</span>(ascending=<span class="nm">False</span>)  <span class="cm"># 내림차순 순위</span>
+df[<span class="st">'rank'</span>] = df[<span class="st">'score'</span>]<span class="at">.rank</span>(method=<span class="st">'dense'</span>)  <span class="cm"># dense: 공동순위</span>
+<span class="cm"># method: 'average'(기본),'min','max','dense','first'</span></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 인코딩 ═══════════════════════ -->
+    <section id="s-encode" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#f0e8ff">🏷️</div>
+        <div>
+          <h2>인코딩</h2>
+          <div class="sec-sub">LabelEncoder · get_dummies · OrdinalEncoder</div>
+        </div>
+      </div>
+
+      <div class="diag-wrap">
+        <div class="diag-title">인코딩 방법 비교</div>
+        <svg viewBox="0 0 660 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:660px;">
+          <rect width="660" height="130" fill="#f4f7f4" rx="10"/>
+
+          <!-- Label -->
+          <rect x="20" y="20" width="190" height="90" rx="9" fill="white" stroke="#6b3fa0" stroke-width="1.5"/>
+          <rect x="20" y="20" width="190" height="28" rx="9" fill="#6b3fa0"/>
+          <rect x="20" y="36" width="190" height="12" fill="#6b3fa0"/>
+          <text x="115" y="37" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="white">Label Encoding</text>
+          <text x="115" y="58" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#333">A→0, B→1, C→2</text>
+          <text x="115" y="74" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#333">순서 없는 범주형에 부적합</text>
+          <text x="115" y="90" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#6b3fa0">트리 계열 모델에 적합</text>
+          <text x="115" y="104" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#6b3fa0">LabelEncoder().fit_transform</text>
+
+          <!-- One-hot -->
+          <rect x="235" y="20" width="200" height="90" rx="9" fill="white" stroke="#0e6b8a" stroke-width="1.5"/>
+          <rect x="235" y="20" width="200" height="28" rx="9" fill="#0e6b8a"/>
+          <rect x="235" y="36" width="200" height="12" fill="#0e6b8a"/>
+          <text x="335" y="37" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="white">One-Hot Encoding</text>
+          <text x="335" y="58" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#333">A→[1,0,0] B→[0,1,0]</text>
+          <text x="335" y="74" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#333">컬럼 수 = 카테고리 수</text>
+          <text x="335" y="90" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#0e6b8a">선형 모델에 적합</text>
+          <text x="335" y="104" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#0e6b8a">pd.get_dummies(drop_first)</text>
+
+          <!-- Ordinal -->
+          <rect x="455" y="20" width="190" height="90" rx="9" fill="white" stroke="#1a7a3c" stroke-width="1.5"/>
+          <rect x="455" y="20" width="190" height="28" rx="9" fill="#1a7a3c"/>
+          <rect x="455" y="36" width="190" height="12" fill="#1a7a3c"/>
+          <text x="550" y="37" text-anchor="middle" font-family="Syne" font-size="12" font-weight="700" fill="white">Ordinal Encoding</text>
+          <text x="550" y="58" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#333">하→0, 중→1, 상→2</text>
+          <text x="550" y="74" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#333">순서 있는 범주형</text>
+          <text x="550" y="90" text-anchor="middle" font-family="Noto Sans KR" font-size="10" fill="#1a7a3c">등급, 학년 등</text>
+          <text x="550" y="104" text-anchor="middle" font-family="Fira Code" font-size="9" fill="#1a7a3c">OrdinalEncoder(categories)</text>
+        </svg>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">인코딩 코드 패턴</div>
+        <div class="code-body"><span class="cm"># ── Label Encoding ───────────────────────────────────────</span>
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> LabelEncoder
+
+le = <span class="cls">LabelEncoder</span>()
+df[<span class="st">'col_enc'</span>] = le<span class="at">.fit_transform</span>(df[<span class="st">'col'</span>])
+<span class="kw">print</span>(le<span class="at">.classes_</span>)         <span class="cm"># 클래스 목록</span>
+le<span class="at">.inverse_transform</span>([<span class="nm">0</span>,<span class="nm">1</span>]) <span class="cm"># 역변환</span>
+
+<span class="cm"># ── One-Hot Encoding ─────────────────────────────────────</span>
+dummies = pd<span class="at">.get_dummies</span>(df[<span class="st">'col'</span>])
+dummies = pd<span class="at">.get_dummies</span>(df[<span class="st">'col'</span>], drop_first=<span class="nm">True</span>) <span class="cm"># 다중공선성 방지</span>
+dummies = pd<span class="at">.get_dummies</span>(df[<span class="st">'col'</span>], prefix=<span class="st">'cat'</span>)   <span class="cm"># 접두사</span>
+df = pd<span class="at">.get_dummies</span>(df, columns=[<span class="st">'c1'</span>,<span class="st">'c2'</span>])         <span class="cm"># 여러 컬럼</span>
+df = pd<span class="at">.get_dummies</span>(df, columns=[<span class="st">'c1'</span>], dtype=<span class="cls">int</span>)   <span class="cm"># int 타입</span>
+
+<span class="cm"># ── Ordinal Encoding ─────────────────────────────────────</span>
+order_map = {<span class="st">'하'</span>: <span class="nm">0</span>, <span class="st">'중'</span>: <span class="nm">1</span>, <span class="st">'상'</span>: <span class="nm">2</span>}
+df[<span class="st">'grade_enc'</span>] = df[<span class="st">'grade'</span>]<span class="at">.map</span>(order_map)</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 스케일링 ═══════════════════════ -->
+    <section id="s-scale" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#ddeeff">⚖️</div>
+        <div>
+          <h2>스케일링 (정규화)</h2>
+          <div class="sec-sub">MinMaxScaler · StandardScaler · RobustScaler</div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>방법</th><th>공식</th><th>범위</th><th>특징</th><th>사용 시점</th></tr></thead>
+          <tbody>
+            <tr class="r-green"><td><b>Min-Max 정규화</b></td><td><code>(x−min)/(max−min)</code></td><td>0 ~ 1</td><td>이상치에 민감</td><td>KNN, 신경망</td></tr>
+            <tr class="r-blue"><td><b>표준화 (Z-score)</b></td><td><code>(x−μ)/σ</code></td><td>제한 없음</td><td>이상치 영향 적음</td><td>회귀, SVM, PCA</td></tr>
+            <tr class="r-org"><td><b>Robust 스케일링</b></td><td><code>(x−median)/IQR</code></td><td>제한 없음</td><td>이상치에 강건</td><td>이상치 많을 때</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">스케일링 코드</div>
+        <div class="code-body"><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> MinMaxScaler, StandardScaler, RobustScaler
+
+<span class="cm"># ── 단일 컬럼 (numpy로 직접) ─────────────────────────────</span>
+<span class="cm"># Min-Max</span>
+df[<span class="st">'minmax'</span>] = (df[<span class="st">'col'</span>] - df[<span class="st">'col'</span>]<span class="at">.min</span>()) / (df[<span class="st">'col'</span>]<span class="at">.max</span>() - df[<span class="st">'col'</span>]<span class="at">.min</span>())
+<span class="cm"># 표준화</span>
+df[<span class="st">'std'</span>]    = (df[<span class="st">'col'</span>] - df[<span class="st">'col'</span>]<span class="at">.mean</span>()) / df[<span class="st">'col'</span>]<span class="at">.std</span>()
+
+<span class="cm"># ── sklearn (★ 시험 자주 출제) ───────────────────────────</span>
+scaler = <span class="cls">MinMaxScaler</span>()
+df_scaled = scaler<span class="at">.fit_transform</span>(df[[<span class="st">'col'</span>]])       <span class="cm"># numpy array 반환</span>
+
+<span class="cm"># DataFrame으로 변환</span>
+cols = [<span class="st">'age'</span>, <span class="st">'salary'</span>, <span class="st">'score'</span>]
+scaler = <span class="cls">StandardScaler</span>()
+df[cols] = scaler<span class="at">.fit_transform</span>(df[cols])
+
+<span class="cm"># 훈련/테스트 분리 후 스케일링 (★ 중요)</span>
+scaler = <span class="cls">MinMaxScaler</span>()
+X_train_s = scaler<span class="at">.fit_transform</span>(X_train)   <span class="cm"># fit은 train에만!</span>
+X_test_s  = scaler<span class="at">.transform</span>(X_test)         <span class="cm"># test는 transform만</span>
+
+<span class="cm"># 역변환</span>
+original = scaler<span class="at">.inverse_transform</span>(scaled_data)</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ NumPy ═══════════════════════ -->
+    <section id="s-numpy" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#e0ffe8">🔢</div>
+        <div>
+          <h2>NumPy 핵심</h2>
+          <div class="sec-sub">array · 연산 · 조건 · 수학함수</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="code-wrap" style="margin:0">
+          <div class="code-label">배열 생성 · 조작</div>
+          <div class="code-body"><span class="cm"># 배열 생성</span>
+np<span class="at">.array</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>])
+np<span class="at">.zeros</span>((<span class="nm">3</span>,<span class="nm">4</span>))
+np<span class="at">.ones</span>((<span class="nm">3</span>,<span class="nm">4</span>))
+np<span class="at">.arange</span>(<span class="nm">0</span>,<span class="nm">10</span>,<span class="nm">2</span>)     <span class="cm"># 0,2,4,6,8</span>
+np<span class="at">.linspace</span>(<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">5</span>)   <span class="cm"># 5개 균등</span>
+
+<span class="cm"># 형태 변환</span>
+arr<span class="at">.reshape</span>(<span class="nm">3</span>,<span class="nm">4</span>)
+arr<span class="at">.flatten</span>()
+arr<span class="at">.T</span>                <span class="cm"># 전치</span>
+arr<span class="at">.shape</span>
+arr<span class="at">.ndim</span>
+arr<span class="at">.dtype</span>
+
+<span class="cm"># 조건 처리</span>
+np<span class="at">.where</span>(arr><span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">-1</span>)
+np<span class="at">.clip</span>(arr, <span class="nm">0</span>, <span class="nm">100</span>)</div>
+        </div>
+        <div class="code-wrap" style="margin:0">
+          <div class="code-label">수학 · 통계 함수</div>
+          <div class="code-body"><span class="cm"># 수학 함수</span>
+np<span class="at">.sqrt</span>(arr)
+np<span class="at">.log</span>(arr)        <span class="cm"># 자연로그</span>
+np<span class="at">.log2</span>(arr)
+np<span class="at">.log10</span>(arr)
+np<span class="at">.exp</span>(arr)
+np<span class="at">.abs</span>(arr)
+np<span class="at">.ceil</span>(arr)
+np<span class="at">.floor</span>(arr)
+np<span class="at">.round</span>(arr, <span class="nm">2</span>)
+
+<span class="cm"># 통계</span>
+np<span class="at">.mean</span>(arr)
+np<span class="at">.median</span>(arr)
+np<span class="at">.std</span>(arr)
+np<span class="at">.var</span>(arr)
+np<span class="at">.percentile</span>(arr, <span class="nm">25</span>)
+np<span class="at">.corrcoef</span>(x, y)
+np<span class="at">.dot</span>(A, B)         <span class="cm"># 행렬곱</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ 빠른 참조 ═══════════════════════ -->
+    <section id="s-quick" class="section-anchor">
+      <div class="sec-head">
+        <div class="sec-icon" style="background:#fff8e0">⚡</div>
+        <div>
+          <h2>빠른 참조 — 자주 출제 패턴</h2>
+          <div class="sec-sub">시험 직전 최종 체크리스트</div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>출제 유형</th><th>핵심 코드</th><th>중요도</th></tr></thead>
+          <tbody>
+            <tr class="r-green"><td><b>특정 조건 행의 컬럼값 구하기</b></td><td><code>df.loc[df['col']>값, '타겟'].mean()</code></td><td><span class="tag tag-must">★★★</span></td></tr>
+            <tr class="r-green"><td><b>결측치 비율 구하기</b></td><td><code>df.isnull().mean() * 100</code></td><td><span class="tag tag-must">★★★</span></td></tr>
+            <tr class="r-green"><td><b>IQR 이상치 제거 후 평균</b></td><td><code>Q1, Q3, IQR → clip 또는 boolean filter</code></td><td><span class="tag tag-must">★★★</span></td></tr>
+            <tr class="r-blue"><td><b>그룹별 집계 후 특정값 추출</b></td><td><code>groupby().agg().reset_index()</code></td><td><span class="tag tag-must">★★★</span></td></tr>
+            <tr class="r-blue"><td><b>두 DataFrame 병합 후 집계</b></td><td><code>pd.merge(df1, df2, on='key').groupby()</code></td><td><span class="tag tag-imp">★★☆</span></td></tr>
+            <tr class="r-blue"><td><b>파생변수 생성</b></td><td><code>df['new'] = df.apply(lambda ...) / np.where</code></td><td><span class="tag tag-imp">★★☆</span></td></tr>
+            <tr class="r-org"><td><b>날짜 변환 후 특정 월/요일 필터</b></td><td><code>pd.to_datetime → dt.month / dt.dayofweek</code></td><td><span class="tag tag-imp">★★☆</span></td></tr>
+            <tr class="r-org"><td><b>문자열 처리 후 집계</b></td><td><code>str.contains / str.extract → groupby</code></td><td><span class="tag tag-imp">★★☆</span></td></tr>
+            <tr class="r-purp"><td><b>구간 분할 후 빈도</b></td><td><code>pd.cut() → value_counts()</code></td><td><span class="tag tag-new">★☆☆</span></td></tr>
+            <tr class="r-purp"><td><b>원하는 컬럼 선택/삭제</b></td><td><code>df[cols] / df.drop(columns=[...])</code></td><td><span class="tag tag-must">★★★</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">🏆 시험 단골 코드 패턴 (완전 정복)</div>
+        <div class="code-body"><span class="cm"># 패턴 1: 결측치 처리 후 통계</span>
+answer = df[<span class="st">'score'</span>]<span class="at">.fillna</span>(df[<span class="st">'score'</span>]<span class="at">.median</span>())<span class="at">.mean</span>()
+<span class="kw">print</span>(<span class="fn">round</span>(answer, <span class="nm">2</span>))
+
+<span class="cm"># 패턴 2: 조건 필터 + 집계</span>
+answer = df[df[<span class="st">'age'</span>] >= <span class="nm">40</span>][<span class="st">'salary'</span>]<span class="at">.mean</span>()
+<span class="kw">print</span>(<span class="fn">round</span>(answer, <span class="nm">2</span>))
+
+<span class="cm"># 패턴 3: IQR 이상치 제거 후 평균</span>
+Q1, Q3 = df[<span class="st">'col'</span>]<span class="at">.quantile</span>([<span class="nm">0.25</span>, <span class="nm">0.75</span>])
+IQR = Q3 - Q1
+df_c = df[(df[<span class="st">'col'</span>] >= Q1-<span class="nm">1.5</span>*IQR) & (df[<span class="st">'col'</span>] <= Q3+<span class="nm">1.5</span>*IQR)]
+<span class="kw">print</span>(<span class="fn">round</span>(df_c[<span class="st">'col'</span>]<span class="at">.mean</span>(), <span class="nm">2</span>))
+
+<span class="cm"># 패턴 4: groupby 후 최댓값 그룹 찾기</span>
+result = df<span class="at">.groupby</span>(<span class="st">'group'</span>)[<span class="st">'col'</span>]<span class="at">.mean</span>()
+<span class="kw">print</span>(result<span class="at">.idxmax</span>())  <span class="cm"># 평균 가장 큰 그룹명</span>
+<span class="kw">print</span>(result<span class="at">.idxmin</span>())  <span class="cm"># 평균 가장 작은 그룹명</span>
+
+<span class="cm"># 패턴 5: 두 조건 동시 만족 행 수</span>
+cond = (df[<span class="st">'A'</span>] > <span class="nm">50</span>) & (df[<span class="st">'B'</span>] == <span class="st">'Y'</span>)
+<span class="kw">print</span>(cond<span class="at">.sum</span>())
+
+<span class="cm"># 패턴 6: 문자열 → 파생변수 → 집계</span>
+df[<span class="st">'region'</span>] = df[<span class="st">'address'</span>]<span class="at">.str.split</span>()<span class="at">.str</span>[<span class="nm">0</span>]
+<span class="kw">print</span>(df<span class="at">.groupby</span>(<span class="st">'region'</span>)[<span class="st">'sales'</span>]<span class="at">.sum</span>()<span class="at">.idxmax</span>())
+
+<span class="cm"># 패턴 7: 날짜 처리 → 기간 계산</span>
+df[<span class="st">'start'</span>] = pd<span class="at">.to_datetime</span>(df[<span class="st">'start'</span>])
+df[<span class="st">'end'</span>]   = pd<span class="at">.to_datetime</span>(df[<span class="st">'end'</span>])
+df[<span class="st">'days'</span>]  = (df[<span class="st">'end'</span>] - df[<span class="st">'start'</span>])<span class="at">.dt.days</span>
+<span class="kw">print</span>(<span class="fn">round</span>(df[<span class="st">'days'</span>]<span class="at">.mean</span>(), <span class="nm">2</span>))
+
+<span class="cm"># 패턴 8: merge 후 새 컬럼 집계</span>
+df_merged = pd<span class="at">.merge</span>(df1, df2, on=<span class="st">'id'</span>, how=<span class="st">'left'</span>)
+<span class="kw">print</span>(<span class="fn">round</span>(df_merged[<span class="st">'amount'</span>]<span class="at">.sum</span>(), <span class="nm">2</span>))
+
+<span class="cm"># 패턴 9: 상위 N% 해당 행 필터</span>
+top10 = df[<span class="st">'score'</span>]<span class="at">.quantile</span>(<span class="nm">0.9</span>)
+<span class="kw">print</span>(df[df[<span class="st">'score'</span>] >= top10][<span class="st">'name'</span>]<span class="at">.count</span>())
+
+<span class="cm"># 패턴 10: 표준화 후 특정값 추출</span>
+df[<span class="st">'z'</span>] = (df[<span class="st">'col'</span>] - df[<span class="st">'col'</span>]<span class="at">.mean</span>()) / df[<span class="st">'col'</span>]<span class="at">.std</span>()
+<span class="kw">print</span>(<span class="fn">round</span>(df[<span class="st">'z'</span>]<span class="at">.max</span>(), <span class="nm">2</span>))</div>
+      </div>
+
+      <div class="hl" style="border-color:var(--g3);background:#fff4ee">
+        🚨 <b>시험 주의사항</b><br>
+        • <code>inplace=True</code> vs 재할당(<code>df = df.xxx()</code>) — 둘 다 동작하지만 일관성 유지<br>
+        • <code>fillna()</code> 후 반드시 변수 재할당 (inplace 없으면 원본 변경 안 됨)<br>
+        • 최종 답 출력: <code>print(round(answer, 2))</code> 소수점 자리수 확인<br>
+        • <code>mode()[0]</code> → mode는 Series 반환이므로 [0] 필수<br>
+        • <code>quantile([0.25, 0.75])</code> → 튜플 언패킹으로 Q1, Q3 동시 추출 가능
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div style="margin-top:32px;padding:16px 20px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);text-align:center;">
+      <p style="font-size:12px;color:var(--muted);">빅데이터분석기사 작업형1 데이터 전처리 참조 | pandas · numpy · sklearn.preprocessing</p>
+    </div>
+  </main>
+</div>
+
+<script>
+// 스크롤 스파이
+const sections = document.querySelectorAll('section[id]');
+const links    = document.querySelectorAll('.sidebar a[href^="#"]');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.sidebar a[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.25, rootMargin: '0px 0px -60% 0px' });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

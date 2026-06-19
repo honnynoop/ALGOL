@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pandas DataFrame 핵심 메서드 정리</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+<style>
+:root{
+  --bg:#F7F3EC;
+  --paper:#FFFDF9;
+  --paper-2:#FBF6EE;
+  --ink:#26211C;
+  --muted:#6E655A;
+  --faint:#A89C8C;
+  --line:#E5DCCD;
+  --green:#1F6E5C;
+  --green-soft:#E4F0EB;
+  --amber:#C2703D;
+  --amber-soft:#F6E7D9;
+  --code-bg:#211D18;
+  --out-bg:#2A2620;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(38,33,28,.04),0 8px 28px -16px rgba(38,33,28,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Pretendard",system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.72;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--green);color:#fff}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:264px minmax(0,1fr);gap:0;max-width:1240px;margin:0 auto}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:34px 22px 40px;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,var(--paper-2),var(--bg));
+}
+.sidebar .brand{font-family:"Spectral",serif;font-weight:700;font-size:1.18rem;letter-spacing:-.01em;line-height:1.3}
+.sidebar .brand .dot{color:var(--green)}
+.sidebar .sub{font-size:.74rem;color:var(--faint);margin-top:6px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.toc{margin-top:26px;list-style:none}
+.toc .grp{font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--amber);margin:18px 0 7px;padding-left:2px}
+.toc a{
+  display:block;text-decoration:none;color:var(--muted);
+  font-size:.86rem;padding:5px 10px;border-radius:8px;
+  border-left:2px solid transparent;transition:.15s;
+}
+.toc a code{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:inherit}
+.toc a:hover{color:var(--ink);background:var(--paper)}
+.toc a.active{color:var(--green);background:var(--green-soft);border-left-color:var(--green);font-weight:600}
+
+/* ---------- main ---------- */
+main{padding:0 0 120px}
+.hero{
+  padding:64px 56px 46px;
+  background:
+     radial-gradient(120% 140% at 88% -10%, var(--green-soft) 0%, transparent 46%),
+     radial-gradient(120% 120% at -8% 8%, var(--amber-soft) 0%, transparent 42%);
+  border-bottom:1px solid var(--line);
+}
+.hero .eyebrow{font-family:"JetBrains Mono",monospace;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);font-weight:600}
+.hero h1{font-family:"Spectral",serif;font-weight:700;font-size:2.85rem;line-height:1.1;letter-spacing:-.02em;margin:14px 0 0}
+.hero h1 em{font-style:italic;color:var(--green)}
+.hero p{margin-top:18px;max-width:60ch;color:var(--muted);font-size:1.02rem}
+.hero .chips{margin-top:24px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:.74rem;background:var(--paper);border:1px solid var(--line);color:var(--green);padding:5px 11px;border-radius:99px;font-weight:500}
+
+.wrap{padding:0 56px}
+section{padding-top:54px;scroll-margin-top:20px}
+.sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:8px}
+.sec-head .no{font-family:"JetBrains Mono",monospace;font-size:.9rem;color:var(--amber);font-weight:600}
+.sec-head h2{font-family:"Spectral",serif;font-weight:600;font-size:1.7rem;letter-spacing:-.01em}
+.sec-intro{color:var(--muted);margin:14px 0 4px;max-width:72ch}
+
+/* method card */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:26px;overflow:hidden}
+.card-head{padding:18px 24px 14px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.card-head .mname{font-family:"JetBrains Mono",monospace;font-size:1.08rem;font-weight:600;color:var(--green)}
+.card-head .mtag{font-family:"JetBrains Mono",monospace;font-size:.7rem;color:#fff;background:var(--amber);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle;font-weight:500}
+.card-head .mdesc{margin-top:6px;color:var(--muted);font-size:.94rem}
+.card-body{padding:20px 24px 24px}
+.sig{font-family:"JetBrains Mono",monospace;font-size:.82rem;color:var(--muted);background:var(--paper-2);border:1px dashed var(--line);border-radius:8px;padding:9px 13px;margin-bottom:16px;overflow-x:auto}
+.sig b{color:var(--amber);font-weight:600}
+
+/* code + output */
+.lbl{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 0 6px}
+pre{margin:0;border-radius:10px;overflow-x:auto}
+pre code.hljs{font-family:"JetBrains Mono",monospace;font-size:.82rem;line-height:1.62;padding:16px 18px;background:var(--code-bg)}
+.out{margin-top:14px}
+.out pre{background:var(--out-bg);border-radius:10px;border-left:3px solid var(--green)}
+.out pre code{display:block;font-family:"JetBrains Mono",monospace;font-size:.78rem;line-height:1.6;color:#D9D2C4;padding:14px 18px;white-space:pre;overflow-x:auto}
+.out .out-tag{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.68rem;color:var(--green);font-weight:600;letter-spacing:.05em;margin-bottom:6px}
+
+.note{margin-top:16px;padding:12px 16px;border-radius:10px;background:var(--green-soft);border-left:3px solid var(--green);font-size:.9rem;color:#1f5448}
+.note b{color:var(--green)}
+.warn{background:var(--amber-soft);border-left-color:var(--amber);color:#8a4a1e}
+.warn b{color:var(--amber)}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;margin-top:24px;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;background:var(--paper)}
+th,td{text-align:left;padding:11px 15px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--ink);color:var(--paper);font-weight:600;font-size:.82rem;letter-spacing:.02em}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:nth-child(even){background:var(--paper-2)}
+td code,th code{font-family:"JetBrains Mono",monospace;font-size:.82rem;background:var(--green-soft);color:var(--green);padding:1px 6px;border-radius:5px}
+td .k{color:var(--amber);font-weight:600}
+
+footer{margin-top:80px;padding:30px 56px;border-top:1px solid var(--line);color:var(--faint);font-size:.82rem}
+footer code{font-family:"JetBrains Mono",monospace}
+
+@media(max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .hero{padding:46px 24px 34px}
+  .hero h1{font-size:2.1rem}
+  .wrap{padding:0 22px}
+  section{padding-top:44px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">pandas<span class="dot">.</span>DataFrame</div>
+    <div class="sub">핵심 메서드 레퍼런스</div>
+    <nav>
+      <ul class="toc">
+        <li><a href="#data">공통 예제 데이터</a></li>
+        <li class="grp">그룹 연산</li>
+        <li><a href="#groupby"><code>groupby</code></a></li>
+        <li><a href="#agg"><code>agg</code></a></li>
+        <li><a href="#transform"><code>transform</code></a></li>
+        <li><a href="#gapply"><code>groupby.apply</code></a></li>
+        <li class="grp">요소 · 조건 변환</li>
+        <li><a href="#apply"><code>apply</code></a></li>
+        <li><a href="#map"><code>map</code></a></li>
+        <li><a href="#where"><code>where / mask</code></a></li>
+        <li><a href="#query"><code>query</code></a></li>
+        <li><a href="#assign"><code>assign</code></a></li>
+        <li class="grp">재구조화 · 결합</li>
+        <li><a href="#pivot"><code>pivot_table</code></a></li>
+        <li><a href="#melt"><code>melt</code></a></li>
+        <li><a href="#crosstab"><code>crosstab</code></a></li>
+        <li><a href="#merge"><code>merge / concat</code></a></li>
+        <li class="grp">정렬 · 집계 · 정제</li>
+        <li><a href="#sort"><code>sort_values</code></a></li>
+        <li><a href="#vc"><code>value_counts</code></a></li>
+        <li><a href="#filter"><code>filter</code></a></li>
+        <li><a href="#na"><code>fillna / dropna</code></a></li>
+        <li class="grp">한눈에 정리</li>
+        <li><a href="#cheat">비교 치트시트</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Python · Data Analysis · 빅분기 / ADP</div>
+      <h1>pandas DataFrame<br><em>핵심 메서드</em> 정리</h1>
+      <p>실무와 자격증에서 가장 많이 쓰이는 18개 메서드를 <strong>그룹 연산 · 조건 변환 · 재구조화 · 정제</strong> 네 갈래로 묶어 정리했습니다. 모든 출력값은 pandas 3.0에서 직접 실행해 검증했습니다.</p>
+      <div class="chips">
+        <span class="chip">groupby</span><span class="chip">agg</span><span class="chip">transform</span>
+        <span class="chip">apply</span><span class="chip">map</span><span class="chip">where</span>
+        <span class="chip">query</span><span class="chip">pivot_table</span><span class="chip">melt</span>
+        <span class="chip">merge</span>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+    <!-- 공통 데이터 -->
+    <section id="data">
+      <div class="sec-head"><span class="no">00</span><h2>공통 예제 데이터</h2></div>
+      <p class="sec-intro">아래 모든 예제는 이 한 개의 사원 DataFrame <code>df</code>를 기준으로 합니다.</p>
+      <div class="card">
+        <div class="card-body">
+          <p class="lbl">코드</p>
+<pre><code class="language-python">import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    'dept'  : ['영업', '영업', '개발', '개발', '개발', '인사'],
+    'name'  : ['김철수', '이영희', '박민수', '최지우', '정대현', '한소희'],
+    'salary': [3200, 3500, 4100, 3900, 4500, 3000],
+    'age'   : [28, 34, 41, 29, 38, 26],
+    'grade' : ['B', 'A', 'A', 'C', 'A', 'B'],
+})</code></pre>
+          <div class="out">
+            <span class="out-tag">df</span>
+<pre><code>  dept name  salary  age grade
+0   영업  김철수    3200   28     B
+1   영업  이영희    3500   34     A
+2   개발  박민수    4100   41     A
+3   개발  최지우    3900   29     C
+4   개발  정대현    4500   38     A
+5   인사  한소희    3000   26     B</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 그룹 연산 ===================== -->
+    <section id="groupby">
+      <div class="sec-head"><span class="no">01</span><h2>그룹 연산 — groupby</h2></div>
+      <p class="sec-intro">키를 기준으로 행을 묶어 그룹별 집계를 수행합니다. <b>분할(split) → 적용(apply) → 결합(combine)</b> 패턴이 핵심입니다.</p>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.groupby()</span><span class="mtag">그룹화</span>
+          <div class="mdesc">하나 이상의 키로 행을 묶어 GroupBy 객체를 만들고, 집계 함수를 이어 붙입니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.groupby(<b>by</b>, as_index=True, sort=True, dropna=True)</div>
+          <p class="lbl">코드 — 부서별 평균 급여</p>
+<pre><code class="language-python">df.groupby('dept')['salary'].mean()</code></pre>
+          <div class="out"><span class="out-tag">결과 (Series)</span>
+<pre><code>dept
+개발    4166.666667
+영업    3350.000000
+인사    3000.000000
+Name: salary, dtype: float64</code></pre></div>
+          <div class="note"><b>tip</b> · <code>as_index=False</code>를 주면 그룹 키가 인덱스가 아닌 일반 열로 남아 이후 처리가 편합니다. 여러 키는 <code>groupby(['dept','grade'])</code>처럼 리스트로 전달합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="agg">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.agg()</span><span class="mtag">다중 집계</span>
+          <div class="mdesc">하나의 그룹에 여러 통계량을 한 번에 적용하고, 결과 열 이름까지 지정합니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">grouped.agg(<b>새이름</b>=(<b>'열'</b>, <b>'함수'</b>), ...)  # named aggregation</div>
+          <p class="lbl">코드 — 부서별 여러 통계 한 번에</p>
+<pre><code class="language-python">df.groupby('dept').agg(
+    avg_salary=('salary', 'mean'),
+    max_age   =('age',    'max'),
+    count     =('name',   'count'),
+)</code></pre>
+          <div class="out"><span class="out-tag">결과 (DataFrame)</span>
+<pre><code>       avg_salary  max_age  count
+dept
+개발    4166.666667       41      3
+영업    3350.000000       34      2
+인사    3000.000000       26      1</code></pre></div>
+          <div class="note"><b>tip</b> · 함수는 문자열(<code>'mean'</code>), 함수 객체(<code>np.std</code>), 리스트(<code>['min','max']</code>)로도 줄 수 있습니다. <code>named aggregation</code> 방식이 열 이름을 깔끔하게 관리하는 가장 권장되는 형태입니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="transform">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.transform()</span><span class="mtag">길이 보존</span>
+          <div class="mdesc">그룹 집계 결과를 <strong>원본과 같은 행 개수</strong>로 되돌려 줍니다. 그룹 평균을 각 행 옆에 붙일 때 필수.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">grouped.transform(<b>func</b>)  →  입력과 동일한 shape 반환</div>
+          <p class="lbl">코드 — 각 행에 소속 부서 평균 급여 붙이기</p>
+<pre><code class="language-python">df['dept_avg'] = df.groupby('dept')['salary'].transform('mean')
+df[['dept', 'salary', 'dept_avg']]</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  dept  salary     dept_avg
+0   영업    3200  3350.000000
+1   영업    3500  3350.000000
+2   개발    4100  4166.666667
+3   개발    3900  4166.666667
+4   개발    4500  4166.666667
+5   인사    3000  3000.000000</code></pre></div>
+          <div class="note warn"><b>agg vs transform</b> · <code>agg</code>는 그룹당 1행으로 <em>축소</em>하고, <code>transform</code>은 행 수를 <em>유지</em>합니다. "그룹 평균 대비 편차" 같은 파생 변수를 만들 때는 transform.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gapply">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.groupby().apply()</span><span class="mtag">유연한 그룹 처리</span>
+          <div class="mdesc">그룹마다 임의의 함수(작은 DataFrame을 받는)를 적용합니다. "그룹별 상위 N개" 같은 작업에 강력.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">grouped.apply(<b>func</b>, include_groups=False)</div>
+          <p class="lbl">코드 — 부서별 최고 연봉자 1명씩</p>
+<pre><code class="language-python">df.groupby('dept', group_keys=False).apply(
+    lambda g: g.nlargest(1, 'salary'),
+    include_groups=False
+)</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  name  salary  age grade
+4  정대현    4500   38     A
+1  이영희    3500   34     A
+5  한소희    3000   26     B</code></pre></div>
+          <div class="note warn"><b>성능 주의</b> · <code>apply</code>는 가장 유연하지만 가장 느립니다. 단순 집계는 <code>agg</code>, 길이 유지 변환은 <code>transform</code>을 먼저 고려하고, 정말 그룹 단위 복합 로직이 필요할 때만 apply를 쓰세요. (pandas 2.2+ 에서는 그룹 키 중복 경고를 피하려 <code>include_groups=False</code> 권장)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 요소·조건 변환 ===================== -->
+    <section id="apply">
+      <div class="sec-head"><span class="no">02</span><h2>요소 · 조건 변환</h2></div>
+      <p class="sec-intro">행/열 단위 함수 적용, 값 매핑, 조건부 치환 등 데이터를 변형하는 핵심 도구들입니다.</p>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.apply()</span><span class="mtag">행/열 함수</span>
+          <div class="mdesc"><code>axis=0</code>이면 열 단위(각 열이 Series), <code>axis=1</code>이면 행 단위(각 행이 Series)로 함수를 적용합니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.apply(<b>func</b>, axis=0)   # axis=0: 열별 · axis=1: 행별</div>
+          <p class="lbl">코드 ① — 열별 (max − min) 범위</p>
+<pre><code class="language-python">df[['salary', 'age']].apply(lambda s: s.max() - s.min())</code></pre>
+          <div class="out"><span class="out-tag">결과 (axis=0)</span>
+<pre><code>salary    1500
+age         15
+dtype: int64</code></pre></div>
+          <p class="lbl" style="margin-top:18px">코드 ② — 행별 등급에 따른 보너스 계산</p>
+<pre><code class="language-python">df['bonus'] = df.apply(
+    lambda r: r['salary'] * 0.1 if r['grade'] == 'A' else r['salary'] * 0.05,
+    axis=1
+)
+df[['name', 'grade', 'salary', 'bonus']]</code></pre>
+          <div class="out"><span class="out-tag">결과 (axis=1)</span>
+<pre><code>  name grade  salary  bonus
+0  김철수     B    3200  160.0
+1  이영희     A    3500  350.0
+2  박민수     A    4100  410.0
+3  최지우     C    3900  195.0
+4  정대현     A    4500  450.0
+5  한소희     B    3000  150.0</code></pre></div>
+          <div class="note"><b>tip</b> · 여러 열 조건을 조합하는 행 단위 로직엔 <code>axis=1</code>이 직관적이지만, 가능하면 벡터 연산(<code>np.where</code>, 산술 연산)으로 바꾸는 편이 훨씬 빠릅니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="map">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">.map() / DataFrame.map()</span><span class="mtag">요소별 매핑</span>
+          <div class="mdesc"><code>Series.map</code>은 값을 사전/함수로 1:1 치환하고, <code>DataFrame.map</code>은 모든 셀에 함수를 적용합니다. (구 <code>applymap</code> 대체)</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">s.map(<b>dict 또는 func</b>)   ·   df.map(<b>func</b>)  # 모든 요소</div>
+          <p class="lbl">코드 ① — 등급 코드 → 한글 라벨 (사전 매핑)</p>
+<pre><code class="language-python">df['grade'].map({'A': '우수', 'B': '보통', 'C': '미흡'})</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>0    보통
+1    우수
+2    우수
+3    미흡
+4    우수
+5    보통
+Name: grade, dtype: str</code></pre></div>
+          <p class="lbl" style="margin-top:18px">코드 ② — 모든 셀에 함수 적용 (DataFrame.map)</p>
+<pre><code class="language-python">df[['salary', 'age']].map(lambda x: x * 2).head(3)</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>   salary  age
+0    6400   56
+1    7000   68
+2    8200   82</code></pre></div>
+          <div class="note warn"><b>구분</b> · <code>map</code>(Series, 요소별) · <code>apply</code>(Series는 요소별 / DataFrame은 행·열별) · <code>DataFrame.map</code>(모든 셀). pandas 2.1부터 <code>applymap</code>은 <code>DataFrame.map</code>으로 이름이 바뀌었습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="where">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">.where() / .mask()</span><span class="mtag">조건부 치환</span>
+          <div class="mdesc">조건에 따라 값을 유지하거나 다른 값으로 바꿉니다. 둘은 정확히 반대로 동작합니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">s.where(<b>cond</b>, other)  # cond=False인 곳 치환   ·   s.mask(<b>cond</b>, other)  # cond=True인 곳 치환</div>
+          <p class="lbl">코드 ① — where: 3500 미만이면 0으로</p>
+<pre><code class="language-python">df['salary'].where(df['salary'] >= 3500, other=0)</code></pre>
+          <div class="out"><span class="out-tag">결과 (조건 False → 치환)</span>
+<pre><code>0       0
+1    3500
+2    4100
+3    3900
+4    4500
+5       0
+Name: salary, dtype: int64</code></pre></div>
+          <p class="lbl" style="margin-top:18px">코드 ② — mask: 3500 이상이면 9999로</p>
+<pre><code class="language-python">df['salary'].mask(df['salary'] >= 3500, other=9999)</code></pre>
+          <div class="out"><span class="out-tag">결과 (조건 True → 치환)</span>
+<pre><code>0    3200
+1    9999
+2    9999
+3    9999
+4    9999
+5    3000
+Name: salary, dtype: int64</code></pre></div>
+          <div class="note"><b>기억법</b> · <code>where</code> = "조건이 참인 곳은 그대로 둔다(where it's true, keep)". <code>mask</code> = "조건이 참인 곳을 가린다(mask = 덮어쓴다)".</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="query">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.query()</span><span class="mtag">문자열 필터</span>
+          <div class="mdesc">불리언 인덱싱을 SQL 비슷한 문자열 식으로 표현합니다. 가독성이 좋고 <code>@변수</code>로 외부 값도 참조 가능.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.query(<b>"조건식 문자열"</b>)   # and/or, ==, in, @변수 사용 가능</div>
+          <p class="lbl">코드 — 급여 3500 이상 & 나이 40 미만</p>
+<pre><code class="language-python">df.query("salary >= 3500 and age < 40")</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  dept name  salary  age grade
+1   영업  이영희    3500   34     A
+3   개발  최지우    3900   29     C
+4   개발  정대현    4500   38     A</code></pre></div>
+          <div class="note"><b>tip</b> · <code>df.query("dept in ['영업','인사']")</code>, <code>df.query("salary > @threshold")</code>처럼 멤버십·외부 변수도 가능합니다. 같은 결과를 불리언 인덱싱 <code>df[(df.salary>=3500)&(df.age&lt;40)]</code>로도 쓸 수 있습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="assign">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.assign()</span><span class="mtag">파생 열 · 체이닝</span>
+          <div class="mdesc">원본을 바꾸지 않고 새 열을 추가한 <strong>복사본</strong>을 반환합니다. 메서드 체이닝에 최적.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.assign(<b>새열=값 또는 lambda d: 식</b>)  →  새 DataFrame 반환</div>
+          <p class="lbl">코드 — 지방소득세(3.3%) 열 추가</p>
+<pre><code class="language-python">df.assign(tax=lambda d: (d['salary'] * 0.033).round(1))[['name', 'salary', 'tax']]</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  name  salary    tax
+0  김철수    3200  105.6
+1  이영희    3500  115.5
+2  박민수    4100  135.3
+3  최지우    3900  128.7
+4  정대현    4500  148.5
+5  한소희    3000   99.0</code></pre></div>
+          <div class="note"><b>tip</b> · <code>lambda d: ...</code>를 쓰면 같은 호출 안에서 막 만든 열을 곧바로 참조할 수 있어 <code>df.assign(a=...).assign(b=...)</code> 식의 깔끔한 파이프라인을 만들 수 있습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 재구조화 ===================== -->
+    <section id="pivot">
+      <div class="sec-head"><span class="no">03</span><h2>재구조화 · 결합</h2></div>
+      <p class="sec-intro">긴 형태(long)와 넓은 형태(wide)를 오가고, 여러 테이블을 합치는 도구들입니다.</p>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">pd.pivot_table()</span><span class="mtag">교차 집계</span>
+          <div class="mdesc">행·열 두 축으로 값을 집계하는 엑셀 피벗테이블. 중복 키가 있어도 <code>aggfunc</code>로 요약합니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">pd.pivot_table(df, <b>values</b>, <b>index</b>, <b>columns</b>, <b>aggfunc</b>='mean')</div>
+          <p class="lbl">코드 — 부서 × 등급별 평균 급여</p>
+<pre><code class="language-python">pd.pivot_table(df, values='salary', index='dept', columns='grade', aggfunc='mean')</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>grade       A       B       C
+dept
+개발     4300.0     NaN  3900.0
+영업     3500.0  3200.0     NaN
+인사        NaN  3000.0     NaN</code></pre></div>
+          <div class="note"><b>pivot vs pivot_table</b> · <code>pivot</code>은 단순 reshape라 중복 인덱스가 있으면 에러가 납니다. 집계가 필요하면 항상 <code>pivot_table</code>. 결측 칸은 <code>fill_value=0</code>으로 채울 수 있습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="melt">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.melt()</span><span class="mtag">wide → long</span>
+          <div class="mdesc">여러 열을 두 개의 열(변수명, 값)로 녹여 긴 형태(tidy data)로 바꿉니다. pivot의 역연산.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.melt(<b>id_vars</b>, value_vars, <b>var_name</b>, <b>value_name</b>)</div>
+          <p class="lbl">코드 — 과목 점수를 long 포맷으로</p>
+<pre><code class="language-python">wide = pd.DataFrame({'name': ['A', 'B'], 'kor': [90, 80], 'eng': [85, 95]})
+wide.melt(id_vars='name', var_name='subject', value_name='score')</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  name subject  score
+0    A     kor     90
+1    B     kor     80
+2    A     eng     85
+3    B     eng     95</code></pre></div>
+          <div class="note"><b>tip</b> · 머신러닝·시각화(seaborn 등)는 대부분 long 포맷을 선호합니다. <code>id_vars</code>는 그대로 유지할 식별 열, 나머지가 녹는 대상입니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="crosstab">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">pd.crosstab()</span><span class="mtag">빈도 교차표</span>
+          <div class="mdesc">두 범주형 변수의 교차 빈도(분할표)를 만듭니다. 카이제곱 검정 전처리로 자주 쓰입니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">pd.crosstab(<b>index</b>, <b>columns</b>, normalize=False, margins=False)</div>
+          <p class="lbl">코드 — 부서 × 등급 빈도</p>
+<pre><code class="language-python">pd.crosstab(df['dept'], df['grade'])</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>grade  A  B  C
+dept
+개발     2  0  1
+영업     1  1  0
+인사     0  1  0</code></pre></div>
+          <div class="note"><b>tip</b> · <code>normalize='index'</code>로 행 기준 비율, <code>margins=True</code>로 합계 행/열을 추가합니다. 빅분기/ADP 카이제곱 독립성 검정에서 <code>scipy.stats.chi2_contingency(pd.crosstab(...))</code> 형태로 자주 등장합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="merge">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">pd.merge() / pd.concat()</span><span class="mtag">테이블 결합</span>
+          <div class="mdesc"><code>merge</code>는 키 기준 SQL 조인, <code>concat</code>은 축 방향 단순 이어붙이기입니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.merge(other, <b>on</b>, <b>how</b>='inner'|'left'|'right'|'outer')</div>
+          <p class="lbl">코드 — 부서별 층 정보 left join</p>
+<pre><code class="language-python">floor = pd.DataFrame({'dept': ['영업', '개발', '인사'], 'floor': [3, 5, 2]})
+df.merge(floor, on='dept', how='left')[['name', 'dept', 'floor']].head(3)</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  name dept  floor
+0  김철수   영업      3
+1  이영희   영업      3
+2  박민수   개발      5</code></pre></div>
+          <div class="note"><b>merge vs concat</b> · <code>merge</code> = 공통 <em>키</em>로 가로 결합(조인). <code>concat([a, b])</code> = 행을 세로로, <code>concat([a, b], axis=1)</code> = 열을 가로로 단순 결합. 키 매칭이 필요 없으면 concat이 가볍습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 정렬·집계·정제 ===================== -->
+    <section id="sort">
+      <div class="sec-head"><span class="no">04</span><h2>정렬 · 집계 · 정제</h2></div>
+      <p class="sec-intro">정렬, 빈도 집계, 열 선택, 결측 처리 — 분석 전후로 늘 쓰는 기본기입니다.</p>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.sort_values()</span><span class="mtag">값 정렬</span>
+          <div class="mdesc">하나 이상의 열을 기준으로 정렬합니다. 키마다 오름/내림차순을 따로 지정할 수 있습니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.sort_values(<b>by</b>, ascending=True, na_position='last')</div>
+          <p class="lbl">코드 — 부서 오름차순, 급여 내림차순</p>
+<pre><code class="language-python">df.sort_values(['dept', 'salary'], ascending=[True, False])</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>  dept name  salary  age grade
+4   개발  정대현    4500   38     A
+2   개발  박민수    4100   41     A
+3   개발  최지우    3900   29     C
+1   영업  이영희    3500   34     A
+0   영업  김철수    3200   28     B
+5   인사  한소희    3000   26     B</code></pre></div>
+          <div class="note"><b>tip</b> · 인덱스 기준 정렬은 <code>sort_index()</code>. 상위 N개만 빠르게 뽑을 땐 정렬 대신 <code>df.nlargest(3, 'salary')</code> / <code>nsmallest</code>가 더 효율적입니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="vc">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">.value_counts()</span><span class="mtag">빈도 집계</span>
+          <div class="mdesc">고유값별 등장 횟수를 내림차순으로 셉니다. 범주형 변수 탐색의 1순위 도구.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">s.value_counts(normalize=False, sort=True, dropna=True)</div>
+          <p class="lbl">코드 — 부서별 인원수</p>
+<pre><code class="language-python">df['dept'].value_counts()</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>dept
+개발    3
+영업    2
+인사    1
+Name: count, dtype: int64</code></pre></div>
+          <div class="note"><b>tip</b> · <code>normalize=True</code>를 주면 횟수 대신 비율을 반환합니다. 구간별 분포가 필요하면 <code>pd.cut</code>으로 묶은 뒤 <code>value_counts(sort=False)</code>를 씁니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="filter">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">df.filter()</span><span class="mtag">라벨 선택</span>
+          <div class="mdesc">행/열을 <strong>이름 패턴</strong>으로 선택합니다. 값 조건 필터가 아니라 <em>라벨</em> 기준이라는 점이 중요.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.filter(<b>items</b>=, <b>like</b>=, <b>regex</b>=, axis=)</div>
+          <p class="lbl">코드 — 이름에 '2021'이 들어간 열만</p>
+<pre><code class="language-python">df2 = pd.DataFrame({'2021_sales': [1, 2], '2022_sales': [3, 4], '2021_cost': [5, 6]})
+df2.filter(like='2021')</code></pre>
+          <div class="out"><span class="out-tag">결과</span>
+<pre><code>   2021_sales  2021_cost
+0           1          5
+1           2          6</code></pre></div>
+          <div class="note warn"><b>주의</b> · <code>filter</code>는 데이터 값이 아니라 <em>인덱스/열 이름</em>에만 작동합니다. 값 조건으로 행을 거르려면 <code>query</code>나 불리언 인덱싱을 쓰세요. <code>regex='sales$'</code>처럼 정규식도 가능합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="na">
+      <div class="card">
+        <div class="card-head">
+          <span class="mname">.fillna() / .dropna()</span><span class="mtag">결측 처리</span>
+          <div class="mdesc">결측치(<code>NaN</code>)를 특정 값으로 채우거나, 결측이 있는 행/열을 제거합니다.</div>
+        </div>
+        <div class="card-body">
+          <div class="sig">df.fillna(<b>value</b>)   ·   df.dropna(axis=0, how='any', subset=)</div>
+          <p class="lbl">코드</p>
+<pre><code class="language-python">nadf = pd.DataFrame({'x': [1, np.nan, 3], 'y': [np.nan, 2, 3]})
+nadf.fillna(0)   # 결측을 0으로
+nadf.dropna()    # 결측 있는 행 제거</code></pre>
+          <div class="out"><span class="out-tag">fillna(0)</span>
+<pre><code>     x    y
+0  1.0  0.0
+1  0.0  2.0
+2  3.0  3.0</code></pre></div>
+          <div class="out"><span class="out-tag">dropna()</span>
+<pre><code>     x    y
+2  3.0  3.0</code></pre></div>
+          <div class="note"><b>tip</b> · 평균/중앙값 대치는 <code>df['x'].fillna(df['x'].mean())</code>. 특정 열에 결측이 있을 때만 행을 지우려면 <code>dropna(subset=['x'])</code>. 결측 위치 확인은 <code>df.isna().sum()</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 치트시트 ===================== -->
+    <section id="cheat">
+      <div class="sec-head"><span class="no">05</span><h2>한눈에 정리 — 비교 치트시트</h2></div>
+      <p class="sec-intro">헷갈리기 쉬운 메서드들의 차이를 한 표로 정리했습니다.</p>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>구분</th><th>메서드</th><th>입력 → 출력</th><th>언제 쓰나</th></tr>
+          </thead>
+          <tbody>
+            <tr><td rowspan="3"><span class="k">그룹 적용</span></td><td><code>agg</code></td><td>그룹 → <b>그룹당 1행</b> (축소)</td><td>부서별 평균·합계 등 요약 통계</td></tr>
+            <tr><td><code>transform</code></td><td>그룹 → <b>원본과 같은 행 수</b></td><td>그룹 평균을 각 행에 붙여 파생변수 생성</td></tr>
+            <tr><td><code>apply</code></td><td>그룹(작은 DataFrame) → 자유</td><td>그룹별 상위 N개 등 복합 로직 (느림)</td></tr>
+
+            <tr><td rowspan="3"><span class="k">요소 적용</span></td><td><code>Series.map</code></td><td>값 → 값 (1:1)</td><td>사전/함수로 코드 → 라벨 치환</td></tr>
+            <tr><td><code>Series.apply</code></td><td>값 → 값</td><td>요소별 사용자 함수 (map보다 유연)</td></tr>
+            <tr><td><code>DataFrame.map</code></td><td>모든 셀 → 셀</td><td>전체 셀에 동일 함수 (구 applymap)</td></tr>
+
+            <tr><td rowspan="2"><span class="k">조건 치환</span></td><td><code>where(cond)</code></td><td>cond <b>False</b>인 곳 치환</td><td>"조건 만족하는 값만 남기고 나머지 대체"</td></tr>
+            <tr><td><code>mask(cond)</code></td><td>cond <b>True</b>인 곳 치환</td><td>"조건 만족하는 값을 덮어쓰기"</td></tr>
+
+            <tr><td rowspan="2"><span class="k">행 선택</span></td><td><code>query("식")</code></td><td>값 조건 → 행 필터</td><td>가독성 좋은 복합 조건 필터링</td></tr>
+            <tr><td><code>filter(like=)</code></td><td><b>이름</b> 패턴 → 행/열 선택</td><td>열 이름 기준 선택 (값 무관)</td></tr>
+
+            <tr><td rowspan="2"><span class="k">재구조화</span></td><td><code>pivot_table</code></td><td>long → <b>wide</b> (집계)</td><td>행×열 교차 집계표</td></tr>
+            <tr><td><code>melt</code></td><td>wide → <b>long</b></td><td>여러 열을 변수/값 두 열로 녹이기</td></tr>
+
+            <tr><td rowspan="2"><span class="k">결합</span></td><td><code>merge</code></td><td><b>키</b> 기준 가로 결합</td><td>SQL JOIN — 공통 키로 테이블 합치기</td></tr>
+            <tr><td><code>concat</code></td><td>축 방향 이어붙이기</td><td>같은 구조 데이터를 위/옆으로 누적</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note" style="margin-top:26px">
+        <b>선택 가이드</b> · 그룹 요약이면 <code>agg</code> → 파생변수면 <code>transform</code> → 그래도 안 되면 <code>apply</code>.
+        조건 필터는 <code>query</code>, 조건 치환은 <code>where/mask</code>, 값 매핑은 <code>map</code>.
+        구조를 바꾸려면 <code>pivot_table↔melt</code>, 합치려면 <code>merge(키)/concat(축)</code>.
+        성능이 중요하면 <code>apply</code>·<code>axis=1</code>보다 벡터 연산을 먼저 떠올리세요.
+      </div>
+    </section>
+
+    </div><!-- /.wrap -->
+
+    <footer>
+      pandas 3.0.2 · numpy 2.4.4 환경에서 모든 출력값을 실행·검증함 ·
+      코드 폰트 <code>JetBrains Mono</code> · 본문 <code>Pretendard</code> · 제목 <code>Spectral</code>
+    </footer>
+  </main>
+</div>
+
+<script>
+  // syntax highlighting
+  document.querySelectorAll('pre code.language-python').forEach(el => hljs.highlightElement(el));
+
+  // scroll-spy
+  const links = [...document.querySelectorAll('.toc a')];
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const targets = [...map.keys()].map(id => document.getElementById(id)).filter(Boolean);
+
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('active'));
+        const active = map.get(e.target.id);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+
+  targets.forEach(t => spy.observe(t));
+</script>
+</body>
+</html>
